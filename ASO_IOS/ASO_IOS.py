@@ -6,31 +6,31 @@ import glob
 import time
 import json
 
-# from slicer.util import pip_install
+from slicer.util import pip_install
 
 
-# try :
-#     import vtk
-# except ImportError:
-#     pip_install('vtk')
+try :
+    import vtk
+except ImportError:
+    pip_install('vtk')
 
-# try :
-#     import numpy as np
-# except ImportError:
-#     pip_install('numpy')
-#     import numpy as np
+try :
+    import numpy as np
+except ImportError:
+    pip_install('numpy')
+    import numpy as np
 
 
 
-# try :
-#     import SimpleITK as sitk
-# except ImportError:
-#     pip_install('SimpleITK')
-#     import SimpleITK as sitk
+try :
+    import SimpleITK as sitk
+except ImportError:
+    pip_install('SimpleITK')
+    import SimpleITK as sitk
 
-import vtk
-import numpy as np
-import SimpleITK as sitk
+# import vtk
+# import numpy as np
+# import SimpleITK as sitk
 
 from vtk.util.numpy_support import vtk_to_numpy
 
@@ -755,20 +755,6 @@ if __name__ == "__main__":
 
     # }
 
-    
-    # args = {
-    #         "input": '/home/luciacev-admin/Desktop/data_cervical/T1_14_L_segmented.vtk',
-    #         "dir_models": '/home/luciacev-admin/Desktop/Data_allios_cli/Models',
-    #         "teeth": ['LL7','LL6','LL5','LL4','LL3','LL2','LL1','LR1','LR2','LR3','LR4','LR5','LR6','LR7'],
-    #         "lm_type": ["C"],
-    #         # "save_in_folder": sys.argv[4] == "true",
-    #         "output_dir": '/home/luciacev-admin/Desktop/data_cervical/test',
-            
-    #         "image_size": 224,
-    #         "blur_radius": 0,
-    #         "faces_per_pixel": 1,
-    #         "sphere_radius": 0.3,
 
-    #     }
 
     main(args)
