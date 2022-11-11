@@ -228,6 +228,11 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.LabelProgress.setText('Patient process : 0 /'+str(nb_scans))
             self.updateCheckbox()
 
+
+            if self.ui.lineEditOutputPath.text == '':
+                dir , spl = os.path.split(scan_folder)
+                self.ui.lineEditOutputPath.setText(os.path.join(dir,spl+'Or'))
+
     def SearchReference(self):
         ref_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder")
         if not ref_folder == '':
