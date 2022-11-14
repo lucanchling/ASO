@@ -1,6 +1,6 @@
 # Automatic Standerize Orientation
 
-Automatic Standerize Orientation (ASO) is an extension for 3D Slicer to perform automatic orient IOS and CBCT.
+Automatic Standerize Orientation (ASO) is an extension for 3D Slicer to perform automatic orientation either IOS or CBCT.
 
 ## ASO Modules
 ASO module provide a convenient user interfacer allowing to oriented different type of scans:
@@ -26,14 +26,14 @@ The input has to be IOS with his landmarks.
 The landmark identification can be automatically done using the [SlicerAutomatedDentalTools](https://github.com/DCBIA-OrthoLab/SlicerAutomatedDentalTools) extension.
 
 The input is folder containg IOS with the following extension:
-'''
+```
 .vtk
-'''
+```
 
 The folder need also landmarks with shortcut name of landamrk with the following extension:
-'''
+```
 .json
-'''
+```
  
 The IOS and Landmark files need to have in their name the patient's number and type of jaw (Upper or Lower).
 
@@ -53,7 +53,7 @@ We suggest using :
  - Lower jaw : LR6o, LR1o, LL6o, LL1o
 This selection applies when you use the `Suggest Landmark` button.
 
-# Acknowledgment
+# Acknowledgements
 Authors: Nathan Hutin (University of Michigan), Luc Anchling (University of Michigan), Juan Carlos Prieto (UNC), Lucia Cevidanes (UoM)
 
 
