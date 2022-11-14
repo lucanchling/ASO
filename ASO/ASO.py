@@ -267,10 +267,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def onPredictButton(self):
 
-
-
-
-
         self.process = self.ActualMeth.Process(self.ui.lineEditScanLmPath.text,self.ui.lineEditRefFolder.text,self.ui.lineEditOutputPath.text,self.ui.lineEditAddName.text,self.dicchckbox)
 
         if isinstance(self.process,str):
@@ -693,12 +689,18 @@ class Methode(ABC):
         pass
 
     @abstractmethod
-    def existsLandmark(self,pathfile):
+    def existsLandmark(self,pathfile : str):
+        """Look through the entire json file to check for existing landmarks.
+        Args:
+            pathfile (str): path
+
+        Return :
+        dict : exemple dic = {'O':True,'UL6':False,'UR1':False,...}
+        """
         pass
 
     @abstractmethod
     def SugestLandmark(self):
-
         pass
 
     def getcheckbox(self):
@@ -716,7 +718,8 @@ class Methode(ABC):
 
     def search(self,path,type):
         out=[]
-        a = glob.glob(path+'/*'+type)
+        path  = os.path.join(path,'*'+type)
+        a = glob.glob(path)
         for p in a: 
             if os.path.isfile(p):
                 out.append(p)
@@ -745,7 +748,8 @@ class IOS(Methode):
         return out
 
     def DownloadRef(self):
-        webbrowser.open('https://github.com/HUTIN1/SlicerAutomatedDentalTools/releases/download/untagged-a16b2657fd8938d33138/GOLD_file.zip')
+        webbrowser.open('https://github.com/HUTIN1/ASO/releases/tag/v1.0.0')
+
         
 
 
