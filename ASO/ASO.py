@@ -332,6 +332,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         else:
             self.ui.lineEditRefFolder.setText(ref_folder)
+            self.updateCheckbox()
+
 
     def ChosePathOutput(self):
         out_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder")
@@ -354,7 +356,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     
     def updateCheckbox(self):
-        status = self.ActualMeth.existsLandmark(self.ui.lineEditScanLmPath.text)
+        status = self.ActualMeth.existsLandmark(self.ui.lineEditScanLmPath.text,self.ui.lineEditRefFolder.text)
         for checkboxs,checkboxs2 in zip(self.dicchckbox.values(),self.dicchckbox2.values()):
             for checkbox, checkbox2 in zip(checkboxs,checkboxs2):
                 checkbox.setEnabled(status[checkbox.text])
@@ -544,7 +546,7 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
     def initCheckbox(self,methode,layout,tohide : qt.QLabel):
         tohide.setHidden(True)
         dic  = methode.DicLandmark()
-        status = methode.existsLandmark('')
+        status = methode.existsLandmark('','')
         dicchebox={}
         dicchebox2={}
         for type , tab in dic.items():
@@ -938,7 +940,7 @@ class Methode(ABC):
         pass
 
     @abstractmethod
-    def existsLandmark(self,pathfile : str):
+    def existsLandmark(self,pathfile : str,pathref : str):
         """Look through the entire json file to check for existing landmarks.
         Args:
             pathfile (str): path
@@ -1085,31 +1087,46 @@ class IOS(Methode):
 
 
 
-    def existsLandmark(self,folderpath):
+    def __listLandmarkInFolder(self,path : str):
+
+        paths = glob.glob(path+'/*json')
+        listlandmark = []
+        for path in paths:
+            with open(path) as f:
+                data = json.load(f)
+            
+            markups = data["markups"][0]["controlPoints"]
+        
+            
+            for markup in markups:
+                listlandmark.append(markup['label'])
+
+        listlandmark = list(set(listlandmark))
+        return listlandmark
+
+
+    def existsLandmark(self,folderpath,reference_folder):
         teeth = ['UL7','UL6','UL5','UL4','UL3','UL2','UL1','UR1','UR2','UR3','UR4','UR5','UR6','UR7','LL7','LL6','LL5','LL4','LL3','LL2','LL1','LR1','LR2','LR3','LR4','LR5','LR6','LR7']
         landmarks = ['CL','CB','R','RIP','OIP','O','DB','MB']
         dicLandmarkexists={}
-        path  = glob.glob(folderpath+'/*json')
-        if folderpath == '':
+        
+
+        if folderpath == '' or reference_folder=='':
             for tooth in teeth:
                 dicLandmarkexists[tooth] = False
             for landmark in landmarks:
                 dicLandmarkexists[landmark] = False
         else :
 
-            paths = glob.glob(folderpath+'/*json')
-            listlandmark = []
-            for path in paths:
-                with open(path) as f:
-                    data = json.load(f)
-                
-                markups = data["markups"][0]["controlPoints"]
-            
-                
-                for markup in markups:
-                    listlandmark.append(markup['label'])
-
-            listlandmark = set(listlandmark)
+            landmark_input = self.__listLandmarkInFolder(folderpath)
+            landmark_reference = self.__listLandmarkInFolder(reference_folder)
+            print(landmark_input,landmark_reference)
+            listlandmark =[]
+            for lm_input in landmark_input :
+                for lm_ref in landmark_reference:
+                    if lm_input == lm_ref:
+                        listlandmark.append(lm_input)
+                        landmark_reference.remove(lm_ref)
 
 
             dicLandmarkexists={}
@@ -1129,6 +1146,7 @@ class IOS(Methode):
                     dicLandmarkexists[landmark] = False 
 
         return dicLandmarkexists
+
 
     def SugestLandmark(self):
         return ['UR6','UR1','UL6','UL1','LR1','LR6','LL1','LL6','O']
@@ -1213,7 +1231,7 @@ class CBCT(Methode):
     def ListLandmark(self):
         return super().ListLandmark()
         
-    def existsLandmark(self,pathfile):
+    def existsLandmark(self,pathfile,pathref):
         return super().existsLandmark()
 
     def SugestLandmark(self):
