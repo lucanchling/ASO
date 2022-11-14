@@ -941,7 +941,7 @@ class Methode(ABC):
 
     @abstractmethod
     def existsLandmark(self,pathfile : str,pathref : str):
-        """Look through the entire json file to check for existing landmarks.
+        """return dictionnary. when the value of the landmark in dictionnary is true, the landmark is in input folder and in gold folder
         Args:
             pathfile (str): path
 
