@@ -23,8 +23,8 @@
     </string>
 
     <string>
-      <name>folder_gold</name>
-      <label>folder_gold</label>
+      <name>gold_folder</name>
+      <label>gold_folder</label>
       <index>1</index>
       <description>Folder with gold landmark</description>
     </string>
@@ -37,8 +37,8 @@
     </string>
 
     <string>
-      <name>add_infile</name>
-      <label>add_infile</label>
+      <name>add_inname</name>
+      <label>add_inname</label>
       <index>3</index>
       <description>Something to add in name of each file</description>
     </string>

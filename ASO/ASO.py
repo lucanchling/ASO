@@ -10,23 +10,6 @@ import webbrowser
 from abc import ABC, abstractmethod
 import json
 
-# import csv
-
-
-#region ========== FUNCTIONS ==========
-
-
-
-
-
-
-
-
-# "Dental" :  ['LL7','LL6','LL5','LL4','LL3','LL2','LL1','LR1','LR2','LR3','LR4','LR5','LR6','LR7','UL7','UL6','UL5','UL4','UL3','UL2','UL1','UR1','UR2','UR3','UR4','UR5','UR6','UR7'] ,
-
-# "Landmarks type" : ['CL','CB','O','DB','MB','R','RIP','OIP']
-
-
 
 
 
@@ -41,7 +24,7 @@ class ASO(ScriptedLoadableModule):
         self.parent.title = "ASO"  # TODO: make this more human readable by adding spaces
         self.parent.categories = ["Automated Dental Tools"]  # set categories (folders where the module shows up in the module selector)
         self.parent.dependencies = []  # TODO: add here list of module names that this module requires
-        self.parent.contributors = ["Maxime Gillot (UoM), Baptiste Baquero (UoM)"]  # TODO: replace with "Firstname Lastname (Organization)"
+        self.parent.contributors = ["Nathan Hutin (UoM), Luc Anchling (UoM)"]  # TODO: replace with "Firstname Lastname (Organization)"
         # TODO: update with short description of the module and a link to online module documentation
         self.parent.helpText = """
         This is an example of scripted loadable module bundled in an extension.
@@ -167,10 +150,21 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
       
 
-        #region ===== INPUTS =====
 
 
 
+
+        """
+            8b           d8                          88              88           88                         
+            `8b         d8'                          ""              88           88                         
+            `8b       d8'                                           88           88                         
+            `8b     d8'    ,adPPYYba,  8b,dPPYba,  88  ,adPPYYba,  88,dPPYba,   88   ,adPPYba,  ,adPPYba,  
+            `8b   d8'     ""     `Y8  88P'   "Y8  88  ""     `Y8  88P'    "8a  88  a8P_____88  I8[    ""  
+            `8b d8'      ,adPPPPP88  88          88  ,adPPPPP88  88       d8  88  8PP"""""""   `"Y8ba,   
+            `888'       88,    ,88  88          88  88,    ,88  88b,   ,a8"  88  "8b,   ,aa  aa    ]8I  
+            `8'        `"8bbdP"Y8  88          88  `"8bbdP"Y8  8Y"Ybbd8"'   88   `"Ybbd8"'  `"YbbdP"'  
+                                                                                                            
+        """
         self.MethodeDic={'IOS':IOS(self),'CBCT':CBCT(self)}
         self.ActualMeth= Methode
         self.nb_scan = 0
@@ -182,8 +176,60 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         exemple dic = {'teeth'=['A,....],'Type'=['O',...]}
         """
 
+        #use messletter to add big comment with univers as police
+
+
+
+
+
+
+
+
+
+
+        """
+                              
+                                            88               88           
+                                            88               ""    ,d     
+                                            88                     88     
+                                            88  8b,dPPYba,   88  MM88MMM  
+                                            88  88P'   `"8a  88    88     
+                                            88  88       88  88    88     
+                                            88  88       88  88    88,    
+                                            88  88       88  88    "Y888  
+                              
+        """
         self.initCheckbox(self.MethodeDic['IOS'],self.ui.LayoutLandmarkIOS,self.ui.tohideIOS)
         # self.initCheckbox(self.MethodeDic['CBCT'],self.ui.LayoutLandmarkCBCT,self.ui.tohideCBCT) a decommmente
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        """
+                                                                                       
+                        ,ad8888ba,                                                                           
+                        d8"'    `"8b                                                                   ,d     
+                        d8'                                                                             88     
+                        88              ,adPPYba,   8b,dPPYba,   8b,dPPYba,    ,adPPYba,   ,adPPYba,  MM88MMM  
+                        88             a8"     "8a  88P'   `"8a  88P'   `"8a  a8P_____88  a8"     ""    88     
+                        Y8,            8b       d8  88       88  88       88  8PP"""""""  8b            88     
+                        Y8a.    .a8P  "8a,   ,a8"  88       88  88       88  "8b,   ,aa  "8a,   ,aa    88,    
+                        `"Y8888Y"'    `"YbbdP"'   88       88  88       88   `"Ybbd8"'   `"Ybbd8"'    "Y888  
+                                                                                                            
+        """
 
         self.ui.ButtonSearchScanLmFolder.connect('clicked(bool)',self.SearchScanLm)
         self.ui.ButtonSearchReference.connect('clicked(bool)',self.SearchReference)
@@ -198,6 +244,49 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    """
+
+                                                                                                                                                                    
+88888888888                                                 88                                88888888ba                                                            
+88                                                   ,d     ""                                88      "8b                 ,d       ,d                               
+88                                                   88                                       88      ,8P                 88       88                               
+88aaaaa      88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPYba,       88aaaaaa8P'  88       88  MM88MMM  MM88MMM   ,adPPYba,   8b,dPPYba,   
+88           88       88  88P'   `"8a  a8"     ""    88     88  a8"     "8a  88P'   `"8a      88""""""8b,  88       88    88       88     a8"     "8a  88P'   `"8a  
+88           88       88  88       88  8b            88     88  8b       d8  88       88      88      `8b  88       88    88       88     8b       d8  88       88  
+88           "8a,   ,a88  88       88  "8a,   ,aa    88,    88  "8a,   ,a8"  88       88      88      a8P  "8a,   ,a88    88,      88,    "8a,   ,a8"  88       88  
+88            `"YbbdP'Y8  88       88   `"Ybbd8"'    "Y888  88   `"YbbdP"'   88       88      88888888P"    `"YbbdP'Y8    "Y888    "Y888   `"YbbdP"'   88       88  
+                                                                                                                                                                    
+                                                                                                                                                                    
+
+    """
 
     def SwitchType(self,index):
         if index == 0 :
@@ -261,6 +350,55 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     checkbox.setCheckState(True)
                 else :
                     checkbox.setCheckState(False)
+
+
+    
+    def updateCheckbox(self):
+        status = self.ActualMeth.existsLandmark(self.ui.lineEditScanLmPath.text)
+        for checkboxs,checkboxs2 in zip(self.dicchckbox.values(),self.dicchckbox2.values()):
+            for checkbox, checkbox2 in zip(checkboxs,checkboxs2):
+                checkbox.setEnabled(status[checkbox.text])
+                checkbox2.setEnabled(status[checkbox2.text])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    """
+                                                                                    
+                        88888888ba                                                                          
+                        88      "8b                                                                         
+                        88      ,8P                                                                         
+                        88aaaaaa8P'  8b,dPPYba,   ,adPPYba,    ,adPPYba,   ,adPPYba,  ,adPPYba,  ,adPPYba,  
+                        88""""""'    88P'   "Y8  a8"     "8a  a8"     ""  a8P_____88  I8[    ""  I8[    ""  
+                        88           88          8b       d8  8b          8PP"""""""   `"Y8ba,    `"Y8ba,   
+                        88           88          "8a,   ,a8"  "8a,   ,aa  "8b,   ,aa  aa    ]8I  aa    ]8I  
+                        88           88           `"YbbdP"'    `"Ybbd8"'   `"Ybbd8"'  `"YbbdP"'  `"YbbdP"'  
+                                                                                
+                                                                                    
+    """
+
 
 
 
@@ -344,7 +482,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def onCancel(self):
 
 
-        self.logic.cliNode.Cancel()
+        self.process.Cancel()
 
 
         self.RunningUI(False)
@@ -361,6 +499,46 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.LabelTimer.setVisible(run)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    """
+                                                                                                                        
+   ad88                                                 88                                88               88           
+  d8"                                            ,d     ""                                88               ""    ,d     
+  88                                             88                                       88                     88     
+MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPYba,       88  8b,dPPYba,   88  MM88MMM  
+  88     88       88  88P'   `"8a  a8"     ""    88     88  a8"     "8a  88P'   `"8a      88  88P'   `"8a  88    88     
+  88     88       88  88       88  8b            88     88  8b       d8  88       88      88  88       88  88    88     
+  88     "8a,   ,a88  88       88  "8a,   ,aa    88,    88  "8a,   ,a8"  88       88      88  88       88  88    88,    
+  88      `"YbbdP'Y8  88       88   `"Ybbd8"'    "Y888  88   `"YbbdP"'   88       88      88  88       88  88    "Y888  
+                                                                                                                        
+                                                                                                                        
+    """
 
 
     def initCheckbox(self,methode,layout,tohide : qt.QLabel):
@@ -431,13 +609,44 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     
 
-    def updateCheckbox(self):
-        status = self.ActualMeth.existsLandmark(self.ui.lineEditScanLmPath.text)
-        for checkboxs,checkboxs2 in zip(self.dicchckbox.values(),self.dicchckbox2.values()):
-            for checkbox, checkbox2 in zip(checkboxs,checkboxs2):
-                checkbox.setEnabled(status[checkbox.text])
-                checkbox2.setEnabled(status[checkbox2.text])
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    """
+                                                                                            
+                                ,ad8888ba,             88                                   
+                                d8"'    `"8b     ,d     88                                   
+                                d8'        `8b    88     88                                   
+                                88          88  MM88MMM  88,dPPYba,    ,adPPYba,  8b,dPPYba,  
+                                88          88    88     88P'    "8a  a8P_____88  88P'   "Y8  
+                                Y8,        ,8P    88     88       88  8PP"""""""  88          
+                                Y8a.    .a8P     88,    88       88  "8b,   ,aa  88          
+                                `"Y8888Y"'      "Y888  88       88   `"Ybbd8"'  88          
+    """
 
     def cleanup(self):
         """
@@ -613,6 +822,46 @@ class ASOLogic(ScriptedLoadableModuleLogic):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+                                                     
+  ,ad8888ba,   88                                    
+ d8"'    `"8b  88                                    
+d8'            88                                    
+88             88  ,adPPYYba,  ,adPPYba,  ,adPPYba,  
+88             88  ""     `Y8  I8[    ""  I8[    ""  
+Y8,            88  ,adPPPPP88   `"Y8ba,    `"Y8ba,   
+ Y8a.    .a8P  88  88,    ,88  aa    ]8I  aa    ]8I  
+  `"Y8888Y"'   88  `"8bbdP"Y8  `"YbbdP"'  `"YbbdP"'  
+                                                     
+                                                     
+"""
 class Methode(ABC):
     def __init__(self,widget):
         self.widget = widget
@@ -654,12 +903,12 @@ class Methode(ABC):
         pass
 
     @abstractmethod
-    def Process(self,folder_ScanLm,folder_gold,folder_output,add_in_namefile,list_landmark):
+    def Process(self,input_folder,gold_folder,folder_output,add_in_namefile,list_landmark):
         """Launch orient's code
 
         Args:
-            folder_ScanLm (str): _description_
-            folder_gold (str): _description_
+            input_folder (str): _description_
+            gold_folder (str): _description_
             folder_output (str): _description_
             add_in_namefile (str): _description_
         """
@@ -728,6 +977,36 @@ class Methode(ABC):
         return out
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+                                               
+                                        db          ad88888ba     ,ad8888ba,    
+                                        d88b        d8"     "8b   d8"'    `"8b   
+                                        d8'`8b       Y8,          d8'        `8b  
+                                        d8'  `8b      `Y8aaaaa,    88          88  
+                                        d8YaaaaY8b       `     8b,  88          88  
+                                        d8        8b            `8b  Y8,        ,8P  
+                                        d8'        `8b   Y8a     a8P   Y8a.    .a8P   
+                                        d8'          `8b   "Y88888P"     `"Y8888Y"'    
+                                                                                
+                                                                                
+"""
+
 class IOS(Methode):
     def __init__(self, widget):
         super().__init__(widget)
@@ -753,16 +1032,16 @@ class IOS(Methode):
         
 
 
-    def Process(self, folder_ScanLm, folder_gold, folder_output, add_in_namefile,dic_landmark):
+    def Process(self, input_folder, gold_folder, folder_output, add_in_namefile,dic_landmark):
 
         out  = ''
         list_landmark = self.LandmarkisChecked(dic_landmark)
 
-        if len(super().search(folder_ScanLm,'vtk'))==0:
+        if len(super().search(input_folder,'vtk'))==0:
             out = out + "Give folder with vkt file,"
-        if len(super().search(folder_ScanLm,'json')) == 0:
+        if len(super().search(input_folder,'json')) == 0:
             out = out + "Give folder with json file,"
-        if len(super().search(folder_gold,'json')) == 0 :
+        if len(super().search(gold_folder,'json')) == 0 :
             out = out + "Give folder with minimum one json file like gold landmark,"
         if folder_output == '':
             out = out + "Give output folder,"
@@ -776,7 +1055,7 @@ class IOS(Methode):
 
         if out == '':
 
-            parameter= {'input':folder_ScanLm,'folder_gold':folder_gold,'output_folder':folder_output,'add_infile':add_in_namefile,'list_landmark':list_landmark }
+            parameter= {'input':input_folder,'gold_folder':gold_folder,'output_folder':folder_output,'add_inname':add_in_namefile,'list_landmark':list_landmark }
             OrientProcess = slicer.modules.aso_ios
             process = slicer.cli.run(OrientProcess,None,parameter)
 
@@ -882,6 +1161,36 @@ class IOS(Methode):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+                                                         
+  ,ad8888ba,   88888888ba     ,ad8888ba,   888888888888  
+ d8"'    `"8b  88      "8b   d8"'    `"8b       88       
+d8'            88      ,8P  d8'                 88       
+88             88aaaaaa8P'  88                  88       
+88             88""""""8b,  88                  88       
+Y8,            88      `8b  Y8,                 88       
+ Y8a.    .a8P  88      a8P   Y8a.    .a8P       88       
+  `"Y8888Y"'   88888888P"     `"Y8888Y"'        88       
+                                                         
+                                                         
+"""
+
+
+
 class CBCT(Methode):
     def __init__(self, widget):
         super().__init__(widget)
@@ -895,8 +1204,8 @@ class CBCT(Methode):
     def DownloadRef(self):
         return super().DownloadRef()
 
-    def Process(self, folder_ScanLm, folder_gold, folder_output, add_in_namefile,list_landmark):
-        return super().Process(folder_ScanLm, folder_gold, folder_output, add_in_namefile,list_landmark)
+    def Process(self, input_folder, gold_folder, folder_output, add_in_namefile,list_landmark):
+        return super().Process(input_folder, gold_folder, folder_output, add_in_namefile,list_landmark)
 
     def DicLandmark(self):
         return super().DicLandmark()

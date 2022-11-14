@@ -659,7 +659,7 @@ def main(args):
 
 
     dic_gold={}
-    gold_json = glob.glob(args['folder_gold']+'/*json')
+    gold_json = glob.glob(args['gold_folder']+'/*json')
 
     dic_gold[UpperOrLower(gold_json[0])]= gold_json[0]
     dic_gold[UpperOrLower(gold_json[1])]= gold_json[1]
@@ -709,8 +709,8 @@ def main(args):
         surf_input = ReadSurf(file['vtk'])
         surf_output = TransformVTKSurf(matrix,surf_input)
 
-        WriteJsonLandmarks(landmark, file['json'],dic_gold[jaw],args['add_infile'],args['output_folder'])
-        WriteSurf(surf_output,file['vtk'],args['add_infile'],args['output_folder'])
+        WriteJsonLandmarks(landmark, file['json'],dic_gold[jaw],args['add_inname'],args['output_folder'])
+        WriteSurf(surf_output,file['vtk'],args['add_inname'],args['output_folder'])
 
         print(f"""<filter-progress>{0}</filter-progress>""")
         sys.stdout.flush()
@@ -737,9 +737,9 @@ if __name__ == "__main__":
 
     args = {
         "input": sys.argv[1],
-        "folder_gold" : sys.argv[2],
+        "gold_folder" : sys.argv[2],
         "output_folder" : sys.argv[3],
-        'add_infile' : sys.argv[4],
+        'add_inname' : sys.argv[4],
         "list_landmark" : sys.argv[5]
 
     }
