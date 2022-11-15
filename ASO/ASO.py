@@ -1034,7 +1034,7 @@ class IOS(Methode):
         
 
 
-    def Process(self, input_folder, gold_folder, folder_output, add_in_namefile,dic_landmark):
+    def Process(self, input_folder, gold_folder, output_folder, add_in_namefile,dic_landmark):
 
         out  = ''
         list_landmark = self.LandmarkisChecked(dic_landmark)
@@ -1045,7 +1045,7 @@ class IOS(Methode):
             out = out + "Give folder with json file,"
         if len(super().search(gold_folder,'json')) == 0 :
             out = out + "Give folder with minimum one json file like gold landmark,"
-        if folder_output == '':
+        if output_folder == '':
             out = out + "Give output folder,"
 
         if len(list_landmark.split(','))< 3:
@@ -1057,7 +1057,9 @@ class IOS(Methode):
 
         if out == '':
 
-            parameter= {'input':input_folder,'gold_folder':gold_folder,'output_folder':folder_output,'add_inname':add_in_namefile,'list_landmark':list_landmark }
+            # parameter= {'input':"--input "+input_folder,'gold_folder':'--gold_folder '+gold_folder,'output_folder':'--output_folder '+output_folder,'add_inname':'--add_inname '+add_in_namefile,'list_landmark':'--list_landmark '+list_landmark }
+            parameter= {'input':input_folder,'gold_folder':gold_folder,'output_folder':output_folder,'add_inname':add_in_namefile,'list_landmark':list_landmark }
+
             OrientProcess = slicer.modules.aso_ios
             process = slicer.cli.run(OrientProcess,None,parameter)
 

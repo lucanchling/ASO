@@ -5,6 +5,7 @@ import os
 import glob
 import time
 import json
+import argparse
 
 from slicer.util import pip_install
 
@@ -654,12 +655,15 @@ def listlandmark2diclandmark(list_landmark):
 
 def main(args):
 
-    dic_landmark=listlandmark2diclandmark(args['list_landmark'])
+
+    dic_landmark=listlandmark2diclandmark(args.list_landmark[0])
+    print(dic_landmark)
+
 
 
 
     dic_gold={}
-    gold_json = glob.glob(args['gold_folder']+'/*json')
+    gold_json = glob.glob(args.gold_folder[0]+'/*json')
 
     dic_gold[UpperOrLower(gold_json[0])]= gold_json[0]
     dic_gold[UpperOrLower(gold_json[1])]= gold_json[1]
@@ -667,8 +671,8 @@ def main(args):
 
 
 
-    json_files = search(args['input'],'json')
-    vtk_files = search(args['input'],'vtk')
+    json_files = search(args.input[0],'json')
+    vtk_files = search(args.input[0],'vtk')
     list_file=[]
     iter = 0 
     for json_file in json_files :
@@ -709,8 +713,8 @@ def main(args):
         surf_input = ReadSurf(file['vtk'])
         surf_output = TransformVTKSurf(matrix,surf_input)
 
-        WriteJsonLandmarks(landmark, file['json'],dic_gold[jaw],args['add_inname'],args['output_folder'])
-        WriteSurf(surf_output,file['vtk'],args['add_inname'],args['output_folder'])
+        WriteJsonLandmarks(landmark, file['json'],dic_gold[jaw],args.add_inname[0],args.output_folder[0])
+        WriteSurf(surf_output,file['vtk'],args.add_inname[0],args.output_folder[0])
 
         print(f"""<filter-progress>{0}</filter-progress>""")
         sys.stdout.flush()
@@ -734,26 +738,19 @@ if __name__ == "__main__":
     print("Starting")
     print(sys.argv)
 
-
-    args = {
-        "input": sys.argv[1],
-        "gold_folder" : sys.argv[2],
-        "output_folder" : sys.argv[3],
-        'add_inname' : sys.argv[4],
-        "list_landmark" : sys.argv[5]
-
-    }
+    parser = argparse.ArgumentParser()
 
 
-    # args = {
-    #     "input": '/home/luciacev/Desktop/Data/ASO_IOS/test2',
-    #     "folder_gold" : '/home/luciacev/Desktop/Data/ASO_IOS/GOLD_file',
-    #     'output_folder': '/home/luciacev/Desktop/Data/ASO_IOS/out',
-    #     'add_infile' :'Or',
-    #     'list_landmark': 'LL6O,LR1O,LR6O'
+    parser.add_argument('input',nargs=1)
+    parser.add_argument('gold_folder',nargs=1)
+    parser.add_argument('output_folder',nargs=1)
+    parser.add_argument('add_inname',nargs=1)
+    parser.add_argument('list_landmark',nargs=1)
 
 
-    # }
+    args = parser.parse_args()
+
+
 
 
 
