@@ -410,7 +410,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def onPredictButton(self):
         error = self.ActualMeth.TestProcess(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
-                                        folder_output = self.ui.lineEditOutputPath.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox)
+                                        folder_output = self.ui.lineEditOutputPath.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox,
+                                        label_surface = self.ui.lineEditLabelSurface.text)
 
 
         if isinstance(error,str):
@@ -418,7 +419,9 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         else :
             self.process = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
-                                        folder_output = self.ui.lineEditOutputPath.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox)
+                                        folder_output = self.ui.lineEditOutputPath.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox,
+                                        label_surface = self.ui.lineEditLabelSurface.text)
+
             self.processObserver = self.process.AddObserver('ModifiedEvent',self.onProcessUpdate)
             self.onProcessStarted()
 
@@ -1103,6 +1106,9 @@ class IOS(Methode):
         if kwargs['add_in_namefile']== '':
             out = out + "Give something to add in name of file,"
 
+        if kwargs['label_surface'] == '':
+            out = out + "Give Label Surface"
+
         if out != '':
             out=out[:-1]
 
@@ -1114,9 +1120,12 @@ class IOS(Methode):
 
     def Process(self, **kwargs):
         list_teeth = self.__CheckboxisChecked(kwargs['dic_checkbox'])
+        print('label',kwargs['label_surface'])
 
-        parameter= {'input':kwargs['input_folder'],'gold_folder':kwargs['gold_folder'],'output_folder':kwargs['folder_output'],'add_inname':kwargs['add_in_namefile'],'list_teeth':list_teeth }
+        parameter= {'input':kwargs['input_folder'],'gold_folder':kwargs['gold_folder'],'output_folder':kwargs['folder_output'],'add_inname':kwargs['add_in_namefile'],'list_teeth':list_teeth ,'label_surface':kwargs['label_surface']}
 
+
+        print('parameter',parameter)
         OrientProcess = slicer.modules.aso_ios
         process = slicer.cli.run(OrientProcess,None,parameter)
 

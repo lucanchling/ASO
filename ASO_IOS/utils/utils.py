@@ -491,9 +491,9 @@ def UpperOrLower(path_filename):
 
 
 
-def manageICP(input,target,list_teeth):
-    source = MidTeeth(input,list_teeth)
-    target = MidTeeth(target, list_teeth)
+def manageICP(input,target,list_teeth,label_surface):
+    source = MidTeeth(input,list_teeth,label_surface)
+    target = MidTeeth(target, list_teeth,label_surface)
 
     source = SortDict(source)
     target = SortDict(target)
@@ -527,8 +527,8 @@ def search(path,extension):
     return out
 
 
-def MidTeeth(surf,list_teeth):
-    region_id = tensor((vtk_to_numpy(surf.GetPointData().GetScalars("PredictedID"))),dtype=torch.int64)
+def MidTeeth(surf,list_teeth,label_surface):
+    region_id = tensor((vtk_to_numpy(surf.GetPointData().GetScalars(label_surface))),dtype=torch.int64)
     dic = {}
     middl = False
     for tooth in list_teeth:

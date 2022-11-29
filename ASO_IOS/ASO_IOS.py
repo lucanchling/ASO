@@ -41,7 +41,7 @@ def main(args):
 
         input = ReadSurf(file)
         
-        matrix = manageICP(input,gold[jaw],dic_teeth[jaw])
+        matrix = manageICP(input,gold[jaw],dic_teeth[jaw],args.label_surface[0])
         
         output1 = TransformVTKSurf(matrix,input)
         output2 = VTKICP(output1,gold[jaw])
@@ -76,6 +76,7 @@ if __name__ == "__main__":
     parser.add_argument('output_folder',nargs=1)
     parser.add_argument('add_inname',nargs=1)
     parser.add_argument('list_teeth',nargs=1)
+    parser.add_argument('label_surface',nargs=1)
 
 
     # parser.add_argument('--input',default='/home/luciacev/Desktop/Data/ASO_IOS/new_ASO/input_test')
