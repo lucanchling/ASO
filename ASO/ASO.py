@@ -300,7 +300,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.dicchckbox=self.ActualMeth.getcheckbox()
         self.dicchckbox2=self.ActualMeth.getcheckbox2()
 
-        self.updateCheckbox()
+        # self.updateCheckbox()
 
 
     def SearchScanLm(self):
@@ -315,7 +315,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.lineEditScanLmPath.setText(scan_folder)
             self.ui.LabelInfoPreProc.setText("Number of scans to process : " + str(nb_scans))
             self.ui.LabelProgress.setText('Patient process : 0 /'+str(nb_scans))
-            self.updateCheckbox()
+            # self.updateCheckbox()
 
 
             if self.ui.lineEditOutputPath.text == '':
@@ -332,7 +332,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         else:
             self.ui.lineEditRefFolder.setText(ref_folder)
-            self.updateCheckbox()
+            # self.updateCheckbox()
 
 
     def ChosePathOutput(self):
@@ -546,7 +546,7 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
     def initCheckbox(self,methode,layout,tohide : qt.QLabel):
         tohide.setHidden(True)
         dic  = methode.DicLandmark()
-        status = methode.existsLandmark('','')
+        # status = methode.existsLandmark('','')
         dicchebox={}
         dicchebox2={}
         for type , tab in dic.items():
@@ -564,8 +564,8 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
                     checkbox2 = QCheckBox()
                     checkbox.setText(landmark)
                     checkbox2.setText(landmark)
-                    checkbox.setEnabled(status[landmark])
-                    checkbox2.setEnabled(status[landmark])
+                    # checkbox.setEnabled(status[landmark])
+                    # checkbox2.setEnabled(status[landmark])
                     checkbox2.toggled.connect(checkbox.setChecked)
                     checkbox.toggled.connect(checkbox2.setChecked)
                     widget.addWidget(checkbox)
@@ -1020,7 +1020,7 @@ class IOS(Methode):
 
 
     def SearchReference(self, ref_folder: str):
-        list = glob.glob(ref_folder+'/*json')
+        list = glob.glob(ref_folder+'/*vtk')
         out = None
         if len(list) == 0:
             out = 'Please choose a folder with json file'
@@ -1041,9 +1041,9 @@ class IOS(Methode):
 
         if len(super().search(input_folder,'vtk'))==0:
             out = out + "Give folder with vkt file,"
-        if len(super().search(input_folder,'json')) == 0:
+        if len(super().search(input_folder,'vtk')) == 0:
             out = out + "Give folder with json file,"
-        if len(super().search(gold_folder,'json')) == 0 :
+        if len(super().search(gold_folder,'vtk')) == 0 :
             out = out + "Give folder with minimum one json file like gold landmark,"
         if output_folder == '':
             out = out + "Give output folder,"
@@ -1058,7 +1058,7 @@ class IOS(Methode):
         if out == '':
 
             # parameter= {'input':"--input "+input_folder,'gold_folder':'--gold_folder '+gold_folder,'output_folder':'--output_folder '+output_folder,'add_inname':'--add_inname '+add_in_namefile,'list_landmark':'--list_landmark '+list_landmark }
-            parameter= {'input':input_folder,'gold_folder':gold_folder,'output_folder':output_folder,'add_inname':add_in_namefile,'list_landmark':list_landmark }
+            parameter= {'input':input_folder,'gold_folder':gold_folder,'output_folder':output_folder,'add_inname':add_in_namefile,'list_teeth':list_landmark }
 
             OrientProcess = slicer.modules.aso_ios
             process = slicer.cli.run(OrientProcess,None,parameter)
@@ -1073,13 +1073,9 @@ class IOS(Methode):
     def DicLandmark(self):
        
         dic = {'Teeth':
-                    {'Upper':['UL7','UL6','UL5','UL4','UL3','UL2','UL1','UR1','UR2','UR3','UR4','UR5','UR6','UR7'],
-                    'Lower':['LL7','LL6','LL5','LL4','LL3','LL2','LL1','LR1','LR2','LR3','LR4','LR5','LR6','LR7']
+                    {'Upper':['2','3','4','5','6','7','8','9','10','11','12','13','14',',15'],
+                    'Lower':['16','17','18','19',',20','21','22','23','24','25','26','27','28','30','31','32']
                     },
-                'Landmark':
-                    {'Cervical':['CL','CB','R','RIP','OIP'],
-                    'Occlusal' : ['O','DB','MB']
-                    }
                 }
         return dic
 
@@ -1116,8 +1112,6 @@ class IOS(Methode):
         if folderpath == '' or reference_folder=='':
             for tooth in teeth:
                 dicLandmarkexists[tooth] = False
-            for landmark in landmarks:
-                dicLandmarkexists[landmark] = False
         else :
 
             landmark_input = self.__listLandmarkInFolder(folderpath)
@@ -1140,12 +1134,6 @@ class IOS(Methode):
                 else :
                     dicLandmarkexists[tooth] = False
 
-            for landmark in landmarks :
-                if True in [landmark in lm[3:] for lm in listlandmark]:
-                    dicLandmarkexists[landmark] = True
-
-                else :
-                    dicLandmarkexists[landmark] = False 
 
         return dicLandmarkexists
 
@@ -1163,18 +1151,25 @@ class IOS(Methode):
             listcheckbox=[]
 
 
-            for i, checkboxs in enumerate(diccheckbox.values()):
-                listcheckbox.append([])
+            # for i, checkboxs in enumerate(diccheckbox.values()):
+            #     listcheckbox.append([])
+            #     for checkbox in checkboxs:
+            #         if checkbox.isChecked():
+            #             listcheckbox[i].append(checkbox.text)
+            
+            # for a in listcheckbox[0]:
+            #     for b in listcheckbox[1]:
+            #         landmark = a+b+','
+            #         out=out +landmark
+            # out = out[:-1]
+
+            for checkboxs in diccheckbox.values():
                 for checkbox in checkboxs:
                     if checkbox.isChecked():
-                        listcheckbox[i].append(checkbox.text)
-            
-            for a in listcheckbox[0]:
-                for b in listcheckbox[1]:
-                    landmark = a+b+','
-                    out=out +landmark
-            out = out[:-1]
+                        out+=f'{checkbox.text},'
+            out = out[1:-1]
         return out
+
 
 
 

@@ -44,8 +44,8 @@
     </string>
 
     <string>
-      <name>list_landmark</name>
-      <label>list_landmark</label>
+      <name>list_teeth</name>
+      <label>list_teeth</label>
       <index>4</index>
       <description>Landmark use for orientation</description>
     </string>
