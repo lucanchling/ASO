@@ -100,7 +100,7 @@
         <item row="1" column="0">
          <widget class="QPushButton" name="ButtonDowloadRefLm">
           <property name="text">
-           <string>Download Reference Landmark</string>
+           <string>Download Reference Surface</string>
           </property>
          </widget>
         </item>
@@ -164,7 +164,7 @@
             <item>
              <widget class="QPushButton" name="ButtonSugestLmIOS">
               <property name="text">
-               <string>Sugested Landmark</string>
+               <string>Sugested Teeth</string>
               </property>
              </widget>
             </item>

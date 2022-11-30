@@ -984,7 +984,7 @@ class Methode(ABC):
         pass
 
     @abstractmethod
-    def SugestLandmark(self):
+    def Sugest(self):
         pass
 
 
@@ -1149,8 +1149,8 @@ class IOS(Methode):
         return None
 
 
-    def SugestLandmark(self):
-        return ['20','25','30']
+    def Sugest(self):
+        return ['4','5','6','11','12','13','19','20','21','27','28',',29']
 
 
     def __CheckboxisChecked(self,diccheckbox : dict):
@@ -1236,8 +1236,8 @@ class CBCT(Methode):
     def existsLandmark(self,pathfile,pathref):
         return super().existsLandmark()
 
-    def SugestLandmark(self):
-        return super().SugestLandmark()
+    def Sugest(self):
+        return super().Sugest()
 
     def TestProcess(self, **kwargs) -> str:
         return super().TestProcess(kwargs)
