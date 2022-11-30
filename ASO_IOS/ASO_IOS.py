@@ -5,6 +5,7 @@ import os
 import glob
 import time
 import argparse
+import numpy as np
 from utils.utils import ( UpperOrLower, search,
  manageICP, ReadSurf, TransformVTKSurf, WriteSurf,VTKICP)
 
@@ -14,13 +15,15 @@ from utils.utils import ( UpperOrLower, search,
 def main(args):
     lower  = [18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
     dic_teeth={'Upper':[],'Lower':[]}
-    print(args.list_teeth)
+
     list_teeth = args.list_teeth[0].split(',')
+
     for tooth in list_teeth:
         if int(tooth) in lower :
             dic_teeth['Lower'].append(int(tooth))
         else :
             dic_teeth['Upper'].append(int(tooth))
+
 
 
     gold_files = glob.glob(args.gold_folder[0]+'/*vtk')
@@ -32,6 +35,8 @@ def main(args):
 
 
 
+
+
     files = search(args.input[0],'*.vtk')
 
 
@@ -39,9 +44,16 @@ def main(args):
 
         jaw = UpperOrLower(file)
 
+
         input = ReadSurf(file)
         
         matrix = manageICP(input,gold[jaw],dic_teeth[jaw],args.label_surface[0])
+        if True in np.isnan(matrix):
+            print('Matrix is not valid',matrix,file)
+            continue
+            
+
+        print('matrix',matrix)
         
         output1 = TransformVTKSurf(matrix,input)
         output2 = VTKICP(output1,gold[jaw])

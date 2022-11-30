@@ -4,6 +4,9 @@ set(MODULE_NAME ASO)
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
+  Methode/Methode.py
+  Methode/IOS.py
+  Methode/CBCT.py
   )
 
 set(MODULE_PYTHON_RESOURCES

@@ -25,10 +25,11 @@ def ICP_Transform(source, target):
     icp.SetSource(source)
     icp.SetTarget(target)
     icp.GetLandmarkTransform().SetModeToRigidBody()
-    icp.SetMaximumNumberOfIterations(1000)
+    icp.SetMaximumNumberOfIterations(100)
     icp.StartByMatchingCentroidsOn()
     icp.Modified()
     icp.Update()
+
 
 
     # ============ apply ICP transform ==============
@@ -481,9 +482,9 @@ def UpperOrLower(path_filename):
     """
     out = 'Lower'
     st = '_U_'
-    st2= 'Upper'
+    st2= 'upper'
     filename = os.path.basename(path_filename)
-    if st in filename or st2 in filename:
+    if st in filename or st2 in filename.lower():
         out ='Upper'
     return out
 
@@ -507,7 +508,10 @@ def manageICP(input,target,list_teeth,label_surface):
     source_transformed, TransformMatrix, TransformList = InitICP(source,target, BestLMList=FindOptimalLandmarks(source,target))
     TransformMatrixBis = first_ICP(source_transformed,target) 
 
+
     TransformMatrixFinal = TransformMatrixBis @ TransformMatrix
+
+
 
     return TransformMatrixFinal
 
@@ -530,22 +534,15 @@ def search(path,extension):
 def MidTeeth(surf,list_teeth,label_surface):
     region_id = tensor((vtk_to_numpy(surf.GetPointData().GetScalars(label_surface))),dtype=torch.int64)
     dic = {}
-    middl = False
+
     for tooth in list_teeth:
         crown_ids = torch.argwhere(region_id == tooth).reshape(-1)
         verts = vtk_to_numpy(surf.GetPoints().GetData())
         verts_crown = torch.tensor(verts[crown_ids])
 
-        if middl:
-            verts_max = torch.max(verts_crown,0).values
-            verts_min = torch.min(verts_crown,0).values
-
-
-            middle = tensor(verts_max + verts_min) / 2
-            dic[str(tooth)] = middle.cpu().numpy().astype(np.float64)
-        else :
-            verts_crown = torch.mean(verts_crown,0)
-            dic[str(tooth)] = verts_crown.cpu().numpy().astype(np.float64)
+        verts_crown = torch.mean(verts_crown,0)
+        dic[str(tooth)] = verts_crown.cpu().numpy().astype(np.float64)
+    print('dic',dic)
     
     return dic
 

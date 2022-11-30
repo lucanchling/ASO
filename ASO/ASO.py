@@ -1,14 +1,16 @@
 import os
 import logging
-import glob
 import time
 import vtk, qt, slicer
 from qt import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QCheckBox
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
-import webbrowser
-from abc import ABC, abstractmethod
-import json
+
+
+from Methode.IOS import IOS
+from Methode.CBCT import CBCT
+from Methode.Methode import Methode
+
 
 
 
@@ -309,31 +311,31 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             nb_scans = self.ActualMeth.NumberScan(scan_folder)
             error = self.ActualMeth.TestScan(scan_folder)
 
-        if isinstance(error,str):
-            qt.QMessageBox.warning(self.parent, 'Warning', error)
-        else :
-            self.nb_patient = nb_scans
-            self.ui.lineEditScanLmPath.setText(scan_folder)
-            self.ui.LabelInfoPreProc.setText("Number of scans to process : " + str(nb_scans))
-            self.ui.LabelProgress.setText('Patient process : 0 /'+str(nb_scans))
-            self.enableCheckbox()
+            if isinstance(error,str):
+                qt.QMessageBox.warning(self.parent, 'Warning', error)
+            else :
+                self.nb_patient = nb_scans
+                self.ui.lineEditScanLmPath.setText(scan_folder)
+                self.ui.LabelInfoPreProc.setText("Number of scans to process : " + str(nb_scans))
+                self.ui.LabelProgress.setText('Patient process : 0 /'+str(nb_scans))
+                self.enableCheckbox()
 
 
-            if self.ui.lineEditOutputPath.text == '':
-                dir , spl = os.path.split(scan_folder)
-                self.ui.lineEditOutputPath.setText(os.path.join(dir,spl+'Or'))
+                if self.ui.lineEditOutputPath.text == '':
+                    dir , spl = os.path.split(scan_folder)
+                    self.ui.lineEditOutputPath.setText(os.path.join(dir,spl+'Or'))
 
     def SearchReference(self):
         ref_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder")
         if not ref_folder == '':
             error = self.ActualMeth.TestReference(ref_folder)
 
-        if isinstance(error,str):
-            qt.QMessageBox.warning(self.parent, 'Warning', error)
+            if isinstance(error,str):
+                qt.QMessageBox.warning(self.parent, 'Warning', error)
 
-        else:
-            self.ui.lineEditRefFolder.setText(ref_folder)
-            self.enableCheckbox()
+            else:
+                self.ui.lineEditRefFolder.setText(ref_folder)
+                self.enableCheckbox()
 
 
     def ChosePathOutput(self):
@@ -346,7 +348,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
     def SelectSugestLandmark(self):
-        best = self.ActualMeth.SugestLandmark()
+        best = self.ActualMeth.Sugest()
         for listcheckbox in self.dicchckbox.values():
             for checkbox in listcheckbox:
                 if checkbox.text in best and checkbox.isEnabled():
@@ -855,389 +857,3 @@ class ASOLogic(ScriptedLoadableModuleLogic):
 
 
 
-
-
-
-
-"""
-                                                     
-  ,ad8888ba,   88                                    
- d8"'    `"8b  88                                    
-d8'            88                                    
-88             88  ,adPPYYba,  ,adPPYba,  ,adPPYba,  
-88             88  ""     `Y8  I8[    ""  I8[    ""  
-Y8,            88  ,adPPPPP88   `"Y8ba,    `"Y8ba,   
- Y8a.    .a8P  88  88,    ,88  aa    ]8I  aa    ]8I  
-  `"Y8888Y"'   88  `"8bbdP"Y8  `"YbbdP"'  `"YbbdP"'  
-                                                     
-                                                     
-"""
-class Methode(ABC):
-    def __init__(self,widget):
-        self.widget = widget
-        self.diccheckbox = {}
-        self.diccheckbox2={}
-
-    @abstractmethod
-    def NumberScan(self,scan_folder : str ):
-        """
-            count the number of patient in folder
-        Args:
-            scan_folder (str): folder path with Scan
-
-
-        Return:
-            int : return the number of patient.
-        """
-        pass
-
-    @abstractmethod
-    def TestScan(self,scan_folder : str) -> str:
-        """Verify all are good in the folder, if something is wrong the function return string with error message
-
-        This function is call when the user want to import scan
-
-        Args:
-            scan_folder (str): path of folder with scan
-
-        Returns:
-            str or None: Return str with error message if something is wrong, else return None
-        pass
-        """
-
-    @abstractmethod
-    def TestReference(self,ref_folder :str) -> str :
-        """Look in folder if there are gold landmark, if True return None and if False return str with error message to user
-
-        Args:
-            ref_folder (str): folder path with gold landmark 
-
-        Return :
-            str or None : display str to user like warning
-        """
-
-
-        pass 
-
-
-    @abstractmethod
-    def TestCheckbox(self) -> str:
-        pass
-
-    
-    @abstractmethod
-    def TestProcess(self,**kwargs)-> str:
-        """Check if all are good to launch the the process, if something is wrong return string with all error
-
-
-
-        Returns:
-            str or None: return None if there no probleme with input of the process, else return str with all error
-        """
-        pass
-
-    @abstractmethod
-    def DownloadRef(self):
-        """Download Landmark ref in our gitbub
-        """
-        pass
-
-    @abstractmethod
-    def Process(self,**kwargs):
-        """Launch extension
-
-
-        """
-
-        pass
-
-
-    @abstractmethod
-    def DicLandmark(self):
-        """
-        return dic landmark like this:
-        dic = {'teeth':{
-                        'Lower':['LR6','LR5',...],
-                        'Upper':['UR6',...]
-                        },
-                'Landmark':{
-                        'Occlusual':['O',...],
-                        'Cervical':['R',...]
-                        }
-                }
-        """
-
-        pass
-
-
-
-
-    @abstractmethod
-    def existsLandmark(self,pathfile : str,pathref : str):
-        """return dictionnary. when the value of the landmark in dictionnary is true, the landmark is in input folder and in gold folder
-        Args:
-            pathfile (str): path
-
-        Return :
-        dict : exemple dic = {'O':True,'UL6':False,'UR1':False,...}
-        """
-        pass
-
-    @abstractmethod
-    def Sugest(self):
-        pass
-
-
-
-    def getcheckbox(self):
-        return self.diccheckbox
-
-    def setcheckbox(self,dicccheckbox):
-        self.diccheckbox = dicccheckbox
-
-    def getcheckbox2(self):
-        return self.diccheckbox2
-
-    def setcheckbox2(self,dicccheckbox):
-        self.diccheckbox2 = dicccheckbox
-
-
-    def search(self,path,type):
-        out=[]
-        path  = os.path.join(path,'*'+type)
-        a = glob.glob(path)
-        for p in a: 
-            if os.path.isfile(p):
-                out.append(p)
-            else:
-                out+= self.search(path=p,type=type)
-        return out
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-                                                                    
-                                    88    ,ad8888ba,     ad88888ba   
-                                    88   d8"'    `"8b   d8"     "8b  
-                                    88  d8'        `8b  Y8,          
-                                    88  88          88  `Y8aaaaa,    
-                                    88  88          88    `     8b,  
-                                    88  Y8,        ,8P          `8b  
-                                    88   Y8a.    .a8P   Y8a     a8P  
-                                    88    `"Y8888Y"'     "Y88888P"   
-                                                                                                    
-                                                                                                    
-                                                                                
-"""
-
-class IOS(Methode):
-    def __init__(self, widget):
-        super().__init__(widget)
-
-
-    def NumberScan(self, scan_folder: str):
-            
-        return len(super().search(scan_folder,'vtk'))
-
-
-    def TestScan(self, scan_folder: str):
-        out = None
-        if self.NumberScan(scan_folder) == 0 :
-            out = 'Give folder with vkt file'
-        return out
-
-
-    def TestReference(self, ref_folder: str):
-        list = glob.glob(ref_folder+'/*vtk')
-        out = None
-        if len(list) == 0:
-            out = 'Please choose a folder with json file'
-        elif len(list)>2:
-            out = 'Too many json file '
-        return out
-
-    def TestCheckbox(self,dic_checkbox) -> str:
-        list_landmark = self.__CheckboxisChecked(dic_checkbox)
-        out = None
-        if len(list_landmark.split(','))< 3:
-             out = 'Give minimum 3 landmark'
-        return out
-
-
-    def DownloadRef(self):
-        webbrowser.open('https://github.com/HUTIN1/ASO/releases/tag/v1.0.0')
-
-
-        
-
-    def TestProcess(self,**kwargs) -> str:
-        out  = ''
-
-        scan = self.TestScan(kwargs['input_folder'])
-        if isinstance(scan,str):
-            out = out + f'{scan},'
-
-        reference =self.TestReference(kwargs['gold_folder'])
-        if isinstance(reference,str):
-            out = out + f'{reference},'
-
-        if kwargs['folder_output'] == '':
-            out = out + "Give output folder,"
-
-        testcheckbox = self.TestCheckbox(kwargs['dic_checkbox'])
-        if isinstance(testcheckbox,str):
-            out = out + f"{testcheckbox},"
-
-        if kwargs['add_in_namefile']== '':
-            out = out + "Give something to add in name of file,"
-
-        if kwargs['label_surface'] == '':
-            out = out + "Give Label Surface"
-
-        if out != '':
-            out=out[:-1]
-
-        else : 
-            out = None
-
-        return out
-
-
-    def Process(self, **kwargs):
-        list_teeth = self.__CheckboxisChecked(kwargs['dic_checkbox'])
-        print('label',kwargs['label_surface'])
-
-        parameter= {'input':kwargs['input_folder'],'gold_folder':kwargs['gold_folder'],'output_folder':kwargs['folder_output'],'add_inname':kwargs['add_in_namefile'],'list_teeth':list_teeth ,'label_surface':kwargs['label_surface']}
-
-
-        print('parameter',parameter)
-        OrientProcess = slicer.modules.aso_ios
-        process = slicer.cli.run(OrientProcess,None,parameter)
-
-        return process
-
-    def DicLandmark(self):
-       
-        dic = {'Teeth':
-                    {'Upper':['2','3','4','5','6','7','8','9','10','11','12','13','14',',15'],
-                    'Lower':['16','17','18','19',',20','21','22','23','24','25','26','27','28','30','31','32']
-                    },
-                }
-        return dic
-
-
-
-
-
-    def existsLandmark(self,folderpath,reference_folder):
-
-        return None
-
-
-    def Sugest(self):
-        return ['4','5','6','11','12','13','19','20','21','27','28',',29']
-
-
-    def __CheckboxisChecked(self,diccheckbox : dict):
-        out=''
-        if not len(diccheckbox) == 0:
-
-            for checkboxs in diccheckbox.values():
-                for checkbox in checkboxs:
-                    if checkbox.isChecked():
-                        out+=f'{checkbox.text},'
-            out = out[1:-1]
-        return out
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-                                                         
-  ,ad8888ba,   88888888ba     ,ad8888ba,   888888888888  
- d8"'    `"8b  88      "8b   d8"'    `"8b       88       
-d8'            88      ,8P  d8'                 88       
-88             88aaaaaa8P'  88                  88       
-88             88""""""8b,  88                  88       
-Y8,            88      `8b  Y8,                 88       
- Y8a.    .a8P  88      a8P   Y8a.    .a8P       88       
-  `"Y8888Y"'   88888888P"     `"Y8888Y"'        88       
-                                                         
-                                                         
-"""
-
-
-
-class CBCT(Methode):
-    def __init__(self, widget):
-        super().__init__(widget)
-
-    def TestCheckbox(self):
-        return super().TestCheckbox()
-
-    def TestReference(self, ref_folder: str):
-        return super().TestReference(ref_folder)
-
-    def NumberScan(self, scan_folder: str):
-        return super().NumberScan(scan_folder)
-    
-    def TestScan(self, scan_folder: str):
-        return super().TestScan(scan_folder)
-
-    def DownloadRef(self):
-        return super().DownloadRef()
-
-    def Process(self, **kwargs):
-        return super().Process(kwargs)
-
-    def DicLandmark(self):
-        return super().DicLandmark()
-
-    def ListLandmark(self):
-        return super().ListLandmark()
-        
-    def existsLandmark(self,pathfile,pathref):
-        return super().existsLandmark()
-
-    def Sugest(self):
-        return super().Sugest()
-
-    def TestProcess(self, **kwargs) -> str:
-        return super().TestProcess(kwargs)
