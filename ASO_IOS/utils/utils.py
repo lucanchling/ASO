@@ -9,6 +9,7 @@ from vtk.util.numpy_support import vtk_to_numpy
 from torch import tensor
 import torch
 from random import randint
+from math import pi
 
 def ICP_Transform(source, target):
 
@@ -446,15 +447,16 @@ def TransformVTKSurf(matrix,surf,deepcopy=False):
 
 
 
-def WriteSurf(surf, output_folder,name):
+def WriteSurf(surf, output_folder,name,inname):
+    name, extension = os.path.splitext(name)
 
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
 
 
     writer = vtk.vtkPolyDataWriter()
-    print(output_folder,os.path.join(output_folder,name))
-    writer.SetFileName(os.path.join(output_folder,name))
+    # print(output_folder,os.path.join(output_folder,name))
+    writer.SetFileName(os.path.join(output_folder,f"{name}{inname}{extension}"))
     writer.SetInputData(surf)
     writer.Update()
 
@@ -492,9 +494,9 @@ def UpperOrLower(path_filename):
 
 
 
-def manageICP(input,target,list_teeth,label_surface):
-    source = MidTeeth(input,list_teeth,label_surface)
-    target = MidTeeth(target, list_teeth,label_surface)
+def manageICP(input,target,list_teeth):
+    source = MidTeeth(input,list_teeth)
+    target = MidTeeth(target, list_teeth)
 
     source = SortDict(source)
     target = SortDict(target)
@@ -531,8 +533,11 @@ def search(path,extension):
     return out
 
 
-def MidTeeth(surf,list_teeth,label_surface):
-    region_id = tensor((vtk_to_numpy(surf.GetPointData().GetScalars(label_surface))),dtype=torch.int64)
+def MidTeeth(surf,list_teeth):
+    assert isinstance(surf,vtk.vtkPolyData)
+
+    region_id = tensor((vtk_to_numpy(surf.GetPointData().GetScalars(GetLabelSurface(surf)))),dtype=torch.int64)
+    # print('unique',torch.unique(region_id))
     dic = {}
 
     for tooth in list_teeth:
@@ -542,7 +547,7 @@ def MidTeeth(surf,list_teeth,label_surface):
 
         verts_crown = torch.mean(verts_crown,0)
         dic[str(tooth)] = verts_crown.cpu().numpy().astype(np.float64)
-    print('dic',dic)
+    # print('dic',dic)
     
     return dic
 
@@ -574,12 +579,139 @@ def VTKICP(source, target):
 
 
 
+# def RandomRotation(surf):
+#     rotationAngle = np.random.random()*360.0
+#     rotationVector = np.random.random(3)*2.0 - 1.0
+#     rotationVector = rotationVector/np.linalg.norm(rotationVector)
+#     transform = vtk.vtkTransform()
+#     transform.RotateWXYZ(rotationAngle, rotationVector[0], rotationVector[1], rotationVector[2])
+#     transformFilter = vtk.vtkTransformPolyDataFilter()
+#     transformFilter.SetTransform(transform)
+#     transformFilter.SetInputData(surf)
+#     transformFilter.Update()
+#     surf = transformFilter.GetOutput()
+
+
+#     return surf, rotationAngle, rotationVector
+
+
+
+def RandomRotation(surf):
+    alpha, beta , gamma  = np.random.random()*pi, np.random.random()*pi, np.random.random()*pi
+    Rx = np.array([[1,0,0],[0,np.cos(alpha),np.sin(alpha)],[0,-np.sin(alpha),np.cos(alpha)]])
+    Ry = np.array([[np.cos(beta),0,-np.sin(beta)],[0,1,0],[np.sin(beta),0,np.cos(beta)]])
+    Rz = np.array([[np.cos(gamma),np.sin(gamma),0],[-np.sin(gamma),np.cos(gamma),0],[0,0,1]])
+
+    matrix_rotation = np.matmul(Rx,Ry)
+    matrix_rotation = np.matmul(matrix_rotation,Rz)
+
+    vtkpoint = surf.GetPoints()
+    points = vtk_to_numpy(vtkpoint.GetData())
+    points = np.matmul(matrix_rotation,points.T).T
+
+
+    vpoints= vtk.vtkPoints()
+    vpoints.SetNumberOfPoints(points.shape[0])
+    for i in range(points.shape[0]):
+        vpoints.SetPoint(i,points[i])
+    surf.SetPoints(vpoints)
+
+    return surf, matrix_rotation
 
 
 
 
+def Center(surf):
+    surf_copy = vtk.vtkPolyData()
+    surf_copy.DeepCopy(surf)
+    surf = surf_copy
+
+    vtkpoint = surf.GetPoints()
+    points = vtk_to_numpy(vtkpoint.GetData())
+
+    points = points - np.mean(points,0)
+
+    vpoints = vtk.vtkPoints()
+    vpoints.SetNumberOfPoints(points.shape[0])
+    for i in range(points.shape[0]):
+        vpoints.SetPoint(i,points[i])
+
+
+    surf.SetPoints(vpoints)
+
+    return surf
+
+
+def MeanScale(surf =None ,verts = None):
+    if surf : 
+        verts = tensor(vtk_to_numpy(surf.GetPoints().GetData()))
+
+    min_coord = torch.min(verts,0)[0]
+    max_coord= torch.max(verts,0)[0]
+    mean = (max_coord + min_coord)/2.0
+    mean= mean.numpy()
+    scale = np.linalg.norm(max_coord.numpy() - mean)
+
+    return mean, scale, surf
+
+
+
+def PatientNumber(filename):
+    number = ['1','2','3','4','5','6','7','8','9','0']
+    for i in range(len(filename)):
+        if filename[i] in number:
+            for y in range(i,len(filename)):
+                if not filename[y] in number:
+                    return int(filename[i:y])
 
 
 
 
+def GetLabelSurface(surf,Preference='PredictedID'):
+    out = None
+    string_data = str(surf.GetPointData()).split('\n')
+    for i, data in enumerate(string_data) :
+        if 'Number Of Arrays:' in data :
+            number = [int(i) for i in data.split() if i.isdigit()][0]
+            index = i+1
+            continue
+    list_label = []
+    for i in range(index,index+number):
+        list_label.append(string_data[i].split('=')[-1])
 
+    if len(list_label)!=0 :
+            for label in list_label:
+                out = Preference
+                if Preference == label:
+                    out = Preference
+                    continue
+                    
+
+    return out
+        
+
+
+def GetMatrixTransform(source,target):
+    source = SurfToPoint(source)
+    target = SurfToPoint(target)
+    RotationTransformMatrix = np.eye(4)
+    v1 = abs(source[-1] - source[0])
+    v2 = abs(target[1-1] - target[0])
+    angle,axis = AngleAndAxisVectors(v2, v1)
+    R = RotationMatrix(axis,angle)
+
+    T = target[0] - source[0]
+
+    RotationTransformMatrix[:3, :3] = R
+    RotationTransformMatrix[:3, 3] = T
+
+
+    return RotationTransformMatrix
+
+
+def SurfToPoint(surf):
+    vtkpoint = surf.GetPoints()
+    points = vtk_to_numpy(vtkpoint.GetData())
+
+
+    return points

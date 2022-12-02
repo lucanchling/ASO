@@ -51,13 +51,6 @@
     </string>
 
 
-    <string>
-      <name>label_surface</name>
-      <label>label_surface</label>
-      <index>5</index>
-      <description>Label of segmentation on surface</description>
-    </string>
-
 
 
 
