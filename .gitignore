@@ -1,7 +1,9 @@
 
 
-ASO_IOS/cache
-
+ASO_IOS/utils/cache
+ASO_CBCT/utils/cache
 
 *.pyc
 .DS_Store
+
+test*

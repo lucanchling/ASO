@@ -168,7 +168,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                                                                                                             
         """
         self.MethodeDic={'IOS':IOS(self),'CBCT':CBCT(self)}
-        self.ActualMeth= Methode
+        self.ActualMeth= self.MethodeDic['CBCT']
         self.nb_scan = 0
         self.startprocess =0
         self.patient_process = 0
@@ -179,7 +179,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         """
 
         #use messletter to add big comment with univers as police
-
 
 
 
@@ -202,14 +201,16 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                               
         """
         self.initCheckbox(self.MethodeDic['IOS'],self.ui.LayoutLandmarkIOS,self.ui.tohideIOS)
-        # self.initCheckbox(self.MethodeDic['CBCT'],self.ui.LayoutLandmarkCBCT,self.ui.tohideCBCT) a decommmente
+        self.initCheckbox(self.MethodeDic['CBCT'],self.ui.LayoutLandmarkCBCT,self.ui.tohideCBCT) # a decommmente
 
 
 
 
 
+        self.dicchckbox=self.ActualMeth.getcheckbox()
+        self.dicchckbox2=self.ActualMeth.getcheckbox2()
 
-
+        self.enableCheckbox()
 
 
 
@@ -241,7 +242,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.ButtonCancel.connect('clicked(bool)',self.onCancel)
         self.ui.ButtonSugestLmIOS.clicked.connect(self.SelectSugestLandmark)
         self.ui.ButtonSugestLmCBCT.clicked.connect(self.SelectSugestLandmark)
-
         self.ui.CbInputType.currentIndexChanged.connect(self.SwitchType)
 
 
