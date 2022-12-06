@@ -6,4 +6,4 @@ ASO_CBCT/utils/cache
 *.pyc
 .DS_Store
 
-test*
+*.txt
