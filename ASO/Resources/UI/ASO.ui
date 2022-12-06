@@ -100,7 +100,7 @@
         <item row="1" column="0">
          <widget class="QPushButton" name="ButtonDowloadRefLm">
           <property name="text">
-           <string>Download Reference Surface</string>
+           <string>Download Reference</string>
           </property>
          </widget>
         </item>
@@ -168,24 +168,6 @@
               </property>
              </widget>
             </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_4">
-              <item>
-               <widget class="QLabel" name="label_5">
-                <property name="text">
-                 <string>Label surface</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="lineEditLabelSurface">
-                <property name="text">
-                 <string>PredictedID</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
            </layout>
           </item>
          </layout>
@@ -199,7 +181,7 @@
           <item>
            <widget class="QLabel" name="label_9">
             <property name="text">
-             <string>Add on name file</string>
+             <string>Suffix</string>
             </property>
            </widget>
           </item>
@@ -217,7 +199,7 @@
           <item>
            <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>Oriented folder</string>
+             <string>Output folder</string>
             </property>
            </widget>
           </item>
@@ -256,7 +238,7 @@
         <item>
          <widget class="QPushButton" name="ButtonOriented">
           <property name="text">
-           <string>Oriented</string>
+           <string>Run</string>
           </property>
          </widget>
         </item>
