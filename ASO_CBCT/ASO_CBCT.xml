@@ -44,24 +44,11 @@
     </string>
 
     <string>
-      <name>list_teeth</name>
-      <label>list_teeth</label>
+      <name>list_landmark</name>
+      <label>list_landmark</label>
       <index>4</index>
-      <description>Landmark use for orientation</description>
+      <description>Landmarks use for orientation</description>
     </string>
-
-
-    <string>
-      <name>label_surface</name>
-      <label>label_surface</label>
-      <index>5</index>
-      <description>Label of segmentation on surface</description>
-    </string>
-
-
-
-
-
 
 
   </parameters>

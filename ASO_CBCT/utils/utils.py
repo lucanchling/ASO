@@ -1,138 +1,171 @@
+'''
+8888888 888b     d888 8888888b.   .d88888b.  8888888b.  88888888888  .d8888b.  
+  888   8888b   d8888 888   Y88b d88P" "Y88b 888   Y88b     888     d88P  Y88b 
+  888   88888b.d88888 888    888 888     888 888    888     888     Y88b.      
+  888   888Y88888P888 888   d88P 888     888 888   d88P     888      "Y888b.   
+  888   888 Y888P 888 8888888P"  888     888 8888888P"      888         "Y88b. 
+  888   888  Y8P  888 888        888     888 888 T88b       888           "888 
+  888   888   "   888 888        Y88b. .d88P 888  T88b      888     Y88b  d88P 
+8888888 888       888 888         "Y88888P"  888   T88b     888      "Y8888P"  
+'''
 
-import os 
-import glob 
-import vtk
-import numpy as np
-import SimpleITK as sitk
 import json
-from vtk.util.numpy_support import vtk_to_numpy
-from torch import tensor
-import torch
-from random import randint
+import numpy as np
+import vtk
+import SimpleITK as sitk
+import glob
+import os
+import shutil
 
-def ICP_Transform(source, target):
-
-    # ============ create source points ==============
-    source = ConvertToVTKPoints(source)
-
-    # ============ create target points ==============
-    target = ConvertToVTKPoints(target)
-
-
-
-    # ============ create ICP transform ==============
-    icp = vtk.vtkIterativeClosestPointTransform()
-    icp.SetSource(source)
-    icp.SetTarget(target)
-    icp.GetLandmarkTransform().SetModeToRigidBody()
-    icp.SetMaximumNumberOfIterations(100)
-    icp.StartByMatchingCentroidsOn()
-    icp.Modified()
-    icp.Update()
+from vtkmodules.vtkCommonCore import vtkPoints
+from vtkmodules.vtkCommonDataModel import (
+    vtkCellArray,
+    vtkIterativeClosestPointTransform,
+    vtkPolyData
+)
+from vtkmodules.vtkFiltersGeneral import vtkTransformPolyDataFilter
 
 
-
-    # ============ apply ICP transform ==============
-    transformFilter = vtk.vtkTransformPolyDataFilter()
-    transformFilter.SetInputData(source)
-    transformFilter.SetTransform(icp)
-    transformFilter.Update()
-
-    return source,target,icp
-
-def first_ICP(source,target):
-    source,target,icp = ICP_Transform(source,target)
-
-    return VTKMatrixToNumpy(icp.GetMatrix())
+cross = lambda x,y:np.cross(x,y) # to avoid unreachable code error on np.cross function
 
 
-def InitICP(source,target, BestLMList=None, search=False):
-    TransformList = []
-    # TransformMatrix = np.eye(4)
-    TranslationTransformMatrix = np.eye(4)
-    RotationTransformMatrix = np.eye(4)
+'''
+888             d8888 888b    888 8888888b.  888b     d888        d8888 8888888b.  888    d8P   .d8888b.  
+888            d88888 8888b   888 888  "Y88b 8888b   d8888       d88888 888   Y88b 888   d8P   d88P  Y88b 
+888           d88P888 88888b  888 888    888 88888b.d88888      d88P888 888    888 888  d8P    Y88b.      
+888          d88P 888 888Y88b 888 888    888 888Y88888P888     d88P 888 888   d88P 888d88K      "Y888b.   
+888         d88P  888 888 Y88b888 888    888 888 Y888P 888    d88P  888 8888888P"  8888888b        "Y88b. 
+888        d88P   888 888  Y88888 888    888 888  Y8P  888   d88P   888 888 T88b   888  Y88b         "888 
+888       d8888888888 888   Y8888 888  .d88P 888   "   888  d8888888888 888  T88b  888   Y88b  Y88b  d88P 
+88888888 d88P     888 888    Y888 8888888P"  888       888 d88P     888 888   T88b 888    Y88b  "Y8888P" 
+'''
 
-    labels = list(source.keys())
-    if BestLMList is not None:
-        firstpick, secondpick, thirdpick = BestLMList[0], BestLMList[1], BestLMList[2]
-
-
-    # ============ Pick a Random Landmark ==============
-    if BestLMList is None:
-        firstpick = labels[np.random.randint(0, len(labels))]
-        # firstpick = 'LOr'
-    # ============ Compute Translation Transform ==============
-    T = target[firstpick] - source[firstpick]
-    TranslationTransformMatrix[:3, 3] = T
-    Translationsitk = sitk.TranslationTransform(3)
-    Translationsitk.SetOffset(T.tolist())
-    TransformList.append(Translationsitk)
-    # ============ Apply Translation Transform ==============
-    source = ApplyTranslation(source,T)
-    # source = ApplyTransform(source, TranslationTransformMatrix)
-
-    # ============ Pick Another Random Landmark ==============
-    if BestLMList is None:
-        while True:
-            secondpick = labels[np.random.randint(0, len(labels))]
-            # secondpick = 'ROr'
-            if secondpick != firstpick:
-                break
-
-    # ============ Compute Rotation Angle and Axis ==============
-    v1 = abs(source[secondpick] - source[firstpick])
-    v2 = abs(target[secondpick] - target[firstpick])
-    angle,axis = AngleAndAxisVectors(v2, v1)
-
-
-
-    # ============ Compute Rotation Transform ==============
-    R = RotationMatrix(axis,angle)
-    # TransformMatrix[:3, :3] = R
-    RotationTransformMatrix[:3, :3] = R
-    Rotationsitk = sitk.VersorRigid3DTransform()
-    Rotationsitk.SetMatrix(R.flatten().tolist())
-    TransformList.append(Rotationsitk)
-    # ============ Apply Rotation Transform ==============
-
-    source = ApplyTransform(source, RotationTransformMatrix)
-
-    # ============ Compute Transform Matrix (Rotation + Translation) ==============
-    TransformMatrix = RotationTransformMatrix @ TranslationTransformMatrix
-
-    # ============ Pick another Random Landmark ==============
-    if BestLMList is None:
-        while True:
-            thirdpick = labels[np.random.randint(0, len(labels))]
-            # thirdpick = 'Ba'
-            if thirdpick != firstpick and thirdpick != secondpick:
-                break
+def LoadJsonLandmarks(img, ldmk_path, ldmk_list=None, gold=False):
+    """
+    Load landmarks from json file
     
-    # ============ Compute Rotation Angle and Axis ==============
-    v1 = abs(source[thirdpick] - source[firstpick])
-    v2 = abs(target[thirdpick] - target[firstpick])
-    angle,axis = AngleAndAxisVectors(v2, v1)
+    Parameters
+    ----------
+    img : sitk.Image
+        Image to which the landmarks belong
+    ldmk_path : str
+        Path to the json file
+    gold : bool, optional
+        If True, load gold standard landmarks, by default False
+    
+    Returns
+    -------
+    dict
+        Dictionary of landmarks
+    
+    Raises
+    ------
+    ValueError
+        If the json file is not valid
+    """
+    # print("Loading landmarks for {}...".format(img_path.split('/')[-1]))
+    spacing = np.array(img.GetSpacing())
+    origin = img.GetOrigin()
+    origin = np.array([origin[0],origin[1],origin[2]])
+    # origin = np.array(origin)
+    # print("Spacing: {}".format(spacing))
+    # print("Origin: {}".format(origin))
+    with open(ldmk_path) as f:
+        data = json.load(f)
+    
+    markups = data["markups"][0]["controlPoints"]
+    
+    landmarks = {}
+    for markup in markups:
+        lm_ph_coord = np.array([markup["position"][0],markup["position"][1],markup["position"][2]])
+        #lm_coord = ((lm_ph_coord - origin) / spacing).astype(np.float16)
+        lm_coord = lm_ph_coord.astype(np.float64)
+        landmarks[markup["label"]] = lm_coord
+    
+    if ldmk_list is not None:
+        return {key:landmarks[key] for key in ldmk_list}
+    
+    return landmarks
 
+def FindOptimalLandmarks(source,target,nb_lmrk):
+    '''
+    Find the optimal landmarks to use for the Init ICP
+    
+    Parameters
+    ----------
+    source : dict
+        source landmarks
+    target : dict
+        target landmarks
+    
+    Returns
+    -------
+    list
+        list of the optimal landmarks
+    '''
+    dist, LMlist,ii = [],[],0
+    script_dir = os.path.dirname(__file__)
+    while len(dist) < (nb_lmrk*(nb_lmrk-1)*(nb_lmrk-2)) and ii < 2500:
+        ii+=1
+        source = np.load(os.path.join(script_dir ,'cache','source.npy'), allow_pickle=True).item()
+        firstpick,secondpick,thirdpick, d = InitICP(source,target, Print=False, search=True)
+        if [firstpick,secondpick,thirdpick] not in LMlist:
+            dist.append(d)
+            LMlist.append([firstpick,secondpick,thirdpick])
+    return LMlist[dist.index(min(dist))]
 
-    # ============ Compute Rotation Transform ==============
-    RotationTransformMatrix = np.eye(4)
-    R = RotationMatrix(abs(source[secondpick] - source[firstpick]),angle)
-    RotationTransformMatrix[:3, :3] = R
-    Rotationsitk = sitk.VersorRigid3DTransform()
-    Rotationsitk.SetMatrix(R.flatten().tolist())
-    TransformList.append(Rotationsitk)
-    # ============ Apply Rotation Transform ==============
+def WriteJsonLandmarks(landmarks, input_json_file ,output_file):
+    '''
+    Write the landmarks to a json file
+    
+    Parameters
+    ----------
+    landmarks : dict
+        landmarks to write
+    output_file : str
+        output file name
+    '''
+    with open(input_json_file, 'r') as outfile:
+        tempData = json.load(outfile)
+    for i in range(len(landmarks)):
+        pos = landmarks[tempData['markups'][0]['controlPoints'][i]['label']]
+        # pos = (pos + abs(inorigin)) * inspacing
+        tempData['markups'][0]['controlPoints'][i]['position'] = [pos[0],pos[1],pos[2]]
+    if not os.path.exists(output_file):
+        shutil.copy(input_json_file,output_file)
+    with open(output_file, 'w') as outfile:
+        json.dump(tempData, outfile, indent=4)
 
-    source = ApplyTransform(source, RotationTransformMatrix)
+def search(self,path,*args):
+    """
+    Return a dictionary with args element as key and a list of file in path directory finishing by args extension for each key
+    Example:
+    args = ('json',['.nii.gz','.nrrd'])
+    return:
+        {
+            'json' : ['path/a.json', 'path/b.json','path/c.json'],
+            '.nii.gz' : ['path/a.nii.gz', 'path/b.nii.gz']
+            '.nrrd.gz' : ['path/c.nrrd']
+        }
+    """
+    arguments=[]
+    for arg in args:
+        if type(arg) == list:
+            arguments.extend(arg)
+        else:
+            arguments.append(arg)
+    return {key: [i for i in glob.iglob(os.path.normpath("/".join([path,'**','*'])),recursive=True) if i.endswith(key)] for key in arguments}
 
-    # ============ Compute Transform Matrix (Init ICP) ==============
-    TransformMatrix = RotationTransformMatrix @ TransformMatrix
-
-    if search:
-        return firstpick,secondpick,thirdpick, ComputeMeanDistance(source, target)
-
-
-    return source, TransformMatrix, TransformList
+'''
+888b     d888 8888888888 88888888888 8888888b.  8888888  .d8888b.   .d8888b.  
+8888b   d8888 888            888     888   Y88b   888   d88P  Y88b d88P  Y88b 
+88888b.d88888 888            888     888    888   888   888    888 Y88b.      
+888Y88888P888 8888888        888     888   d88P   888   888         "Y888b.   
+888 Y888P 888 888            888     8888888P"    888   888            "Y88b. 
+888  Y8P  888 888            888     888 T88b     888   888    888       "888 
+888   "   888 888            888     888  T88b    888   Y88b  d88P Y88b  d88P 
+888       888 8888888888     888     888   T88b 8888888  "Y8888P"   "Y8888P" 
+'''
 
 def ComputeMeanDistance(source, target):
     """
@@ -156,37 +189,16 @@ def ComputeMeanDistance(source, target):
     distance /= len(source.keys())
     return distance
 
-
-
-def FindOptimalLandmarks(source,target):
-    '''
-    Find the optimal landmarks to use for the Init ICP
-    
-    Parameters
-    ----------
-    source : dict
-        source landmarks
-    target : dict
-        target landmarks
-    
-    Returns
-    -------
-    list
-        list of the optimal landmarks
-    '''
-    dist, LMlist,ii = [],[],0
-    script_dir = os.path.dirname(__file__)
-    while len(dist) < 210 and ii < 2500:
-        ii+=1
-
-        source = np.load(os.path.join(script_dir ,'cache','source.npy'), allow_pickle=True).item()
-        firstpick,secondpick,thirdpick, d = InitICP(source,target,search=True)
-        if [firstpick,secondpick,thirdpick] not in LMlist:
-            dist.append(d)
-            LMlist.append([firstpick,secondpick,thirdpick])
-    return LMlist[dist.index(min(dist))]
-
-
+'''
+888     888 88888888888 8888888 888       .d8888b.  
+888     888     888       888   888      d88P  Y88b 
+888     888     888       888   888      Y88b.      
+888     888     888       888   888       "Y888b.   
+888     888     888       888   888          "Y88b. 
+888     888     888       888   888            "888 
+Y88b. .d88P     888       888   888      Y88b  d88P 
+ "Y88888P"      888     8888888 88888888  "Y8888P"                                                   
+'''
 
 def SortDict(input_dict):
     """
@@ -204,7 +216,29 @@ def SortDict(input_dict):
     """
     return {k: input_dict[k] for k in sorted(input_dict)}
 
-                                                                                  
+def PrintMatrix(transform):
+    """
+    Prints a matrix
+    
+    Parameters
+    ----------
+    transform : vtk.vtkMatrix4x4
+        Matrix to be printed
+    """
+    for i in range(4):
+        print(transform.GetElement(i,0), transform.GetElement(i,1), transform.GetElement(i,2), transform.GetElement(i,3))
+    print()
+
+'''
+888     888 88888888888 888    d8P       .d8888b.  88888888888 888     888 8888888888 8888888888 
+888     888     888     888   d8P       d88P  Y88b     888     888     888 888        888        
+888     888     888     888  d8P        Y88b.          888     888     888 888        888        
+Y88b   d88P     888     888d88K          "Y888b.       888     888     888 8888888    8888888    
+ Y88b d88P      888     8888888b            "Y88b.     888     888     888 888        888        
+  Y88o88P       888     888  Y88b             "888     888     888     888 888        888        
+   Y888P        888     888   Y88b      Y88b  d88P     888     Y88b. .d88P 888        888        
+    Y8P         888     888    Y88b      "Y8888P"      888      "Y88888P"  888        888  
+'''                                                                                   
 
 def ConvertToVTKPoints(dict_landmarks):
     """
@@ -221,8 +255,8 @@ def ConvertToVTKPoints(dict_landmarks):
     vtkPoints
         VTK points object
     """
-    Points = vtk.vtkPoints()
-    Vertices = vtk.vtkCellArray()
+    Points = vtkPoints()
+    Vertices = vtkCellArray()
     labels = vtk.vtkStringArray()
     labels.SetNumberOfValues(len(dict_landmarks.keys()))
     labels.SetName("labels")
@@ -233,15 +267,12 @@ def ConvertToVTKPoints(dict_landmarks):
         Vertices.InsertCellPoint(sp_id)
         labels.SetValue(i, landmark)
         
-    output = vtk.vtkPolyData()
+    output = vtkPolyData()
     output.SetPoints(Points)
     output.SetVerts(Vertices)
     output.GetPointData().AddArray(labels)
 
     return output
-
-
-
 
 def VTKMatrixToNumpy(matrix):
     """
@@ -264,37 +295,277 @@ def VTKMatrixToNumpy(matrix):
     return m
 
 
+'''
+8888888  .d8888b.  8888888b.       .d8888b.  88888888888 888     888 8888888888 8888888888 
+  888   d88P  Y88b 888   Y88b     d88P  Y88b     888     888     888 888        888        
+  888   888    888 888    888     Y88b.          888     888     888 888        888        
+  888   888        888   d88P      "Y888b.       888     888     888 8888888    8888888    
+  888   888        8888888P"          "Y88b.     888     888     888 888        888        
+  888   888    888 888                  "888     888     888     888 888        888        
+  888   Y88b  d88P 888            Y88b  d88P     888     Y88b. .d88P 888        888        
+8888888  "Y8888P"  888             "Y8888P"      888      "Y88888P"  888        888 
+'''
+def ICP_Transform(source, target):
+
+    # ============ create source points ==============
+    source = ConvertToVTKPoints(source)
+
+    # ============ create target points ==============
+    target = ConvertToVTKPoints(target)
+
+    # ============ create ICP transform ==============
+    icp = vtkIterativeClosestPointTransform()
+    icp.SetSource(source)
+    icp.SetTarget(target)
+    icp.GetLandmarkTransform().SetModeToRigidBody()
+    icp.SetMaximumNumberOfIterations(1000)
+    icp.StartByMatchingCentroidsOn()
+    icp.Modified()
+    icp.Update()
+
+    # print("Number of iterations: {}".format(icp.GetNumberOfIterations()))
+
+    # ============ apply ICP transform ==============
+    transformFilter = vtkTransformPolyDataFilter()
+    transformFilter.SetInputData(source)
+    transformFilter.SetTransform(icp)
+    transformFilter.Update()
+
+    return icp
+
+def InitICP(source,target, Print=False, BestLMList=None, search=False):
+    TransformList = []
+    TranslationTransformMatrix = np.eye(4)
+    RotationTransformMatrix = np.eye(4)
+
+    labels = list(source.keys())
+    if BestLMList is not None:
+        firstpick, secondpick, thirdpick = BestLMList[0], BestLMList[1], BestLMList[2]
+        if Print:
+            print("Best Landmarks are: {},{},{}".format(firstpick, secondpick, thirdpick))
+    # print("Mean Distance:{:.2f}".format(ComputeMeanDistance(source, target)))
+
+    # ============ Pick a Random Landmark ==============
+    if BestLMList is None:
+        firstpick = labels[np.random.randint(0, len(labels))]
+
+    if Print:
+        print("First pick: {}".format(firstpick))
+
+    # ============ Compute Translation Transform ==============
+    T = target[firstpick] - source[firstpick]
+    TranslationTransformMatrix[:3, 3] = T
+    Translationsitk = sitk.TranslationTransform(3)
+    Translationsitk.SetOffset(T.tolist())
+    TransformList.append(Translationsitk)
+    # ============ Apply Translation Transform ==============
+    source = ApplyTranslation(source,T)
+    # source = ApplyTransform(source, TranslationTransformMatrix)
+
+    # print("Mean Distance:{:.2f}".format(ComputeMeanDistance(source, target)))
+
+    # ============ Pick Another Random Landmark ==============
+    if BestLMList is None:
+        while True:
+            secondpick = labels[np.random.randint(0, len(labels))]
+            # secondpick = 'ROr'
+            if secondpick != firstpick:
+                break
+    if Print:
+        print("Second pick: {}".format(secondpick))
+
+    # ============ Compute Rotation Angle and Axis ==============
+    v1 = abs(source[secondpick] - source[firstpick])
+    v2 = abs(target[secondpick] - target[firstpick])
+    angle,axis = AngleAndAxisVectors(v2, v1)
+
+    # print("Angle: {:.4f}".format(angle))
+    # print("Angle: {:.2f}°".format(angle*180/np.pi))
+
+    # ============ Compute Rotation Transform ==============
+    R = RotationMatrix(axis,angle)
+    # TransformMatrix[:3, :3] = R
+    RotationTransformMatrix[:3, :3] = R
+    Rotationsitk = sitk.VersorRigid3DTransform()
+    Rotationsitk.SetMatrix(R.flatten().tolist())
+    TransformList.append(Rotationsitk)
+    # ============ Apply Rotation Transform ==============
+    # source = ApplyRotation(source,R)
+    source = ApplyTransform(source, RotationTransformMatrix)
+
+    # print("Mean Distance:{:.2f}".format(ComputeMeanDistance(source, target)))
+    # print("Rotation:\n{}".format(R))
+    
+    # ============ Compute Transform Matrix (Rotation + Translation) ==============
+    TransformMatrix = RotationTransformMatrix @ TranslationTransformMatrix
+
+    # ============ Pick another Random Landmark ==============
+    if BestLMList is None:
+        while True:
+            thirdpick = labels[np.random.randint(0, len(labels))]
+            # thirdpick = 'Ba'
+            if thirdpick != firstpick and thirdpick != secondpick:
+                break
+    if Print:
+        print("Third pick: {}".format(thirdpick))
+    
+    # ============ Compute Rotation Angle and Axis ==============
+    v1 = abs(source[thirdpick] - source[firstpick])
+    v2 = abs(target[thirdpick] - target[firstpick])
+    angle,axis = AngleAndAxisVectors(v2, v1)
+    # print("Angle: {:.4f}".format(angle))
+
+    # ============ Compute Rotation Transform ==============
+    RotationTransformMatrix = np.eye(4)
+    R = RotationMatrix(abs(source[secondpick] - source[firstpick]),angle)
+    RotationTransformMatrix[:3, :3] = R
+    Rotationsitk = sitk.VersorRigid3DTransform()
+    Rotationsitk.SetMatrix(R.flatten().tolist())
+    TransformList.append(Rotationsitk)
+    # ============ Apply Rotation Transform ==============
+    # source = ApplyRotation(source,R)
+    source = ApplyTransform(source, RotationTransformMatrix)
+
+    # ============ Compute Transform Matrix (Init ICP) ==============
+    TransformMatrix = RotationTransformMatrix @ TransformMatrix
+
+    if Print:
+        print("Mean Distance:{:.2f}".format(ComputeMeanDistance(source, target)))
+    
+    # return source
+    if search:
+        return firstpick,secondpick,thirdpick, ComputeMeanDistance(source, target)
+
+    return source, TransformMatrix, TransformList
+
+def ICP(input_file,input_json_file,gold_file,gold_json_file,list_landmark):
+    
+    # Read input files
+    input_image = sitk.ReadImage(input_file)
+    # print('input spacing:',input_image.GetSpacing())
+    gold_image = sitk.ReadImage(gold_file)
+    # print('gold spacing:',gold_image.GetSpacing())
+    source = LoadJsonLandmarks(input_image, input_json_file,list_landmark)
+    target = LoadJsonLandmarks(gold_image, gold_json_file,list_landmark, gold=True)
+
+    nb_lmrk = len(source.keys())
+
+    # Make sure the landmarks are in the same order
+    source = SortDict(source)
+    source_orig = source.copy()
+    target = SortDict(target)
+
+    # save the source and target landmarks arrays
+    script_dir = os.path.dirname(__file__)
+    if not os.path.exists(os.path.join(script_dir,'cache')):
+        os.mkdir(os.path.join(script_dir,'cache'))
+    np.save(os.path.join(script_dir ,'cache','source.npy'), source)
+    np.save(os.path.join(script_dir ,'cache','target.npy'), source)
+
+    # Apply Init ICP with only the best landmarks
+    source_transformed, TransformMatrix, TransformList = InitICP(source,target, Print=False, BestLMList=FindOptimalLandmarks(source,target,nb_lmrk))
+    
+    # Apply ICP
+    icp = ICP_Transform(source_transformed,target) 
+    TransformMatrixBis = VTKMatrixToNumpy(icp.GetMatrix())
+
+    # Split the transform matrix into translation and rotation simpleitk transform
+    TransformMatrixsitk = sitk.VersorRigid3DTransform()
+    TransformMatrixsitk.SetTranslation(TransformMatrixBis[:3, 3].tolist())
+    try:
+        TransformMatrixsitk.SetMatrix(TransformMatrixBis[:3, :3].flatten().tolist())
+    except RuntimeError:
+        print('Error: The rotation matrix is not orthogonal')
+        mat = TransformMatrixBis[:3, :3]
+        print(mat)
+        print('det:', np.linalg.det(mat))
+        print('AxA^T:', mat @ mat.T)
+    TransformList.append(TransformMatrixsitk)
 
 
 
+    # Compute the final transform (inverse all the transforms)
+    TransformSITK = sitk.CompositeTransform(3)
+    for i in range(len(TransformList)-1,-1,-1):
+        TransformSITK.AddTransform(TransformList[i])
 
-def ConvertTransformMatrixToSimpleITK(transformMatrix):
+    TransformSITK = TransformSITK.GetInverse()
+    # Write the transform to a file
+    # sitk.WriteTransform(TransformSITK, 'data/output/transform.tfm')
+
+    TransformMatrixFinal = TransformMatrixBis @ TransformMatrix
+    # print(TransformMatrixFinal)
+
+    # Apply the final transform matrix
+    source_transformed = ApplyTransform(source_transformed,TransformMatrixBis)
+    
+    source = ApplyTransform(source_orig,TransformMatrixFinal)
+        
+    # Resample the source image with the final transform 
+    output = ResampleImage(input_image, gold_image, transform=TransformSITK)
+    return output,source_transformed
+
+'''
+ .d8888b.  8888888 88888888888 888    d8P       .d8888b.  88888888888 888     888 8888888888 8888888888 
+d88P  Y88b   888       888     888   d8P       d88P  Y88b     888     888     888 888        888        
+Y88b.        888       888     888  d8P        Y88b.          888     888     888 888        888        
+ "Y888b.     888       888     888d88K          "Y888b.       888     888     888 8888888    8888888    
+    "Y88b.   888       888     8888888b            "Y88b.     888     888     888 888        888        
+      "888   888       888     888  Y88b             "888     888     888     888 888        888        
+Y88b  d88P   888       888     888   Y88b      Y88b  d88P     888     Y88b. .d88P 888        888        
+ "Y8888P"  8888888     888     888    Y88b      "Y8888P"      888      "Y88888P"  888        888 
+'''
+
+def ResampleImage(image, target, transform):
     '''
-    Convert transform matrix to SimpleITK transform
+    Resample image using SimpleITK
     
     Parameters
     ----------
-    transformMatrix : vtkMatrix4x4
-        Transform matrix to be converted.
-    
+    image : SimpleITK.Image
+        Image to be resampled
+    target : SimpleITK.Image
+        Target image
+    transform : SimpleITK transform
+        Transform to be applied to the image.
+        
     Returns
     -------
-    SimpleITK transform
-        SimpleITK transform.
+    SimpleITK image
+        Resampled image.
     '''
+    resample = sitk.ResampleImageFilter()
+    resample.SetReferenceImage(target)
+    resample.SetTransform(transform)
+    resample.SetInterpolator(sitk.sitkLinear)
+    orig_size = np.array(image.GetSize(), dtype=np.int)
+    ratio = np.array(image.GetSpacing())/np.array(target.GetSpacing())
+    new_size = orig_size*(ratio)+0.5
+    new_size = np.ceil(new_size).astype(np.int) #  Image dimensions are in integers
+    new_size = [int(s) for s in new_size]
+    resample.SetSize(new_size)
+    resample.SetDefaultPixelValue(0)
+
+    # Set New Origin
+    orig_origin = np.array(image.GetOrigin())
+    # apply transform to the origin
+    orig_center = np.array(image.TransformContinuousIndexToPhysicalPoint(np.array(image.GetSize())/2.0))
+    new_center = np.array(target.TransformContinuousIndexToPhysicalPoint(np.array(target.GetSize())/2.0))
+    new_origin = orig_origin - orig_center + new_center
+    resample.SetOutputOrigin(new_origin)
     
-    translation = sitk.TranslationTransform(3)
-    translation.SetOffset(transformMatrix[0:3,3].tolist())
+    return resample.Execute(image)
 
-    rotation = sitk.Euler3DTransform()
-    rotation.SetParameters(transformMatrix[0:3,0:3].flatten().tolist())
-    # rotation.SetMatrix(transformMatrix[0:3,0:3].flatten().tolist())
-
-    transform = sitk.CompositeTransform([rotation, translation])
-
-    return transform
-
-
+'''
+88888888888 8888888b.         d8888 888b    888  .d8888b.  8888888888 .d88888b.  8888888b.  888b     d888  .d8888b.  
+    888     888   Y88b       d88888 8888b   888 d88P  Y88b 888       d88P" "Y88b 888   Y88b 8888b   d8888 d88P  Y88b 
+    888     888    888      d88P888 88888b  888 Y88b.      888       888     888 888    888 88888b.d88888 Y88b.      
+    888     888   d88P     d88P 888 888Y88b 888  "Y888b.   8888888   888     888 888   d88P 888Y88888P888  "Y888b.   
+    888     8888888P"     d88P  888 888 Y88b888     "Y88b. 888       888     888 8888888P"  888 Y888P 888     "Y88b. 
+    888     888 T88b     d88P   888 888  Y88888       "888 888       888     888 888 T88b   888  Y8P  888       "888 
+    888     888  T88b   d8888888888 888   Y8888 Y88b  d88P 888       Y88b. .d88P 888  T88b  888   "   888 Y88b  d88P 
+    888     888   T88b d88P     888 888    Y888  "Y8888P"  888        "Y88888P"  888   T88b 888       888  "Y8888P" 
+'''
 
 def ApplyTranslation(source,transform):
     '''
@@ -333,6 +604,11 @@ def ApplyTransform(source,transform):
     source : dict
         Dictionary of transformed landmarks
     '''
+    # Translation = transform[:3,3]
+    # Rotation = transform[:3,:3]
+    # for key in source.keys():
+    #     source[key] = Rotation @ source[key] + Translation
+    # return source
 
     sourcee = source.copy()
     for key in sourcee.keys():
@@ -368,8 +644,6 @@ def RotationMatrix(axis, theta):
                      [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
                      [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
 
-
-
 def AngleAndAxisVectors(v1, v2):
     '''
     Return the angle and the axis of rotation between two vectors
@@ -392,177 +666,6 @@ def AngleAndAxisVectors(v1, v2):
     v1_u = v1 / np.amax(v1)
     v2_u = v2 / np.amax(v2)
     angle = np.arccos(np.dot(v1_u, v2_u) / (np.linalg.norm(v1_u) * np.linalg.norm(v2_u)))
-    cross = lambda x,y:np.cross(x,y)
     axis = cross(v1_u, v2_u)
     #axis = axis / np.linalg.norm(axis)
     return angle,axis
-
-
-
-def ReadSurf(path):
-    reader = vtk.vtkPolyDataReader()
-    reader.SetFileName(path)
-    reader.Update()
-    surf = reader.GetOutput()
-
-    return surf
-
-
-
-def TransformVTKSurf(matrix,surf,deepcopy=False):
-    if deepcopy:
-        surf_copy = vtk.vtkPolyData()
-        surf_copy.DeepCopy(surf)
-        surf = surf_copy
-
-    vtkpoint = surf.GetPoints()
-    points = vtk_to_numpy(vtkpoint.GetData())
- 
-    # points = points+matrix[:3,3]
-    a = np.ones((points.shape[0],1))
-
-    matrix = matrix[:3,:]
-
-    points = np.matmul(matrix ,points.T).T
-
-
-    # points = points+matrix[:3,3]
-
-
-
-    vpoints = vtk.vtkPoints()
-    vpoints.SetNumberOfPoints(points.shape[0])
-    for i in range(points.shape[0]):
-        vpoints.SetPoint(i,points[i])
-
-
-    surf.SetPoints(vpoints)
-
-    return surf
-
-
-
-def WriteSurf(surf, output_folder,name):
-
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
-
-
-    writer = vtk.vtkPolyDataWriter()
-    print(output_folder,os.path.join(output_folder,name))
-    writer.SetFileName(os.path.join(output_folder,name))
-    writer.SetInputData(surf)
-    writer.Update()
-
-
-def ReadSurf(path):
-    reader = vtk.vtkPolyDataReader()
-    reader.SetFileName(path)
-    reader.Update()
-    surf = reader.GetOutput()
-
-    return surf
-
-
-
-
-
-def UpperOrLower(path_filename):
-    """tell if the file is for upper jaw of lower
-
-    Args:
-        path_filename (str): exemple /home/..../landmark_upper.json
-
-    Returns:
-        str: Upper or Lower, for the following exemple if Upper
-    """
-    out = 'Lower'
-    st = '_U_'
-    st2= 'upper'
-    filename = os.path.basename(path_filename)
-    if st in filename or st2 in filename.lower():
-        out ='Upper'
-    return out
-
-
-
-
-
-def manageICP(input,target,list_teeth,label_surface):
-    source = MidTeeth(input,list_teeth,label_surface)
-    target = MidTeeth(target, list_teeth,label_surface)
-
-    source = SortDict(source)
-    target = SortDict(target)
-
-    script_dir = os.path.dirname(__file__)
-    if not os.path.exists(os.path.join(script_dir,'cache')):
-        os.mkdir(os.path.join(script_dir,'cache'))
-    np.save(os.path.join(script_dir ,'cache','source.npy'), source)
-    np.save(os.path.join(script_dir ,'cache','target.npy'), source)
-
-    source_transformed, TransformMatrix, TransformList = InitICP(source,target, BestLMList=FindOptimalLandmarks(source,target))
-    TransformMatrixBis = first_ICP(source_transformed,target) 
-
-
-    TransformMatrixFinal = TransformMatrixBis @ TransformMatrix
-
-
-
-    return TransformMatrixFinal
-
-
-
-
-def search(path,extension):
-    out =[]
-    files = glob.glob(os.path.join(path,extension))
-    folders = os.listdir(path)
-    for file in files:
-        out.append(file)
-    for folder  in folders:
-        if os.path.isdir(os.path.join(path,folder)):
-            out+=search(os.path.join(path,folder),extension)
-
-    return out
-
-
-def MidTeeth(surf,list_teeth,label_surface):
-    region_id = tensor((vtk_to_numpy(surf.GetPointData().GetScalars(label_surface))),dtype=torch.int64)
-    dic = {}
-
-    for tooth in list_teeth:
-        crown_ids = torch.argwhere(region_id == tooth).reshape(-1)
-        verts = vtk_to_numpy(surf.GetPoints().GetData())
-        verts_crown = torch.tensor(verts[crown_ids])
-
-        verts_crown = torch.mean(verts_crown,0)
-        dic[str(tooth)] = verts_crown.cpu().numpy().astype(np.float64)
-    print('dic',dic)
-    
-    return dic
-
-
-
-
-
-def VTKICP(source, target):
-    icp = vtk.vtkIterativeClosestPointTransform()
-    icp.SetSource(source)
-    icp.SetTarget(target)
-    icp.GetLandmarkTransform().SetModeToRigidBody()
-    #icp.DebugOn()
-    icp.SetMaximumNumberOfIterations(20)
-    icp.StartByMatchingCentroidsOn()
-    icp.Modified()
-    icp.Update()
-
-    icpTransformFilter = vtk.vtkTransformPolyDataFilter()
-    icpTransformFilter.SetInputData(source)
-    icpTransformFilter.SetTransform(icp.GetInverse())
-    icpTransformFilter.Update()
-
-    transformedSource = icpTransformFilter.GetOutput()
-
-
-    return transformedSource

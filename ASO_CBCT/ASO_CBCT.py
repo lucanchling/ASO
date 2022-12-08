@@ -6,58 +6,62 @@ import glob
 import time
 import argparse
 import numpy as np
-from utils.utils import ( UpperOrLower, search,
- manageICP, ReadSurf, TransformVTKSurf, WriteSurf,VTKICP)
+import SimpleITK as sitk
+from utils.utils import WriteJsonLandmarks,ICP
 
-
+def WriteTXT(text,file='/home/luciacev/Desktop/Luc_Anchling/Projects/ASO/ASO_CBCT/sumup.txt'):
+    with open(file,'a') as f:
+        f.write(str(text)+'\n')
 
 
 def main(args):
-    lower  = [18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
-    dic_teeth={'Upper':[],'Lower':[]}
+    scan_extension = [".nrrd", ".nrrd.gz", ".nii", ".nii.gz", ".gipl", ".gipl.gz"]
+    lm_extension = ['.json']
 
-    list_teeth = args.list_teeth[0].split(',')
+    list_landmark = args.list_landmark[0].split(',')[:-1]
+    input_dir, gold_dir, out_dir = args.input[0], args.gold_folder[0], args.output_folder[0]
+    
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+    
+    normpath = os.path.normpath("/".join([gold_dir, '**', '']))
+    for file in glob.iglob(normpath, recursive=True):
+        if os.path.isfile(file) and True in [ext in file for ext in lm_extension]:
+            gold_json_file = file
+        if os.path.isfile(file) and True in [ext in file for ext in scan_extension]:
+            gold_file = file
+    
+    input_files = []
+    input_json_files = []
+    normpath = os.path.normpath("/".join([input_dir, '**', '']))
+    for file in sorted(glob.iglob(normpath, recursive=True)):
+        if os.path.isfile(file) and True in [ext in file for ext in lm_extension]:
+            input_json_files.append(file)
+        if os.path.isfile(file) and True in [ext in file for ext in scan_extension]:
+            input_files.append(file)
+    
+    for i in range(len(input_files)):
+        input_file,input_json_file = input_files[i],input_json_files[i]
 
-    for tooth in list_teeth:
-        if int(tooth) in lower :
-            dic_teeth['Lower'].append(int(tooth))
-        else :
-            dic_teeth['Upper'].append(int(tooth))
-
-
-
-    gold_files = glob.glob(args.gold_folder[0]+'/*vtk')
-
-    gold ={}
-
-    gold[UpperOrLower(gold_files[0])]= ReadSurf(gold_files[0])
-    gold[UpperOrLower(gold_files[1])]= ReadSurf(gold_files[1])
-
-
-
-
-
-    files = search(args.input[0],'*.vtk')
-
-
-    for file in files:
-
-        jaw = UpperOrLower(file)
-
-
-        input = ReadSurf(file)
+        output,source_transformed = ICP(input_file,input_json_file,gold_file,gold_json_file,list_landmark)
         
-        matrix = manageICP(input,gold[jaw],dic_teeth[jaw],args.label_surface[0])
-        if True in np.isnan(matrix):
-            print('Matrix is not valid',matrix,file)
-            continue
-            
-
-        print('matrix',matrix)
+        # Write JSON
+        dir_json = os.path.dirname(input_json_file.replace(input_dir,out_dir))
+        if not os.path.exists(dir_json):
+            os.makedirs(dir_json)
         
-        output1 = TransformVTKSurf(matrix,input)
-        output2 = VTKICP(output1,gold[jaw])
-        WriteSurf(output2,args.output_folder[0],os.path.basename(file))
+        json_path = os.path.join(dir_json,os.path.basename(input_json_file).split('.mrk.json')[0]+'_'+args.add_inname[0]+'.mrk.json')
+
+        WriteJsonLandmarks(source_transformed, input_json_file, output_file=json_path)
+
+        # Write Scan
+        dir_scan = os.path.dirname(input_file.replace(input_dir,out_dir))
+        if not os.path.exists(dir_scan):
+            os.makedirs(dir_scan)
+        
+        file_outpath = os.path.join(dir_scan,os.path.basename(input_file).split('.')[0]+'_'+args.add_inname[0]+'.nii.gz')
+        sitk.WriteImage(output, file_outpath)
+
 
         print(f"""<filter-progress>{0}</filter-progress>""")
         sys.stdout.flush()
@@ -75,33 +79,18 @@ def main(args):
   
 
 if __name__ == "__main__":
-    
-
+      
     print("Starting")
     print(sys.argv)
-
+    
     parser = argparse.ArgumentParser()
-
 
     parser.add_argument('input',nargs=1)
     parser.add_argument('gold_folder',nargs=1)
     parser.add_argument('output_folder',nargs=1)
     parser.add_argument('add_inname',nargs=1)
-    parser.add_argument('list_teeth',nargs=1)
-    parser.add_argument('label_surface',nargs=1)
-
-
-    # parser.add_argument('--input',default='/home/luciacev/Desktop/Data/ASO_IOS/new_ASO/input_test')
-    # parser.add_argument('--gold',default='/home/luciacev/Desktop/Data/ASO_IOS/new_ASO/gold')
-    # parser.add_argument('--output',default='/home/luciacev/Desktop/Data/ASO_IOS/new_ASO/output')
-    # parser.add_argument('--list_teeth',default='30,29,28,21,20,19') #30,29,28,21,20,19
-
-
+    parser.add_argument('list_landmark',nargs=1)
 
     args = parser.parse_args()
-
-
-
-
 
     main(args)

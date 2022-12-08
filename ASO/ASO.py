@@ -203,7 +203,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.initCheckbox(self.MethodeDic['IOS'],self.ui.LayoutLandmarkIOS,self.ui.tohideIOS)
         self.initCheckbox(self.MethodeDic['CBCT'],self.ui.LayoutLandmarkCBCT,self.ui.tohideCBCT) # a decommmente
 
-
+        self.HideComputeItems()
 
 
 
@@ -303,6 +303,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.dicchckbox2=self.ActualMeth.getcheckbox2()
 
         self.enableCheckbox()
+        
+        self.HideComputeItems()
 
 
     def SearchScanLm(self):
@@ -364,8 +366,9 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             return
         for checkboxs,checkboxs2 in zip(self.dicchckbox.values(),self.dicchckbox2.values()):
             for checkbox, checkbox2 in zip(checkboxs,checkboxs2):
-                checkbox.setEnabled(status[checkbox.text])
-                checkbox2.setEnabled(status[checkbox2.text])
+                if checkbox.text in status.keys():             
+                    checkbox.setVisible(status[checkbox.text])
+                    checkbox2.setVisible(status[checkbox2.text])
 
 
 
@@ -412,8 +415,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def onPredictButton(self):
         error = self.ActualMeth.TestProcess(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
-                                        folder_output = self.ui.lineEditOutputPath.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox,
-                                        label_surface = self.ui.lineEditLabelSurface.text)
+                                        folder_output = self.ui.lineEditOutputPath.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox)
 
 
         if isinstance(error,str):
@@ -421,8 +423,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         else :
             self.process = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
-                                        folder_output = self.ui.lineEditOutputPath.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox,
-                                        label_surface = self.ui.lineEditLabelSurface.text)
+                                        folder_output = self.ui.lineEditOutputPath.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox)
 
             self.processObserver = self.process.AddObserver('ModifiedEvent',self.onProcessUpdate)
             self.onProcessStarted()
@@ -509,6 +510,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       
         self.ui.progressBar.setVisible(run)
         self.ui.LabelTimer.setVisible(run)
+
+        self.HideComputeItems(run)
 
 
 
@@ -620,8 +623,16 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
         return layout2
 
     
+    def HideComputeItems(self,run=False):
+        
+        self.ui.ButtonOriented.setVisible(not run)
 
-
+        self.ui.ButtonCancel.setVisible(run)
+        
+        self.ui.LabelProgress.setVisible(run)
+        self.ui.progressBar.setVisible(run)
+        
+        self.ui.LabelTimer.setVisible(run)
 
 
 
