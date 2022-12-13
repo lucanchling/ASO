@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>579</width>
-    <height>513</height>
+    <height>792</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -153,10 +153,33 @@
             <item>
              <layout class="QHBoxLayout" name="LayoutLandmarkIOS">
               <item>
-               <widget class="QLabel" name="tohideIOS">
-                <property name="text">
-                 <string/>
+               <widget class="QScrollArea" name="scrollArea">
+                <property name="widgetResizable">
+                 <bool>true</bool>
                 </property>
+                <widget class="QWidget" name="scrollAreaWidgetContents">
+                 <property name="geometry">
+                  <rect>
+                   <x>0</x>
+                   <y>0</y>
+                   <width>537</width>
+                   <height>98</height>
+                  </rect>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_12">
+                  <item>
+                   <layout class="QGridLayout" name="gridTest">
+                    <item row="0" column="0">
+                     <widget class="QLabel" name="tohideIOS">
+                      <property name="text">
+                       <string>TextLabel</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
                </widget>
               </item>
              </layout>
@@ -304,6 +327,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="test.qrc"/>
+ </resources>
  <connections/>
 </ui>

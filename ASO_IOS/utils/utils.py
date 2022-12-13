@@ -92,6 +92,7 @@ def InitICP(source,target, BestLMList=None, search=False):
     # TransformMatrix[:3, :3] = R
     RotationTransformMatrix[:3, :3] = R
     Rotationsitk = sitk.VersorRigid3DTransform()
+    print('det',np.linalg.det(R))
     Rotationsitk.SetMatrix(R.flatten().tolist())
     TransformList.append(Rotationsitk)
     # ============ Apply Rotation Transform ==============
@@ -268,32 +269,6 @@ def VTKMatrixToNumpy(matrix):
 
 
 
-
-def ConvertTransformMatrixToSimpleITK(transformMatrix):
-    '''
-    Convert transform matrix to SimpleITK transform
-    
-    Parameters
-    ----------
-    transformMatrix : vtkMatrix4x4
-        Transform matrix to be converted.
-    
-    Returns
-    -------
-    SimpleITK transform
-        SimpleITK transform.
-    '''
-    
-    translation = sitk.TranslationTransform(3)
-    translation.SetOffset(transformMatrix[0:3,3].tolist())
-
-    rotation = sitk.Euler3DTransform()
-    rotation.SetParameters(transformMatrix[0:3,0:3].flatten().tolist())
-    # rotation.SetMatrix(transformMatrix[0:3,0:3].flatten().tolist())
-
-    transform = sitk.CompositeTransform([rotation, translation])
-
-    return transform
 
 
 
