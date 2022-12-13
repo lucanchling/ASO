@@ -82,9 +82,8 @@ class IOS(Methode):
 
     def Process(self, **kwargs):
         list_teeth = self.__CheckboxisChecked(kwargs['dic_checkbox'])
-        print('label',kwargs['label_surface'])
 
-        parameter= {'input':kwargs['input_folder'],'gold_folder':kwargs['gold_folder'],'output_folder':kwargs['folder_output'],'add_inname':kwargs['add_in_namefile'],'list_teeth':list_teeth ,'label_surface':kwargs['label_surface']}
+        parameter= {'input':kwargs['input_folder'],'gold_folder':kwargs['gold_folder'],'output_folder':kwargs['folder_output'],'add_inname':kwargs['add_in_namefile'],'list_teeth':list_teeth }
 
 
         print('parameter',parameter)
@@ -112,17 +111,21 @@ class IOS(Methode):
 
 
     def Sugest(self):
-        return ['4','9','13','20','25','30']
+        return ['UR5','UL1','UL5','LL5','LR1','LR5']
 
 
     def __CheckboxisChecked(self,diccheckbox : dict):
+        dic = {'UR8': 1, 'UR7': 2, 'UR6': 3, 'UR5': 4, 'UR4': 5, 'UR3': 6, 'UR2': 7, 'UR1': 8, 'UL1': 9, 'UL2': 10, 'UL3': 11, 
+       'UL4': 12, 'UL5': 13, 'UL6': 14, 'UL7': 15, 'UL8': 16, 'LL8': 17, 'LL7': 18, 'LL6': 19, 'LL5': 20, 'LL4': 21, 'LL3': 22, 
+       'LL2': 23, 'LL1': 24, 'LR1': 25, 'LR2': 26, 'LR3': 27, 'LR4': 28, 'LR5': 29, 'LR6': 30, 'LR7': 31, 'LR8': 32}
+
         out=''
         if not len(diccheckbox) == 0:
 
-            for checkboxs in diccheckbox.values():
+            for checkboxs in diccheckbox['Adult'].values():
                 for checkbox in checkboxs:
                     if checkbox.isChecked():
-                        out+=f'{checkbox.text},'
+                        out+=f'{dic[checkbox.text]},'
             while out[0]==',':
                 out = out[1:]
 

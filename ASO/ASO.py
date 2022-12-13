@@ -2,10 +2,9 @@ import os
 import logging
 import time
 import vtk, qt, slicer
-from qt import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QCheckBox
+from qt import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QCheckBox, QPushButton, QPixmap , QIcon, QSize, QLabel,QHBoxLayout
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
-
 
 from Methode.IOS import IOS
 from Methode.CBCT import Semi_CBCT, Auto_CBCT
@@ -202,18 +201,22 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                                             88  88       88  88    "Y888  
                               
         """
-        self.initCheckbox(self.MethodeDic['Semi_IOS'],self.ui.LayoutLandmarkSemiIOS,self.ui.tohideIOS)
-        self.initCheckbox(self.MethodeDic['Auto_IOS'],self.ui.LayoutLandmarkAutoIOS,self.ui.tohideIOS)
+        # self.initCheckbox(self.MethodeDic['Semi_IOS'],self.ui.LayoutLandmarkSemiIOS,self.ui.tohideIOS)
+        # self.initCheckbox(self.MethodeDic['Auto_IOS'],self.ui.LayoutLandmarkAutoIOS,self.ui.tohideIOS)
         self.initCheckbox(self.MethodeDic['Semi_CBCT'],self.ui.LayoutLandmarkSemiCBCT,self.ui.tohideCBCT) # a decommmente
         self.initCheckbox(self.MethodeDic['Auto_CBCT'],self.ui.LayoutLandmarkAutoCBCT,self.ui.tohideCBCT)
         self.HideComputeItems()
+        self.initTest(self.MethodeDic['Semi_IOS'])
+        self.initTest(self.MethodeDic['Auto_IOS'])
 
 
 
-        self.dicchckbox=self.ActualMeth.getcheckbox()
-        self.dicchckbox2=self.ActualMeth.getcheckbox2()
 
-        self.enableCheckbox()
+
+        # self.dicchckbox=self.ActualMeth.getcheckbox()
+        # self.dicchckbox2=self.ActualMeth.getcheckbox2()
+
+        # self.enableCheckbox()
 
         self.SwitchMode(0)
 
@@ -396,12 +399,11 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def SelectSugestLandmark(self):
         best = self.ActualMeth.Sugest()
-        for listcheckbox in self.dicchckbox.values():
-            for checkbox in listcheckbox:
-                if checkbox.text in best and checkbox.isEnabled():
-                    checkbox.setCheckState(True)
-                else :
-                    checkbox.setCheckState(False)
+        for checkbox in self.logic.iterillimeted(self.dicchckbox):
+            if checkbox.text in best and checkbox.isEnabled():
+                checkbox.setCheckState(True)
+            else :
+                checkbox.setCheckState(False)
 
 
     
@@ -654,7 +656,7 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
         layout.addWidget(scr_box)
 
         new_widget2 = QWidget(scr_box)
-        layout2 = QVBoxLayout(new_widget2)
+        layout2 = QVBoxLayout(new_widget2) 
 
         
         layout.addStretch()
@@ -677,6 +679,120 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
         self.ui.progressBar.setVisible(run)
         
         self.ui.LabelTimer.setVisible(run)
+
+    def initButton(self,widget):
+        self.button = QPushButton()
+        self.button.clicked.connect(self.buttonfonction)
+        widget.addWidget(self.button)
+        pixmap =  QPixmap('/home/luciacev/Desktop/Project/ASO/ASO/Resources/UI/2.png')
+        button_icon = QIcon(pixmap)
+        self.button.setIcon(button_icon)
+        self.button.setIconSize(pixmap.rect().size())
+
+
+
+
+    def buttonfonction(self,check):
+
+        self.button.setDown(not(self.button.isDown()))
+        print(self.button.isDown())
+
+
+    def initTest(self,methode : IOS):
+        diccheckbox={"Adult":{},"Child":{}}
+        self.ui.tohideIOS.setHidden(True)
+        a = self.ui.gridTest
+        dic_teeth ={1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F', 7: 'G', 8: 'H', 9: 'I', 10: 'J', 11: 'T', 12: 'S', 13: 'R', 14: 'Q', 15: 'P', 16: 'O', 17: 'N', 18: 'M', 19: 'L', 20: 'K'}
+
+
+
+        list= []
+        for i in range(1,11):
+            label = QLabel()
+            pixmap =  QPixmap(f'/home/luciacev/Desktop/Project/ASO/ASO/Resources/UI/{i}_resize_child.png')
+            label.setPixmap(pixmap)
+            widget = QWidget()
+            check = QCheckBox()
+            check.setText(dic_teeth[i])
+            layout_check = QHBoxLayout(widget)
+            layout_check.addWidget(check)
+
+
+            a.addWidget(widget,1,i+3)
+            a.addWidget(label,0,i+3)
+            list.append(check)
+        diccheckbox['Child']['Upper']=list
+
+        dic ={1: 'UR8', 2: 'UR7', 3: 'UR6', 4: 'UR5', 5: 'UR4', 6: 'UR3', 7: 'UR2', 8: 'UR1', 9: 'UL1', 10: 'UL2', 11: 'UL3', 12: 'UL4', 
+        13: 'UL5', 14: 'UL6', 15: 'UL7', 16: 'UL8', 17: 'LL8', 18: 'LL7', 19: 'LL6', 20: 'LL5', 21: 'LL4', 22: 'LL3', 23: 'LL2', 24: 'LL1', 
+        25: 'LR1', 26: 'LR2', 27: 'LR3', 28: 'LR4', 29: 'LR5', 30: 'LR6', 31: 'LR7', 32: 'LR8'}
+
+        list =[]
+        for i in range(1,17):
+            label = QLabel()
+            pixmap =  QPixmap(f'/home/luciacev/Desktop/Project/ASO/ASO/Resources/UI/{i}_resize.png')
+            label.setPixmap(pixmap)
+            widget = QWidget()
+            check = QCheckBox()
+            check.setText(dic[i])
+            layout_check = QHBoxLayout(widget)
+            layout_check.addWidget(check)
+
+
+            a.addWidget(widget,3,i)
+            a.addWidget(label,2,i)
+
+            list.append(check)
+
+        diccheckbox['Adult']['Upper']=list
+
+
+        list =[]
+        for i in range(1,17):
+            label = QLabel()
+            pixmap =  QPixmap(f'/home/luciacev/Desktop/Project/ASO/ASO/Resources/UI/{i+16}_resize.png')
+            label.setPixmap(pixmap)
+            widget = QWidget()
+            check = QCheckBox()
+            check.setText(dic[i+16])
+            layout_check = QHBoxLayout(widget)
+            layout_check.addWidget(check)
+
+
+            a.addWidget(widget,4,i)
+            a.addWidget(label,5,i)
+
+            list.append(check)
+
+        diccheckbox['Adult']['Lower']=list
+
+        list=[]
+        for i in range(1,11):
+            label = QLabel()
+            pixmap =  QPixmap(f'/home/luciacev/Desktop/Project/ASO/ASO/Resources/UI/{i+10}_resize_child.png')
+            label.setPixmap(pixmap)
+            widget = QWidget()
+            check = QCheckBox()
+            check.setText(dic_teeth[i+10])
+            layout_check = QHBoxLayout(widget)
+            layout_check.addWidget(check)
+
+
+            a.addWidget(widget,6,i+3)
+            a.addWidget(label,7,i+3)
+
+            list.append(check)
+
+        diccheckbox['Child']['Lower'] = list
+
+
+        methode.setcheckbox(diccheckbox)
+        methode.setcheckbox2(diccheckbox)
+
+
+
+
+
 
 
 
@@ -885,6 +1001,23 @@ class ASOLogic(ScriptedLoadableModuleLogic):
 
 
         return PredictProcess
+
+
+
+
+
+    def iterillimeted(self,iter):
+        out = []
+        if isinstance(iter,dict):
+            iter = list(iter.values())
+        
+        for thing in iter:
+            if isinstance(thing,(dict,list,set)):
+                out+= self.iterillimeted(thing)
+            else :
+                out.append(thing)
+        
+        return out
 
 
 
