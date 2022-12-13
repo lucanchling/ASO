@@ -39,6 +39,41 @@ cross = lambda x,y:np.cross(x,y) # to avoid unreachable code error on np.cross f
 888       d8888888888 888   Y8888 888  .d88P 888   "   888  d8888888888 888  T88b  888   Y88b  Y88b  d88P 
 88888888 d88P     888 888    Y888 8888888P"  888       888 d88P     888 888   T88b 888    Y88b  "Y8888P" 
 '''
+def MergeJson(data_dir,extension='MERGED'):
+    """
+    Create one MERGED json file per scans from all the different json files (Upper, Lower...)
+    """
+
+    normpath = os.path.normpath("/".join([data_dir, '**', '']))
+    json_file = [i for i in sorted(glob.iglob(normpath, recursive=True)) if i.endswith('.json')]
+
+    # ==================== ALL JSON classified by patient  ====================
+    dict_list = {}
+    for file in json_file:
+        patient = '_'.join(file.split('/')[-3:-1])+'#'+file.split('/')[-1].split('.')[0].split('_lm')[0]+'_lm'
+        if patient not in dict_list:
+            dict_list[patient] = []
+        dict_list[patient].append(file)
+
+    # ==================== MERGE JSON  ====================``
+    for key, files in dict_list.items():
+        file1 = files[0]
+        with open(file1, 'r') as f:
+            data1 = json.load(f)
+            data1["@schema"] = "https://raw.githubusercontent.com/slicer/slicer/master/Modules/Loadable/Markups/Resources/Schema/markups-schema-v1.0.0.json#"
+        for i in range(1,len(files)):
+            with open(files[i], 'r') as f:
+                data = json.load(f)
+            data1['markups'][0]['controlPoints'].extend(data['markups'][0]['controlPoints'])
+        outpath = os.path.normpath("/".join(files[0].split('/')[:-1]))        # Write the merged json file
+        with open(outpath+'/'+key.split('#')[1] + '_'+ extension +'.mrk.json', 'w') as f: 
+            json.dump(data1, f, indent=4)
+
+    # ==================== DELETE UNUSED JSON  ====================
+    for key, files in dict_list.items():
+        for file in files:
+            if extension not in os.path.basename(file):
+                os.remove(file)    
 
 def LoadJsonLandmarks(img, ldmk_path, ldmk_list=None, gold=False):
     """
@@ -77,11 +112,13 @@ def LoadJsonLandmarks(img, ldmk_path, ldmk_list=None, gold=False):
     
     landmarks = {}
     for markup in markups:
-        lm_ph_coord = np.array([markup["position"][0],markup["position"][1],markup["position"][2]])
-        #lm_coord = ((lm_ph_coord - origin) / spacing).astype(np.float16)
-        lm_coord = lm_ph_coord.astype(np.float64)
-        landmarks[markup["label"]] = lm_coord
-    
+        try:
+            lm_ph_coord = np.array([markup["position"][0],markup["position"][1],markup["position"][2]])
+            #lm_coord = ((lm_ph_coord - origin) / spacing).astype(np.float16)
+            lm_coord = lm_ph_coord.astype(np.float64)
+            landmarks[markup["label"]] = lm_coord
+        except IndexError:
+            continue
     if ldmk_list is not None:
         return {key:landmarks[key] for key in ldmk_list}
     
@@ -104,15 +141,34 @@ def FindOptimalLandmarks(source,target,nb_lmrk):
         list of the optimal landmarks
     '''
     dist, LMlist,ii = [],[],0
-    script_dir = os.path.dirname(__file__)
     while len(dist) < (nb_lmrk*(nb_lmrk-1)*(nb_lmrk-2)) and ii < 2500:
         ii+=1
-        source = np.load(os.path.join(script_dir ,'cache','source.npy'), allow_pickle=True).item()
         firstpick,secondpick,thirdpick, d = InitICP(source,target, Print=False, search=True)
         if [firstpick,secondpick,thirdpick] not in LMlist:
             dist.append(d)
             LMlist.append([firstpick,secondpick,thirdpick])
     return LMlist[dist.index(min(dist))]
+
+
+def search(self,path,*args):
+    """
+    Return a dictionary with args element as key and a list of file in path directory finishing by args extension for each key
+    Example:
+    args = ('json',['.nii.gz','.nrrd'])
+    return:
+        {
+            'json' : ['path/a.json', 'path/b.json','path/c.json'],
+            '.nii.gz' : ['path/a.nii.gz', 'path/b.nii.gz']
+            '.nrrd.gz' : ['path/c.nrrd']
+        }
+    """
+    arguments=[]
+    for arg in args:
+        if type(arg) == list:
+            arguments.extend(arg)
+        else:
+            arguments.append(arg)
+    return {key: [i for i in glob.iglob(os.path.normpath("/".join([path,'**','*'])),recursive=True) if i.endswith(key)] for key in arguments}
 
 def WriteJsonLandmarks(landmarks, input_json_file ,output_file):
     '''
@@ -136,25 +192,76 @@ def WriteJsonLandmarks(landmarks, input_json_file ,output_file):
     with open(output_file, 'w') as outfile:
         json.dump(tempData, outfile, indent=4)
 
-def search(self,path,*args):
-    """
-    Return a dictionary with args element as key and a list of file in path directory finishing by args extension for each key
-    Example:
-    args = ('json',['.nii.gz','.nrrd'])
-    return:
-        {
-            'json' : ['path/a.json', 'path/b.json','path/c.json'],
-            '.nii.gz' : ['path/a.nii.gz', 'path/b.nii.gz']
-            '.nrrd.gz' : ['path/c.nrrd']
+def GenControlePoint(landmarks):
+    lm_lst = []
+    false = False
+    true = True
+    id = 0
+    for landmark,data in landmarks.items():
+        id+=1
+        controle_point = {
+            "id": str(id),
+            "label": landmark,
+            "description": "",
+            "associatedNodeID": "",
+            "position": [data[0], data[1], data[2]],
+            "orientation": [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
+            "selected": true,
+            "locked": true,
+            "visibility": true,
+            "positionStatus": "defined"
         }
-    """
-    arguments=[]
-    for arg in args:
-        if type(arg) == list:
-            arguments.extend(arg)
-        else:
-            arguments.append(arg)
-    return {key: [i for i in glob.iglob(os.path.normpath("/".join([path,'**','*'])),recursive=True) if i.endswith(key)] for key in arguments}
+        lm_lst.append(controle_point)
+
+    return lm_lst
+
+def WriteJson(landmarks,out_path):
+    false = False
+    true = True
+    file = {
+    "@schema": "https://raw.githubusercontent.com/slicer/slicer/master/Modules/Loadable/Markups/Resources/Schema/markups-schema-v1.0.0.json#",
+    "markups": [
+        {
+            "type": "Fiducial",
+            "coordinateSystem": "LPS",
+            "locked": false,
+            "labelFormat": "%N-%d",
+            "controlPoints": GenControlePoint(landmarks),
+            "measurements": [],
+            "display": {
+                "visibility": false,
+                "opacity": 1.0,
+                "color": [0.4, 1.0, 0.0],
+                "color": [0.5, 0.5, 0.5],
+                "selectedColor": [0.26666666666666669, 0.6745098039215687, 0.39215686274509806],
+                "propertiesLabelVisibility": false,
+                "pointLabelsVisibility": true,
+                "textScale": 2.0,
+                "glyphType": "Sphere3D",
+                "glyphScale": 2.0,
+                "glyphSize": 5.0,
+                "useGlyphScale": true,
+                "sliceProjection": false,
+                "sliceProjectionUseFiducialColor": true,
+                "sliceProjectionOutlinedBehindSlicePlane": false,
+                "sliceProjectionColor": [1.0, 1.0, 1.0],
+                "sliceProjectionOpacity": 0.6,
+                "lineThickness": 0.2,
+                "lineColorFadingStart": 1.0,
+                "lineColorFadingEnd": 10.0,
+                "lineColorFadingSaturation": 1.0,
+                "lineColorFadingHueOffset": 0.0,
+                "handlesInteractive": false,
+                "snapMode": "toVisibleSurface"
+            }
+        }
+    ]
+    }
+    with open(out_path, 'w', encoding='utf-8') as f:
+        json.dump(file, f, ensure_ascii=False, indent=4)
+
+    f.close
+
 
 '''
 888b     d888 8888888888 88888888888 8888888b.  8888888  .d8888b.   .d8888b.  
@@ -306,7 +413,9 @@ def VTKMatrixToNumpy(matrix):
 8888888  "Y8888P"  888             "Y8888P"      888      "Y88888P"  888        888 
 '''
 def ICP_Transform(source, target):
-
+    """
+    Create the VTK ICP transform with source and target
+    """
     # ============ create source points ==============
     source = ConvertToVTKPoints(source)
 
@@ -334,6 +443,10 @@ def ICP_Transform(source, target):
     return icp
 
 def InitICP(source,target, Print=False, BestLMList=None, search=False):
+    """
+    Do some initialisation transforms (1 translation and 2 rotations to make the ICP even more efficient
+    """
+
     TransformList = []
     TranslationTransformMatrix = np.eye(4)
     RotationTransformMatrix = np.eye(4)
@@ -457,10 +570,6 @@ def ICP(input_file,input_json_file,gold_file,gold_json_file,list_landmark):
 
     # save the source and target landmarks arrays
     script_dir = os.path.dirname(__file__)
-    if not os.path.exists(os.path.join(script_dir,'cache')):
-        os.mkdir(os.path.join(script_dir,'cache'))
-    np.save(os.path.join(script_dir ,'cache','source.npy'), source)
-    np.save(os.path.join(script_dir ,'cache','target.npy'), source)
 
     # Apply Init ICP with only the best landmarks
     source_transformed, TransformMatrix, TransformList = InitICP(source,target, Print=False, BestLMList=FindOptimalLandmarks(source,target,nb_lmrk))
@@ -669,3 +778,36 @@ def AngleAndAxisVectors(v1, v2):
     axis = cross(v1_u, v2_u)
     #axis = axis / np.linalg.norm(axis)
     return angle,axis
+
+"""
+8888888888 8888888 888      8888888888  .d8888b.  
+888          888   888      888        d88P  Y88b 
+888          888   888      888        Y88b.      
+8888888      888   888      8888888     "Y888b.   
+888          888   888      888            "Y88b. 
+888          888   888      888              "888 
+888          888   888      888        Y88b  d88P 
+888        8888888 88888888 8888888888  "Y8888P"
+"""
+
+def ExtractFilesFromFolder(folder_path, scan_extension, lm_extension, gold=False):
+    """
+    Create list of files that are in folder with adequate extension
+    """
+
+    scan_files = []
+    json_files = []
+    normpath = os.path.normpath("/".join([folder_path, '**', '']))
+    for file in sorted(glob.iglob(normpath, recursive=True)):
+        if os.path.isfile(file) and True in [ext in file for ext in lm_extension]:
+            json_files.append(file)
+        if os.path.isfile(file) and True in [ext in file for ext in scan_extension]:
+            scan_files.append(file)
+    
+    if gold:
+        return scan_files[0], json_files[0]
+    else:
+        return scan_files, json_files
+    
+    
+    

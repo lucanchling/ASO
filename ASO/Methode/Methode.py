@@ -49,6 +49,20 @@ class Methode(ABC):
 
         pass 
 
+    @abstractmethod
+    def TestModel(self,model_folder :str) -> str :
+        """ Verify whether the model folder contains the right models used for ALI and other AI tool
+
+        Args:
+            model_folder (str): folder path with different models
+
+        Return :
+            str or None : display str to user like warning
+        """
+
+
+        pass 
+
 
     @abstractmethod
     def TestCheckbox(self) -> str:
@@ -69,6 +83,12 @@ class Methode(ABC):
     @abstractmethod
     def DownloadRef(self):
         """Download Landmark ref in our gitbub
+        """
+        pass
+
+    @abstractmethod
+    def DownloadModels(self):
+        """Download Models files in our gitbub
         """
         pass
 
@@ -103,7 +123,7 @@ class Methode(ABC):
 
 
     @abstractmethod
-    def existsLandmark(self,pathfile : str,pathref : str):
+    def existsLandmark(self,pathfile : str,pathref : str, pathmodel : str):
         """return dictionnary. when the value of the landmark in dictionnary is true, the landmark is in input folder and in gold folder
         Args:
             pathfile (str): path

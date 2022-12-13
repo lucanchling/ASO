@@ -50,6 +50,21 @@
       <description>Landmarks use for orientation</description>
     </string>
 
+    <string>
+      <name>model_folder</name>
+      <label>model_folder</label>
+      <index>5</index>
+      <description>Folder with different models</description>
+    </string>
+
+    <string>
+      <name>fullyAutomated</name>
+      <label>fullyAutomated</label>
+      <index>6</index>
+      <description>Boolean to know whether the method is the fullyAutomated or semiAutomated</description>
+    </string>
+
+
 
   </parameters>
 </executable>

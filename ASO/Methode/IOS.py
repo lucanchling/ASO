@@ -19,7 +19,9 @@ class IOS(Methode):
             out = 'Give folder with vkt file'
         return out
 
-
+    def TestModel(self, model_folder: str) -> str:
+        return super().TestModel(model_folder)
+        
     def TestReference(self, ref_folder: str):
         list = glob.glob(ref_folder+'/*vtk')
         out = None
@@ -40,6 +42,8 @@ class IOS(Methode):
     def DownloadRef(self):
         webbrowser.open('https://github.com/HUTIN1/ASO/releases/tag/v1.0.0')
 
+    def DownloadModels(self):
+        return super().DownloadModels()
 
         
 
@@ -102,7 +106,7 @@ class IOS(Methode):
 
 
 
-    def existsLandmark(self,folderpath,reference_folder):
+    def existsLandmark(self,folderpath,reference_folder,model_folder):
 
         return None
 

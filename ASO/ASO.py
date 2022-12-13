@@ -8,7 +8,7 @@ from slicer.util import VTKObservationMixin
 
 
 from Methode.IOS import IOS
-from Methode.CBCT import CBCT
+from Methode.CBCT import Semi_CBCT, Auto_CBCT
 from Methode.Methode import Methode
 
 
@@ -167,13 +167,15 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             `8'        `"8bbdP"Y8  88          88  `"8bbdP"Y8  8Y"Ybbd8"'   88   `"Ybbd8"'  `"YbbdP"'  
                                                                                                             
         """
-        self.MethodeDic={'IOS':IOS(self),'CBCT':CBCT(self)}
-        self.ActualMeth= self.MethodeDic['CBCT']
+        self.MethodeDic={'Semi_IOS':IOS(self), 'Auto_IOS':IOS(self),
+                         'Semi_CBCT':Semi_CBCT(self),'Auto_CBCT':Auto_CBCT(self)}
+        self.ActualMeth= self.MethodeDic['Semi_CBCT']
         self.nb_scan = 0
         self.startprocess =0
         self.patient_process = 0
         self.dicchckbox={}  
         self.dicchckbox2={}
+        self.fullyAutomated = False
         """
         exemple dic = {'teeth'=['A,....],'Type'=['O',...]}
         """
@@ -200,9 +202,10 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                                             88  88       88  88    "Y888  
                               
         """
-        self.initCheckbox(self.MethodeDic['IOS'],self.ui.LayoutLandmarkIOS,self.ui.tohideIOS)
-        self.initCheckbox(self.MethodeDic['CBCT'],self.ui.LayoutLandmarkCBCT,self.ui.tohideCBCT) # a decommmente
-
+        self.initCheckbox(self.MethodeDic['Semi_IOS'],self.ui.LayoutLandmarkSemiIOS,self.ui.tohideIOS)
+        self.initCheckbox(self.MethodeDic['Auto_IOS'],self.ui.LayoutLandmarkAutoIOS,self.ui.tohideIOS)
+        self.initCheckbox(self.MethodeDic['Semi_CBCT'],self.ui.LayoutLandmarkSemiCBCT,self.ui.tohideCBCT) # a decommmente
+        self.initCheckbox(self.MethodeDic['Auto_CBCT'],self.ui.LayoutLandmarkAutoCBCT,self.ui.tohideCBCT)
         self.HideComputeItems()
 
 
@@ -212,6 +215,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         self.enableCheckbox()
 
+        self.SwitchMode(0)
 
 
 
@@ -236,13 +240,16 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         self.ui.ButtonSearchScanLmFolder.connect('clicked(bool)',self.SearchScanLm)
         self.ui.ButtonSearchReference.connect('clicked(bool)',self.SearchReference)
+        self.ui.ButtonSearchModelFolder.connect('clicked(bool)',self.SearchModel)
         self.ui.ButtonDowloadRefLm.connect('clicked(bool)',self.DownloadRef)
+        self.ui.ButtonDowloadModels.connect('clicked(bool)',self.DownloadModels)
         self.ui.ButtonOriented.connect('clicked(bool)',self.onPredictButton)
         self.ui.ButtonOutput.connect('clicked(bool)',self.ChosePathOutput)
         self.ui.ButtonCancel.connect('clicked(bool)',self.onCancel)
         self.ui.ButtonSugestLmIOS.clicked.connect(self.SelectSugestLandmark)
         self.ui.ButtonSugestLmCBCT.clicked.connect(self.SelectSugestLandmark)
         self.ui.CbInputType.currentIndexChanged.connect(self.SwitchType)
+        self.ui.CbModeType.currentIndexChanged.connect(self.SwitchType)        
 
 
 
@@ -289,15 +296,41 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                                                                                                                                                                     
 
     """
+    def SwitchMode(self,index):
+        if index == 0: # Semi-Automated
+            self.ui.label_6.setVisible(False)
+            self.ui.lineEditModelFolder.setVisible(False)
+            self.ui.lineEditModelFolder.setText(' ')
+            self.ui.ButtonSearchModelFolder.setVisible(False)
+            self.ui.ButtonDowloadModels.setVisible(False)
+            self.fullyAutomated = False
+
+        if index == 1: # Fully Automated
+            self.ui.label_6.setVisible(True)
+            self.ui.lineEditModelFolder.setVisible(True)
+            self.ui.ButtonSearchModelFolder.setVisible(True)
+            self.ui.ButtonDowloadModels.setVisible(True)
+            self.fullyAutomated = True
 
     def SwitchType(self,index):
-        if index == 0 :
-            self.ActualMeth = self.MethodeDic['CBCT']
+        if self.ui.CbInputType.currentIndex == 0 and self.ui.CbModeType.currentIndex == 0:
+            self.ActualMeth = self.MethodeDic['Semi_CBCT']
             self.ui.stackedWidget.setCurrentIndex(0)
-
-        elif index == 1 :
-            self.ActualMeth = self.MethodeDic['IOS']
+        
+        elif self.ui.CbInputType.currentIndex == 0 and self.ui.CbModeType.currentIndex == 1:
+            self.ActualMeth = self.MethodeDic['Auto_CBCT']
             self.ui.stackedWidget.setCurrentIndex(1)
+
+        elif self.ui.CbInputType.currentIndex == 1 and self.ui.CbModeType.currentIndex == 0:
+            self.ActualMeth = self.MethodeDic['Semi_IOS']
+            self.ui.stackedWidget.setCurrentIndex(2)
+        
+        elif self.ui.CbInputType.currentIndex == 1 and self.ui.CbModeType.currentIndex == 1:
+            self.ActualMeth = self.MethodeDic['Auto_IOS']
+            self.ui.stackedWidget.setCurrentIndex(3)
+        
+        # UI Changes and boolean fullyAutomated
+        self.SwitchMode(self.ui.CbModeType.currentIndex)
 
         self.dicchckbox=self.ActualMeth.getcheckbox()
         self.dicchckbox2=self.ActualMeth.getcheckbox2()
@@ -339,7 +372,17 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 self.ui.lineEditRefFolder.setText(ref_folder)
                 self.enableCheckbox()
 
+    def SearchModel(self):
+        model_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a model folder")
+        if not model_folder == '':
+            error = self.ActualMeth.TestModel(model_folder)
 
+            if isinstance(error,str):
+                    qt.QMessageBox.warning(self.parent, 'Warning', error)
+
+            else:
+                self.ui.lineEditModelFolder.setText(model_folder)
+        
     def ChosePathOutput(self):
         out_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder")
         if not out_folder =='':
@@ -348,6 +391,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def DownloadRef(self):
         self.ActualMeth.DownloadRef()
 
+    def DownloadModels(self):
+        self.ActualMeth.DownloadModels()
 
     def SelectSugestLandmark(self):
         best = self.ActualMeth.Sugest()
@@ -361,16 +406,14 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     
     def enableCheckbox(self):
-        status = self.ActualMeth.existsLandmark(self.ui.lineEditScanLmPath.text,self.ui.lineEditRefFolder.text)
+        status = self.ActualMeth.existsLandmark(self.ui.lineEditScanLmPath.text,self.ui.lineEditRefFolder.text,self.ui.lineEditModelFolder.text)
         if status is None:
             return
         for checkboxs,checkboxs2 in zip(self.dicchckbox.values(),self.dicchckbox2.values()):
             for checkbox, checkbox2 in zip(checkboxs,checkboxs2):
-                if checkbox.text in status.keys():             
-                    checkbox.setVisible(status[checkbox.text])
-                    checkbox2.setVisible(status[checkbox2.text])
-
-
+                #if checkbox.text in status.keys():            
+                checkbox.setVisible(status[checkbox.text])
+                checkbox2.setVisible(status[checkbox2.text])
 
 
 
@@ -415,18 +458,19 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def onPredictButton(self):
         error = self.ActualMeth.TestProcess(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
-                                        folder_output = self.ui.lineEditOutputPath.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox)
-
+                                        folder_output = self.ui.lineEditOutputPath.text, model_folder = self.ui.lineEditModelFolder.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox, fullyAutomated = self.fullyAutomated)
 
         if isinstance(error,str):
             qt.QMessageBox.warning(self.parent, 'Warning',error.replace(',','\n'))
 
         else :
-            self.process = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
-                                        folder_output = self.ui.lineEditOutputPath.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox)
+            Processes = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
+                                        folder_output = self.ui.lineEditOutputPath.text, model_folder = self.ui.lineEditModelFolder.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox, fullyAutomated = self.fullyAutomated)
 
-            self.processObserver = self.process.AddObserver('ModifiedEvent',self.onProcessUpdate)
-            self.onProcessStarted()
+            for proc in Processes:
+                self.process = proc
+                self.processObserver = self.process.AddObserver('ModifiedEvent',self.onProcessUpdate)
+                self.onProcessStarted()
 
 
 

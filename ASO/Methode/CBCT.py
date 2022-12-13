@@ -33,27 +33,6 @@ class CBCT(Methode):
 
         return patients
     
-    def TestScan(self, scan_folder: str):
-        out = ''
-        scan_extension = [".nrrd", ".nrrd.gz", ".nii", ".nii.gz", ".gipl", ".gipl.gz"]
-        lm_extension = [".json"]
-
-        if self.NumberScan(scan_folder) == 0 :
-            return 'The selected folder must contain scans'
-        
-        dic = super().search(scan_folder,scan_extension,lm_extension)
-
-        patients = self.PatientScanLandmark(dic,scan_extension,lm_extension)
-
-        for patient,data in patients.items():
-            if "scan" not in data.keys():
-                out += "Missing scan for patient : {}\nat {}\n".format(patient,data["dir"])
-            if len(data['lmrk']) == 0:
-                out += "Missing landmark for patient : {}\nat {}\n".format(patient,data["dir"])
-        
-        if out == '':   # If no errors
-            out = None
-        return out
 
     def TestReference(self, ref_folder: str):
         out = None
@@ -69,7 +48,7 @@ class CBCT(Methode):
         return out
 
     def TestCheckbox(self,dic_checkbox):
-        list_landmark = self.__CheckboxisChecked(dic_checkbox)
+        list_landmark = self.CheckboxisChecked(dic_checkbox)
         out = None
         if len(list_landmark) < 3:
              out = 'Select a minimum of 3 landmarks\n'
@@ -100,27 +79,11 @@ class CBCT(Methode):
 
         return out
 
-    def Process(self, **kwargs):
-        list_lmrk = self.__CheckboxisChecked(kwargs['dic_checkbox'])
-        list_lmrk_str = ''
-        for lm in list_lmrk:
-            list_lmrk_str+=lm+','
-        
-        parameter= {'input':kwargs['input_folder'],
-                    'gold_folder':kwargs['gold_folder'],
-                    'output_folder':kwargs['folder_output'],
-                    'add_inname':kwargs['add_in_namefile'],
-                    'list_landmark':list_lmrk_str,
-                }
-        print('parameter',parameter)
-
-        OrientProcess = slicer.modules.aso_cbct
-        process = slicer.cli.run(OrientProcess, None, parameter)
-
-        return process
-
     def DownloadRef(self):
         webbrowser.open('https://google.com')
+
+    def DownloadModels(self):
+        webbrowser.open('https://www.google.com/search?source=lnms&tbm=nws&sa=X&ved=2ahUKEwi9rsjYgev7AhUyl4kEHSmjC4EQ_AUoAXoECAIQAw&q=kylian%20mbapp%C3%A9&biw=1920&bih=1095&dpr=1')
 
     def DicLandmark(self):
         dic = {'Head':
@@ -134,32 +97,7 @@ class CBCT(Methode):
 
         return dic
 
-    def existsLandmark(self,folderpath,reference_folder):
-        out = None
-        if folderpath != '' and reference_folder != '':
-            input_lm = []
-            input_json = super().search(folderpath,'json')['json']
-            for file in input_json:
-                for lm in self.ListLandmarksJson(file):
-                    if lm not in input_lm:
-                        input_lm.append(lm)
-            
-            gold_json = super().search(reference_folder,'json')['json']
-            gold_lm = self.ListLandmarksJson(gold_json[0])
-
-            available_lm = [lm for lm in input_lm if lm in gold_lm]
-            
-            dic = self.DicLandmark()['Head']
-            list_lm = []
-            for key in dic.keys():
-                list_lm.extend(dic[key])
-            
-            not_available_lm = [lm for lm in list_lm if lm not in available_lm]
-            
-            out = {key:False for key in not_available_lm}
-
-        return out
-
+        
     def ListLandmarksJson(self,json_file):
         
         with open(json_file) as f:
@@ -171,7 +109,7 @@ class CBCT(Methode):
         return ['Ba','S','N','RPo','LPo','ROr','LOr']
 
 
-    def __CheckboxisChecked(self,diccheckbox : dict):
+    def CheckboxisChecked(self,diccheckbox : dict, in_str = False):
         out=''
         listchecked = []
         if not len(diccheckbox) == 0:
@@ -179,4 +117,162 @@ class CBCT(Methode):
                 for checkbox in checkboxs:
                     if checkbox.isChecked():
                         listchecked.append(checkbox.text)
+        if in_str:
+            listchecked_str = ''
+            for i,lm in enumerate(listchecked):
+                if i<len(listchecked)-1:
+                    listchecked_str+= lm+' '
+                else:
+                    listchecked_str+=lm
+            return listchecked_str
+    
         return listchecked
+    
+class Semi_CBCT(CBCT):
+    
+    def TestModel(self, model_folder: str) -> str:
+        return None
+
+    def TestScan(self, scan_folder: str):
+        out = ''
+        scan_extension = [".nrrd", ".nrrd.gz", ".nii", ".nii.gz", ".gipl", ".gipl.gz"]
+        lm_extension = [".json"]
+
+        if self.NumberScan(scan_folder) == 0 :
+            return 'The selected folder must contain scans'
+        
+        dic = super().search(scan_folder,scan_extension,lm_extension)
+
+        patients = self.PatientScanLandmark(dic,scan_extension,lm_extension)
+
+        for patient,data in patients.items():
+            if "scan" not in data.keys():
+                out += "Missing scan for patient : {}\nat {}\n".format(patient,data["dir"])
+            if len(data['lmrk']) == 0:
+                out += "Missing landmark for patient : {}\nat {}\n".format(patient,data["dir"])
+        
+        if out == '':   # If no errors
+            out = None
+        return out
+
+    def existsLandmark(self,folderpath,reference_folder, model_folder):
+        
+        out = None
+        if folderpath != '' and reference_folder != '':
+            input_lm = []
+            input_json = super().search(folderpath,'json')['json']
+
+            all_lm = [self.ListLandmarksJson(file) for file in input_json]
+            input_lm = all_lm[0]
+            for lm_file in all_lm:
+                for lm in input_lm:
+                    if lm not in lm_file:
+                        input_lm.remove(lm)
+
+            gold_json = super().search(reference_folder,'json')['json']
+            gold_lm = self.ListLandmarksJson(gold_json[0])
+            
+            available_lm = [lm for lm in input_lm if lm in gold_lm]
+            available = {key:True for key in available_lm}
+            
+            dic = self.DicLandmark()['Head']
+            list_lm = []
+            for key in dic.keys():
+                list_lm.extend(dic[key])
+
+            not_available_lm = [lm for lm in list_lm if lm not in available_lm]
+            not_available = {key:False for key in not_available_lm} 
+            
+            out = {**available,**not_available}
+
+        return out
+
+    def Process(self, **kwargs):
+        list_lmrk_str = self.CheckboxisChecked(kwargs['dic_checkbox'],in_str=True)
+       
+        parameter= {'input':kwargs['input_folder'],
+                    'gold_folder':kwargs['gold_folder'],
+                    'output_folder':kwargs['folder_output'],
+                    'add_inname':kwargs['add_in_namefile'],
+                    'list_landmark':list_lmrk_str,
+                    'model_folder':kwargs['model_folder'],
+                    'fullyAutomated':kwargs['fullyAutomated'],
+                }
+        print('parameter',parameter)
+
+        OrientProcess = slicer.modules.aso_cbct
+        process = slicer.cli.run(OrientProcess, None, parameter)
+
+        return [process]
+
+class Auto_CBCT(CBCT):
+    
+    def TestModel(self, model_folder: str) -> str:
+        if len(super().search(model_folder,'pth')['pth']) == 0:
+            return 'Folder must have ALI models files'
+        else:
+            return None
+        
+    def TestScan(self, scan_folder: str) -> str:
+        return None
+
+    def existsLandmark(self, pathfile, pathref, pathmodel):
+        out = None
+        
+        if pathref != '' and pathmodel != ' ':
+
+            gold_json = super().search(pathref,'json')['json']
+            gold_lm = self.ListLandmarksJson(gold_json[0])
+
+            list_model_files = super().search(pathmodel,'pth')['pth']
+            list_models = [os.path.basename(i).split('_Net')[0] for i in list_model_files]
+            
+            available_lm = [lm for lm in gold_lm if lm in list_models]
+            available = {key:True for key in available_lm}
+            
+            dic = self.DicLandmark()['Head']
+            list_lm = []
+            for key in dic.keys():
+                list_lm.extend(dic[key])
+
+            not_available_lm = [lm for lm in list_lm if lm not in available_lm]
+            not_available = {key:False for key in not_available_lm} 
+            
+            out = {**available,**not_available}
+            
+        return out
+
+    def Process(self, **kwargs):
+        Processes = []
+
+        list_lmrk_str = self.CheckboxisChecked(kwargs['dic_checkbox'],in_str=True)
+        
+        # ALI CBCT
+        
+        aliparam =  {'input': kwargs['input_folder'], 
+                    'dir_models': kwargs['model_folder'], 
+                    'landmarks': list_lmrk_str, 
+                    'save_in_folder': False, 
+                    'output_dir': kwargs['input_folder'],
+                    'temp_fold': '/home/luciacev/Documents/Slicer_temp_ALI'}
+        
+        ALIProcess = slicer.modules.ali_cbct
+        Processes.append(slicer.cli.run(ALIProcess, None, aliparam))
+        print('aliparams:',aliparam)
+        
+        # ICP        
+       
+        parameter= {'input':kwargs['input_folder'],
+                    'gold_folder':kwargs['gold_folder'],
+                    'output_folder':kwargs['folder_output'],
+                    'add_inname':kwargs['add_in_namefile'],
+                    'list_landmark':list_lmrk_str,
+                    'model_folder':kwargs['model_folder'],
+                    'fullyAutomated':kwargs['fullyAutomated'],
+                }
+        print('asoparam:',parameter)
+        OrientProcess = slicer.modules.aso_cbct
+        Processes.append(slicer.cli.run(OrientProcess, None, parameter))
+
+        return Processes
+    
