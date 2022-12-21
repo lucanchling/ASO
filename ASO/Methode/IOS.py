@@ -2,15 +2,16 @@ from Methode.Methode import Methode
 import slicer
 import webbrowser
 import glob
+import os
 
-class IOS(Methode):
+class Auto_IOS(Methode):
     def __init__(self, widget):
         super().__init__(widget)
 
 
     def NumberScan(self, scan_folder: str):
             
-        return len(super().search(scan_folder,'vtk'))
+        return len(super().search(scan_folder,'vtk')['vtk'])
 
 
     def TestScan(self, scan_folder: str):
@@ -32,10 +33,15 @@ class IOS(Methode):
         return out
 
     def TestCheckbox(self,dic_checkbox) -> str:
-        list_landmark = self.__CheckboxisChecked(dic_checkbox)
+        list_teeth, list_landmark, mix, jaw = self.__CheckboxisChecked(dic_checkbox)
         out = None
-        if len(list_landmark.split(','))< 3:
-             out = 'Give minimum 3 landmark'
+        if len(list_teeth)< 3:
+             out = 'Give minimum 3 teeth,'
+        if len(list_landmark)==0:
+            out += "Give minimum 1 landmark,"
+
+        if len(jaw)<1 :
+            out+= 'Choose one jaw,'
         return out
 
 
@@ -44,6 +50,13 @@ class IOS(Methode):
 
     def DownloadModels(self):
         return super().DownloadModels()
+
+
+    def __Model(self,path):
+        model = self.search(path,'pth')['pth'][0]
+
+        return model
+
 
         
 
@@ -68,8 +81,6 @@ class IOS(Methode):
         if kwargs['add_in_namefile']== '':
             out = out + "Give something to add in name of file,"
 
-        if kwargs['label_surface'] == '':
-            out = out + "Give Label Surface"
 
         if out != '':
             out=out[:-1]
@@ -81,24 +92,73 @@ class IOS(Methode):
 
 
     def Process(self, **kwargs):
-        list_teeth = self.__CheckboxisChecked(kwargs['dic_checkbox'])
+        list_teeth, list_landmark , mix, jaw = self.__CheckboxisChecked(kwargs['dic_checkbox'])
+        print('output checkbox is checked',list_teeth, list_landmark , mix)
 
-        parameter= {'input':kwargs['input_folder'],'gold_folder':kwargs['gold_folder'],'output_folder':kwargs['folder_output'],'add_inname':kwargs['add_in_namefile'],'list_teeth':list_teeth }
+        path_seg = os.path.join(slicer.util.tempDirectory(), 'seg')
+        path_preor = os.path.join(slicer.util.tempDirectory(), 'PreOr')
+
+        if not os.path.exists(path_seg):
+            os.mkdir(os.path.join(path_seg))
 
 
-        print('parameter',parameter)
-        OrientProcess = slicer.modules.aso_ios
-        process = slicer.cli.run(OrientProcess,None,parameter)
+        if not os.path.exists(path_preor):
+            os.mkdir(path_preor)
 
-        return process
+
+        parameter_seg = {'input':kwargs['input_folder'],
+                        'output':path_seg,
+                        'rotation':40,
+                        'resolution':320,
+                        'model':self.__Model(kwargs['model_folder_segor']),
+                        'predictedId':'Universal_ID',
+                        'sepOutputs':False,
+                        'chooseFDI':0,
+                        'logPath':kwargs['logPath']
+                        }
+
+        parameter_pre_aso= {'input':path_seg,
+                        'gold_folder':kwargs['gold_folder'],
+                        'output_folder':path_preor,
+                        'add_inname':kwargs['add_in_namefile'],
+                        'list_teeth':','.join(list_teeth) }
+
+        parameter_aliios ={'input':path_preor,
+                            'dir_models':kwargs['model_folder_ali'],
+                            'landmarks':' '.join(list_landmark),
+                            'teeth':' '.join(list_teeth),
+                            'save_in_folder':'false',
+                            'output_dir':path_preor
+                            }
+
+        parameter_semi_aso= {'input':path_preor,
+                            'gold_folder':kwargs['gold_folder'],
+                            'output_folder':kwargs['folder_output'],
+                            'add_inname':kwargs['add_in_namefile'],
+                            'list_landmark':','.join(mix),
+                            'jaw':'/'.join(jaw)}
+
+        print('parameter pre aso',parameter_pre_aso)
+        print('parameter seg',parameter_seg)
+        print('parameter aliios ',parameter_aliios)
+        print('parameter semi ios',parameter_semi_aso)
+
+        PreOrientProcess = slicer.modules.pre_aso_ios
+        SegProcess = slicer.modules.crownsegmentationcli
+        aliiosProcess = slicer.modules.ali_ios
+        OrientProcess = slicer.modules.semi_aso_ios
+
+# {'Process':SegProcess,'Parameter':parameter_seg},{'Process':PreOrientProcess,'Parameter':parameter_pre_aso},
+        list_process = [{'Process':SegProcess,'Parameter':parameter_seg},
+        {'Process':PreOrientProcess,'Parameter':parameter_pre_aso},
+        {"Process":aliiosProcess,"Parameter":parameter_aliios},
+        {'Process':OrientProcess,'Parameter':parameter_semi_aso}]
+#
+        return list_process
 
     def DicLandmark(self):
-       
-        dic = {'Teeth':
-                    {'Upper':['2','3','4','5','6','7','8','9','10','11','12','13','14',',15'],
-                    'Lower':['16','17','18','19',',20','21','22','23','24','25','26','27','28','29','30','31','32']
-                    },
-                }
+        dic = {'Landmark':{'Occlusal':['DB','MB','O'],'Cervical':['CB','CL','OIP','R','RIP']}}
+
         return dic
 
 
@@ -111,7 +171,7 @@ class IOS(Methode):
 
 
     def Sugest(self):
-        return ['UR5','UL1','UL5','LL5','LR1','LR5']
+        return ['UR6','UL1','UL6','LL6','LR1','LR6','O']
 
 
     def __CheckboxisChecked(self,diccheckbox : dict):
@@ -119,22 +179,108 @@ class IOS(Methode):
        'UL4': 12, 'UL5': 13, 'UL6': 14, 'UL7': 15, 'UL8': 16, 'LL8': 17, 'LL7': 18, 'LL6': 19, 'LL5': 20, 'LL4': 21, 'LL3': 22, 
        'LL2': 23, 'LL1': 24, 'LR1': 25, 'LR2': 26, 'LR3': 27, 'LR4': 28, 'LR5': 29, 'LR6': 30, 'LR7': 31, 'LR8': 32}
 
-        out=''
+        teeth = []
+        landmarks= []
+        jaw = []
+        mix = []
         if not len(diccheckbox) == 0:
 
-            for checkboxs in diccheckbox['Adult'].values():
+            for checkboxs in diccheckbox['Teeth']['Adult'].values():
                 for checkbox in checkboxs:
                     if checkbox.isChecked():
-                        out+=f'{dic[checkbox.text]},'
-            while out[0]==',':
-                out = out[1:]
+                        teeth.append(checkbox.text)
 
-            before = None
-            for i, letter in enumerate(out):
-                if before==',' and letter==',':
-                    out = out[:i]+out[i+1:]
-                before = letter
-                
-            out=out[:-1]
-        print('out',out)
+
+            for checkboxs in diccheckbox['Landmark'].values():
+                for checkbox in checkboxs:
+                    if checkbox.isChecked():
+                        landmarks.append(checkbox.text)
+
+
+            for tooth in teeth :
+                for landmark in landmarks :
+                    mix.append(f'{tooth}{landmark}')
+
+
+            for key , checkbox in diccheckbox['Jaw'].items():
+                if checkbox.isChecked():
+                    jaw.append(key)
+
+        return teeth , landmarks, mix, jaw
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Semi_IOS(Auto_IOS):
+
+       
+
+
+    def TestScan(self, scan_folder: str):
+        out = None
+        dic = self.search(scan_folder,'vtk','json')
+        if len(dic['vtk']) != len(dic['json']): 
+            print('dif ',len(dic['vtk']) - len(dic['json']))
+            # out = 'Give folder with the same number of vkt file and json file'
+        return out 
+
+
+    def __CheckboxisChecked(self,diccheckbox : dict):
+        
+        teeth = []
+        landmarks= []
+        jaw = []
+        mix = []
+        print(diccheckbox)
+        if not len(diccheckbox) == 0:
+
+            for checkboxs in diccheckbox['Teeth']['Adult'].values():
+                for checkbox in checkboxs:
+                    if checkbox.isChecked():
+                        teeth.append(checkbox.text)
+
+
+            for checkboxs in diccheckbox['Landmark'].values():
+                for checkbox in checkboxs:
+                    if checkbox.isChecked():
+                        landmarks.append(checkbox.text)
+
+
+            for tooth in teeth :
+                for landmark in landmarks :
+                    mix.append(f'{tooth}{landmark}')
+
+
+            for key , checkbox in diccheckbox['Jaw'].items():
+                if checkbox.isChecked():
+                    jaw.append(key)
+
+        return teeth , landmarks, mix, jaw
+
+
+
+    def Process(self, **kwargs):
+        teeth, landmark , mix , jaw = self.__CheckboxisChecked(kwargs['dic_checkbox'])
+
+        parameter= {'input':kwargs['input_folder'],'gold_folder':kwargs['gold_folder'],'output_folder':kwargs['folder_output'],'add_inname':kwargs['add_in_namefile'],'list_landmark':','.join(mix),'Jaw':'/'.join(jaw)}
+
+
+        print('parameter',parameter)
+        OrientProcess = slicer.modules.semi_aso_ios
+
+        return [{'Process':OrientProcess,'Parameter':parameter}]
+
+
+    def Sugest(self):
+        out = ['O','UL6','UL1','UR1','UR6','LL6','LL1','LR1','LR6']
         return out

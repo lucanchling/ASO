@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <executable>
   <category>Automated Dental Tools.Advanced</category>
-  <index>1</index>
-  <title>ASO_CBCT</title>
+  <index>3</index>
+  <title>SEMI_ASO_IOS</title>
   <description><![CDATA[This is a CLI module that can be bundled in an extension]]></description>
   <version>0.0.1</version>
   <documentation-url>https://github.com/username/project</documentation-url>
@@ -47,22 +47,23 @@
       <name>list_landmark</name>
       <label>list_landmark</label>
       <index>4</index>
-      <description>Landmarks use for orientation</description>
+      <description>Landmark use for orientation</description>
     </string>
 
+
     <string>
-      <name>model_folder</name>
-      <label>model_folder</label>
+      <name>jaw</name>
+      <label>jaw</label>
       <index>5</index>
-      <description>Folder with different models</description>
+      <description>Jaw to orient</description>
     </string>
 
-    <string>
-      <name>fullyAutomated</name>
-      <label>fullyAutomated</label>
-      <index>6</index>
-      <description>Boolean to know whether the method is the fullyAutomated or semiAutomated</description>
-    </string>
+    
+
+
+
+
+
 
 
 

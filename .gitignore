@@ -6,5 +6,5 @@ ASO_CBCT/utils/cache
 *.pyc
 .DS_Store
 */cache
+*.npy
 
-*.txt

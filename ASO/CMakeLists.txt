@@ -14,6 +14,7 @@ set(MODULE_PYTHON_RESOURCES
   Resources/UI/${MODULE_NAME}.ui
   Resources/UI/Lower.png
   Resources/UI/Upper.png
+  RESOURCES/UI/style.qss
 
 
   )

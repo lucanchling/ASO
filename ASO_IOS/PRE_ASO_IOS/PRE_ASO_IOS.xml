@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <executable>
   <category>Automated Dental Tools.Advanced</category>
-  <index>3</index>
-  <title>ASO_IOS</title>
+  <index>2</index>
+  <title>PRE_ASO_IOS</title>
   <description><![CDATA[This is a CLI module that can be bundled in an extension]]></description>
   <version>0.0.1</version>
   <documentation-url>https://github.com/username/project</documentation-url>
@@ -49,6 +49,15 @@
       <index>4</index>
       <description>Landmark use for orientation</description>
     </string>
+
+    <string>
+      <name>jaw</name>
+      <label>jaw</label>
+      <index>5</index>
+      <description>Jaw use to orient</description>
+    </string>
+
+    
 
 
 

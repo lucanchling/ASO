@@ -2,11 +2,12 @@ import os
 import logging
 import time
 import vtk, qt, slicer
-from qt import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QCheckBox, QPushButton, QPixmap , QIcon, QSize, QLabel,QHBoxLayout
+from qt import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QCheckBox, QPushButton, QPixmap , QIcon, QSize, QLabel,QHBoxLayout, QGridLayout
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
+from functools import partial
 
-from Methode.IOS import IOS
+from Methode.IOS import Auto_IOS, Semi_IOS
 from Methode.CBCT import Semi_CBCT, Auto_CBCT
 from Methode.Methode import Methode
 
@@ -43,6 +44,7 @@ class ASO(ScriptedLoadableModule):
         #
         # Register sample data sets in Sample Data module
         #
+
 
     def registerSampleData(self):
         """
@@ -115,8 +117,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
 
-
-
     def setup(self):
         """
         Called when the user opens the module the first time and the widget is initiASOzed.
@@ -129,6 +129,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.layout.addWidget(uiWidget)
 
         self.ui = slicer.util.childWidgetVariables(uiWidget)
+
 
         # Set scene in MRML widgets. Make sure that in Qt designer the top-level qMRMLWidget's
         # "mrmlSceneChanged(vtkMRMLScene*)" signal in is connected to each MRML widget's.
@@ -166,8 +167,10 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             `8'        `"8bbdP"Y8  88          88  `"8bbdP"Y8  8Y"Ybbd8"'   88   `"Ybbd8"'  `"YbbdP"'  
                                                                                                             
         """
-        self.MethodeDic={'Semi_IOS':IOS(self), 'Auto_IOS':IOS(self),
+        self.MethodeDic={'Semi_IOS':Semi_IOS(self), 'Auto_IOS':Auto_IOS(self),
                          'Semi_CBCT':Semi_CBCT(self),'Auto_CBCT':Auto_CBCT(self)}
+
+        self.ActualMeth= Methode
         self.ActualMeth= self.MethodeDic['Semi_CBCT']
         self.nb_scan = 0
         self.startprocess =0
@@ -178,6 +181,10 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         """
         exemple dic = {'teeth'=['A,....],'Type'=['O',...]}
         """
+
+        self.log_path  = os.path.join(slicer.util.tempDirectory(), 'process.log')
+        self.time = 0 
+        self.list_process = []
 
         #use messletter to add big comment with univers as police
 
@@ -203,11 +210,13 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         """
         # self.initCheckbox(self.MethodeDic['Semi_IOS'],self.ui.LayoutLandmarkSemiIOS,self.ui.tohideIOS)
         # self.initCheckbox(self.MethodeDic['Auto_IOS'],self.ui.LayoutLandmarkAutoIOS,self.ui.tohideIOS)
+        self.initTest(self.MethodeDic['Auto_IOS'],self.ui.LayoutAutoIOS_tooth,self.ui.tohideAutoIOS_tooth,self.ui.LayoutLandmarkAutoIOS)
+        self.initTest(self.MethodeDic['Semi_IOS'],self.ui.LayoutSemiIOS_tooth,self.ui.tohideSemiIOS_tooth,self.ui.LayoutLandmarkSemiIOS)
+
         self.initCheckbox(self.MethodeDic['Semi_CBCT'],self.ui.LayoutLandmarkSemiCBCT,self.ui.tohideCBCT) # a decommmente
         self.initCheckbox(self.MethodeDic['Auto_CBCT'],self.ui.LayoutLandmarkAutoCBCT,self.ui.tohideCBCT)
         self.HideComputeItems()
-        self.initTest(self.MethodeDic['Semi_IOS'])
-        self.initTest(self.MethodeDic['Auto_IOS'])
+        # self.initTest(self.MethodeDic['Semi_IOS'])
 
 
 
@@ -243,7 +252,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         self.ui.ButtonSearchScanLmFolder.connect('clicked(bool)',self.SearchScanLm)
         self.ui.ButtonSearchReference.connect('clicked(bool)',self.SearchReference)
-        self.ui.ButtonSearchModelFolder.connect('clicked(bool)',self.SearchModel)
+        self.ui.ButtonSearchModelSegOr.connect('clicked(bool)',lambda : self.SearchModel(self.ui.lineEditModelSegOr))
+        self.ui.ButtonSearchModelAli.clicked.connect(lambda : self.SearchModel(self.ui.lineEditModelAli))    
         self.ui.ButtonDowloadRefLm.connect('clicked(bool)',self.DownloadRef)
         self.ui.ButtonDowloadModels.connect('clicked(bool)',self.DownloadModels)
         self.ui.ButtonOriented.connect('clicked(bool)',self.onPredictButton)
@@ -251,8 +261,10 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.ButtonCancel.connect('clicked(bool)',self.onCancel)
         self.ui.ButtonSugestLmIOS.clicked.connect(self.SelectSugestLandmark)
         self.ui.ButtonSugestLmCBCT.clicked.connect(self.SelectSugestLandmark)
+        self.ui.ButtonSugestLmIOSSemi.clicked.connect(self.SelectSugestLandmark)
         self.ui.CbInputType.currentIndexChanged.connect(self.SwitchType)
-        self.ui.CbModeType.currentIndexChanged.connect(self.SwitchType)        
+        self.ui.CbModeType.currentIndexChanged.connect(self.SwitchType)    
+        
 
 
 
@@ -302,16 +314,21 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def SwitchMode(self,index):
         if index == 0: # Semi-Automated
             self.ui.label_6.setVisible(False)
-            self.ui.lineEditModelFolder.setVisible(False)
-            self.ui.lineEditModelFolder.setText(' ')
-            self.ui.ButtonSearchModelFolder.setVisible(False)
+            self.ui.lineEditModelAli.setVisible(False)
+            self.ui.lineEditModelAli.setText(' ')
+            self.ui.lineEditModelSegOr.setVisible(False)
+            self.ui.lineEditModelSegOr.setText(' ')
+            self.ui.ButtonSearchModelAli.setVisible(False)
+            self.ui.ButtonSearchModelSegOr.setVisible(False)
             self.ui.ButtonDowloadModels.setVisible(False)
             self.fullyAutomated = False
 
         if index == 1: # Fully Automated
             self.ui.label_6.setVisible(True)
-            self.ui.lineEditModelFolder.setVisible(True)
-            self.ui.ButtonSearchModelFolder.setVisible(True)
+            self.ui.lineEditModelAli.setVisible(True)
+            self.ui.ButtonSearchModelAli.setVisible(True)
+            self.ui.lineEditModelSegOr.setVisible(True)
+            self.ui.ButtonSearchModelSegOr.setVisible(True)
             self.ui.ButtonDowloadModels.setVisible(True)
             self.fullyAutomated = True
 
@@ -355,7 +372,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 self.nb_patient = nb_scans
                 self.ui.lineEditScanLmPath.setText(scan_folder)
                 self.ui.LabelInfoPreProc.setText("Number of scans to process : " + str(nb_scans))
-                self.ui.LabelProgress.setText('Patient process : 0 /'+str(nb_scans))
+                self.ui.LabelProgressPatient.setText('Patient process : 0 /'+str(nb_scans))
                 self.enableCheckbox()
 
 
@@ -375,7 +392,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 self.ui.lineEditRefFolder.setText(ref_folder)
                 self.enableCheckbox()
 
-    def SearchModel(self):
+    def SearchModel(self,lineEdit):
         model_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a model folder")
         if not model_folder == '':
             error = self.ActualMeth.TestModel(model_folder)
@@ -384,7 +401,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     qt.QMessageBox.warning(self.parent, 'Warning', error)
 
             else:
-                self.ui.lineEditModelFolder.setText(model_folder)
+                lineEdit.setText(model_folder)
         
     def ChosePathOutput(self):
         out_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder")
@@ -408,9 +425,12 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     
     def enableCheckbox(self):
-        status = self.ActualMeth.existsLandmark(self.ui.lineEditScanLmPath.text,self.ui.lineEditRefFolder.text,self.ui.lineEditModelFolder.text)
+
+        status = self.ActualMeth.existsLandmark(self.ui.lineEditScanLmPath.text,self.ui.lineEditRefFolder.text,self.ui.lineEditModelAli.text)
         if status is None:
             return
+
+
         for checkboxs,checkboxs2 in zip(self.dicchckbox.values(),self.dicchckbox2.values()):
             for checkbox, checkbox2 in zip(checkboxs,checkboxs2):
                 #if checkbox.text in status.keys():            
@@ -460,52 +480,111 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def onPredictButton(self):
         error = self.ActualMeth.TestProcess(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
-                                        folder_output = self.ui.lineEditOutputPath.text, model_folder = self.ui.lineEditModelFolder.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox, fullyAutomated = self.fullyAutomated)
+                                        folder_output = self.ui.lineEditOutputPath.text, model_folder_ali = self.ui.lineEditModelAli.text, model_folder_segor = self.ui.lineEditModelSegOr.text,
+                                        add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox, fullyAutomated = self.fullyAutomated)
 
         if isinstance(error,str):
             qt.QMessageBox.warning(self.parent, 'Warning',error.replace(',','\n'))
 
         else :
-            Processes = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
-                                        folder_output = self.ui.lineEditOutputPath.text, model_folder = self.ui.lineEditModelFolder.text, add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox, fullyAutomated = self.fullyAutomated)
+            list_Processes = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
+                                        folder_output = self.ui.lineEditOutputPath.text, model_folder_ali = self.ui.lineEditModelAli.text, model_folder_segor = self.ui.lineEditModelSegOr.text,
+                                        add_in_namefile = self.ui.lineEditAddName.text, 
+                                        dic_checkbox = self.dicchckbox, fullyAutomated = self.fullyAutomated,logPath= self.log_path)
 
-            for proc in Processes:
-                self.process = proc
+            self.nb_extension_launch = len(list_Processes)
+
+            self.onProcessStarted()
+            for process in list_Processes:
+                self.process = slicer.cli.run(process['Process'],None,process['Parameter'])
                 self.processObserver = self.process.AddObserver('ModifiedEvent',self.onProcessUpdate)
-                self.onProcessStarted()
+                
+
+            
+
 
 
 
     def onProcessStarted(self):
         self.startTime = time.time()
 
-        self.ui.progressBar.setMaximum(self.nb_patient)
+        # self.ui.progressBar.setMaximum(self.nb_patient)
         self.ui.progressBar.setValue(0)
 
 
-        self.ui.LabelProgress.setText(f"Patient : 0 / {self.nb_patient}")
+        self.ui.LabelProgressPatient.setText(f"Patient : 0 / {self.nb_patient}")
+        self.ui.LabelProgressExtension.setText(f'Extension : 0 / {self.nb_extension_launch}')
+        self.nb_extnesion_did = 0
 
         self.nb_patient_treat = 0
         self.progress = 0
+        self.progress_seg = 0
+        self.time_log = 0 
+        self.progress_ali_ios = 0
+        self.module_name_before = 0
+        self.all_progress = 0
+        self.nb_change_bystep = 0
+
 
         self.RunningUI(True)
 
 
-
+    
     def onProcessUpdate(self,caller,event):
+
 
         timer = f"Time : {time.time()-self.startTime:.2f}s"
         self.ui.LabelTimer.setText(timer)
         progress = caller.GetProgress()
+        self.module_name = caller.GetModuleTitle()
+        self.ui.LabelNameExtension.setText(self.module_name)
+
+
+        if self.module_name_before != self.module_name:
+            
+            self.ui.LabelProgressPatient.setText(f"Patient : 0 / {self.nb_patient}")
+            self.nb_extnesion_did +=1
+            self.ui.LabelProgressExtension.setText(f'Extension : {self.nb_extnesion_did} / {self.nb_extension_launch}')
+            self.ui.progressBar.setValue(0)
+
+            if self.nb_change_bystep == 0 and self.module_name_before:
+                print(f'Erreur this module didnt work {self.module_name_before}')
+
+            self.module_name_before = self.module_name
+            self.nb_change_bystep =0
 
         if progress == 0:
             self.updateProgessBar = False
 
-        if progress != 0 and self.updateProgessBar == False:
-            self.updateProgessBar = True
-            self.nb_patient_treat+=1
-            self.ui.progressBar.setValue(self.nb_patient_treat)
-            self.ui.LabelProgress.setText(f"patient : {self.nb_patient_treat} / {self.nb_patient}")
+        if 'ASO' in self.module_name:
+            if progress != 0 and self.updateProgessBar == False:
+                self.updateProgessBar = True
+                self.nb_patient_treat+=1
+                self.ui.progressBar.setValue(self.nb_patient_treat/self.nb_patient*100)
+                self.ui.LabelProgressPatient.setText(f"Patient : {self.nb_patient_treat} / {self.nb_patient}")
+                self.nb_change_bystep  += 1
+        elif self.module_name == 'CrownSegmentationcli':
+            if os.path.isfile(self.log_path):
+                path_time = os.path.getmtime(self.log_path)
+                if path_time != self.time_log:
+                    # if progress was made
+                    self.time_log = path_time
+                    self.progress_seg += 1
+                    progressbar_value = self.progress_seg /(40+2) #40 number of rotation
+                    self.nb_patient_treat = int(progressbar_value)
+                    self.ui.progressBar.setValue(progressbar_value/self.nb_patient*100)
+                    self.ui.LabelProgressPatient.setText(f"Patient : {self.nb_patient_treat} / {self.nb_patient}")
+                    self.nb_change_bystep  += 1
+
+        elif self.module_name == 'ALI_IOS':
+            if progress == 100 and self.updateProgessBar == False:
+                self.progress_ali_ios +=1 
+                nb_landmark = 11
+                self.ui.progressBar.setValue(self.progress_ali_ios/(nb_landmark*self.nb_patient)*100)
+                self.nb_patient_treat = int(self.progress_ali_ios//nb_landmark)
+                self.ui.LabelProgressPatient.setText(f'Patient : {self.nb_patient_treat} / {self.nb_patient}')
+                self.nb_change_bystep  += 1
+
 
         if self.process.GetStatus() & self.process.Completed:
             # process complete
@@ -526,8 +605,18 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
                 self.OnEndProcess()
 
-
     def OnEndProcess(self):
+
+        self.ui.LabelProgressPatient.setText(f"Patient : 0 / {self.nb_patient}")
+        self.nb_extnesion_did +=1
+        self.ui.LabelProgressExtension.setText(f'Extension : {self.nb_extnesion_did} / {self.nb_extension_launch}')
+        self.ui.progressBar.setValue(0)
+
+        if self.nb_change_bystep == 0:
+            print(f'Erreur this module didnt work {self.module_name_before}')
+
+        self.module_name_before = self.module_name
+        self.nb_change_bystep =0
 
         
         print('PROCESS DONE.')
@@ -536,6 +625,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         stopTime = time.time()
 
         logging.info(f'Processing completed in {stopTime-self.startTime:.2f} seconds')
+
 
 
     def onCancel(self):
@@ -603,7 +693,8 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
 
 
     def initCheckbox(self,methode,layout,tohide : qt.QLabel):
-        tohide.setHidden(True)
+        if not tohide is None :
+            tohide.setHidden(True)
         dic  = methode.DicLandmark()
         # status = methode.existsLandmark('','')
         dicchebox={}
@@ -614,6 +705,7 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
             layout.addWidget(Tab)
             listcheckboxlandmark =[]
             listcheckboxlandmark2 = []
+            
 
             all_checkboxtab = self.CreateMiniTab(Tab,'All',0)
             for i, (name , listlandmark) in enumerate(tab.items()):
@@ -636,30 +728,39 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
 
             dicchebox[type] = listcheckboxlandmark
             dicchebox2[type]=listcheckboxlandmark2
+            
 
         methode.setcheckbox(dicchebox)
         methode.setcheckbox2(dicchebox2)
+        
+        return dicchebox, dicchebox2
 
 
 
     def CreateMiniTab(self,tabWidget : QTabWidget, name : str, index : int):
     
 
-        new_widget = QWidget()
-        new_widget.setMinimumHeight(250)
 
-        layout = QVBoxLayout(new_widget)
+
+
+
+        new_widget = QWidget()
+        # new_widget.setMinimumHeight(3)
+        new_widget.resize(tabWidget.size)
+
+        layout = QGridLayout(new_widget)
+
 
         scr_box = QScrollArea(new_widget)
-        scr_box.setMinimumHeight(200)
+        # scr_box.setMinimumHeight(50)
+        scr_box.resize(tabWidget.size)
 
-        layout.addWidget(scr_box)
+        layout.addWidget(scr_box,0,0)
 
         new_widget2 = QWidget(scr_box)
         layout2 = QVBoxLayout(new_widget2) 
 
         
-        layout.addStretch()
         scr_box.setWidgetResizable(True)
         scr_box.setWidget(new_widget2)
 
@@ -675,34 +776,21 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
 
         self.ui.ButtonCancel.setVisible(run)
         
-        self.ui.LabelProgress.setVisible(run)
+        self.ui.LabelProgressPatient.setVisible(run)
+        self.ui.LabelProgressExtension.setVisible(run)
+        self.ui.LabelNameExtension.setVisible(run)
         self.ui.progressBar.setVisible(run)
         
         self.ui.LabelTimer.setVisible(run)
 
-    def initButton(self,widget):
-        self.button = QPushButton()
-        self.button.clicked.connect(self.buttonfonction)
-        widget.addWidget(self.button)
-        pixmap =  QPixmap('/home/luciacev/Desktop/Project/ASO/ASO/Resources/UI/2.png')
-        button_icon = QIcon(pixmap)
-        self.button.setIcon(button_icon)
-        self.button.setIconSize(pixmap.rect().size())
 
 
-
-
-    def buttonfonction(self,check):
-
-        self.button.setDown(not(self.button.isDown()))
-        print(self.button.isDown())
-
-
-    def initTest(self,methode : IOS):
+    def initTest(self,methode : Auto_IOS ,layout :QGridLayout,tohide : QLabel, layout2 : QVBoxLayout):
         diccheckbox={"Adult":{},"Child":{}}
-        self.ui.tohideIOS.setHidden(True)
-        a = self.ui.gridTest
+        tohide.setHidden(True)
         dic_teeth ={1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F', 7: 'G', 8: 'H', 9: 'I', 10: 'J', 11: 'T', 12: 'S', 13: 'R', 14: 'Q', 15: 'P', 16: 'O', 17: 'N', 18: 'M', 19: 'L', 20: 'K'}
+        upper = []
+        lower = []
 
 
 
@@ -714,14 +802,16 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
             widget = QWidget()
             check = QCheckBox()
             check.setText(dic_teeth[i])
+            check.setEnabled(False)
             layout_check = QHBoxLayout(widget)
             layout_check.addWidget(check)
 
 
-            a.addWidget(widget,1,i+3)
-            a.addWidget(label,0,i+3)
+            layout.addWidget(widget,1,i+3)
+            layout.addWidget(label,0,i+3)
             list.append(check)
         diccheckbox['Child']['Upper']=list
+        upper += list
 
         dic ={1: 'UR8', 2: 'UR7', 3: 'UR6', 4: 'UR5', 5: 'UR4', 6: 'UR3', 7: 'UR2', 8: 'UR1', 9: 'UL1', 10: 'UL2', 11: 'UL3', 12: 'UL4', 
         13: 'UL5', 14: 'UL6', 15: 'UL7', 16: 'UL8', 17: 'LL8', 18: 'LL7', 19: 'LL6', 20: 'LL5', 21: 'LL4', 22: 'LL3', 23: 'LL2', 24: 'LL1', 
@@ -735,16 +825,18 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
             widget = QWidget()
             check = QCheckBox()
             check.setText(dic[i])
+            check.setEnabled(False)
             layout_check = QHBoxLayout(widget)
             layout_check.addWidget(check)
 
 
-            a.addWidget(widget,3,i)
-            a.addWidget(label,2,i)
+            layout.addWidget(widget,3,i)
+            layout.addWidget(label,2,i)
 
             list.append(check)
 
         diccheckbox['Adult']['Upper']=list
+        upper += list
 
 
         list =[]
@@ -755,16 +847,18 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
             widget = QWidget()
             check = QCheckBox()
             check.setText(dic[i+16])
+            check.setEnabled(False)
             layout_check = QHBoxLayout(widget)
             layout_check.addWidget(check)
 
 
-            a.addWidget(widget,4,i)
-            a.addWidget(label,5,i)
+            layout.addWidget(widget,4,i)
+            layout.addWidget(label,5,i)
 
             list.append(check)
 
         diccheckbox['Adult']['Lower']=list
+        lower += list
 
         list=[]
         for i in range(1,11):
@@ -774,21 +868,47 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
             widget = QWidget()
             check = QCheckBox()
             check.setText(dic_teeth[i+10])
+            check.setEnabled(False)
             layout_check = QHBoxLayout(widget)
             layout_check.addWidget(check)
 
 
-            a.addWidget(widget,6,i+3)
-            a.addWidget(label,7,i+3)
+            layout.addWidget(widget,6,i+3)
+            layout.addWidget(label,7,i+3)
 
             list.append(check)
 
         diccheckbox['Child']['Lower'] = list
+        lower += list
+
+        upper_checbox = QCheckBox()
+        upper_checbox.setText('Upper')
+        upper_checbox.toggled.connect(partial(self.initEnableCheckbox,{'Upper':upper,'Lower':lower},'Upper'))
+        layout.addWidget(upper_checbox,3,0)
+        lower_checkbox = QCheckBox()
+        lower_checkbox.setText('Lower')
+        lower_checkbox.toggled.connect(partial(self.initEnableCheckbox,{'Upper':upper,'Lower':lower},'Lower'))
+        layout.addWidget(lower_checkbox,4,0)
 
 
-        methode.setcheckbox(diccheckbox)
-        methode.setcheckbox2(diccheckbox)
+        dic1 , dic2 = self.initCheckbox(methode,layout2,None)
 
+
+        methode.setcheckbox({'Teeth':diccheckbox,'Landmark':dic1,'Jaw':{'Upper':upper_checbox,'Lower':lower_checkbox}})
+        methode.setcheckbox2({'Teeth':diccheckbox,'Landmark':dic2,'Jaw':{'Upper':upper_checbox,'Lower':lower_checkbox}})
+
+
+
+
+
+
+    def initEnableCheckbox(self,all_checkbox : dict ,jaw,boolean):
+
+
+        for checkbox in all_checkbox[jaw]:
+            checkbox.setEnabled(boolean)
+            if (not boolean) and checkbox.isChecked():
+                checkbox.setChecked(False)
 
 
 
@@ -1018,8 +1138,6 @@ class ASOLogic(ScriptedLoadableModuleLogic):
                 out.append(thing)
         
         return out
-
-
 
 
 

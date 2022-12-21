@@ -171,3 +171,9 @@ class Methode(ABC):
             else:
                 arguments.append(arg)
         return {key: [i for i in glob.iglob(os.path.normpath("/".join([path,'**','*'])),recursive=True) if i.endswith(key)] for key in arguments}
+
+
+
+
+
+        
