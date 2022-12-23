@@ -314,6 +314,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def SwitchMode(self,index):
         if index == 0: # Semi-Automated
             self.ui.label_6.setVisible(False)
+            self.ui.label_7.setVisible(False)
             self.ui.lineEditModelAli.setVisible(False)
             self.ui.lineEditModelAli.setText(' ')
             self.ui.lineEditModelSegOr.setVisible(False)
@@ -325,6 +326,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         if index == 1: # Fully Automated
             self.ui.label_6.setVisible(True)
+            self.ui.label_7.setVisible(True)
             self.ui.lineEditModelAli.setVisible(True)
             self.ui.ButtonSearchModelAli.setVisible(True)
             self.ui.lineEditModelSegOr.setVisible(True)
@@ -402,6 +404,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
             else:
                 lineEdit.setText(model_folder)
+                self.enableCheckbox()
         
     def ChosePathOutput(self):
         out_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder")
@@ -548,7 +551,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.progressBar.setValue(0)
 
             if self.nb_change_bystep == 0 and self.module_name_before:
-                print(f'Erreur this module didnt work {self.module_name_before}')
+                print(f'Error this module doesnt work {self.module_name_before}')
 
             self.module_name_before = self.module_name
             self.nb_change_bystep =0
@@ -576,10 +579,10 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     self.ui.LabelProgressPatient.setText(f"Patient : {self.nb_patient_treat} / {self.nb_patient}")
                     self.nb_change_bystep  += 1
 
-        elif self.module_name == 'ALI_IOS':
+        elif self.module_name == 'ALI_CBCT':
             if progress == 100 and self.updateProgessBar == False:
                 self.progress_ali_ios +=1 
-                nb_landmark = 11
+                nb_landmark = 6
                 self.ui.progressBar.setValue(self.progress_ali_ios/(nb_landmark*self.nb_patient)*100)
                 self.nb_patient_treat = int(self.progress_ali_ios//nb_landmark)
                 self.ui.LabelProgressPatient.setText(f'Patient : {self.nb_patient_treat} / {self.nb_patient}')
@@ -613,7 +616,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.progressBar.setValue(0)
 
         if self.nb_change_bystep == 0:
-            print(f'Erreur this module didnt work {self.module_name_before}')
+            print(f'Error this module doesnt work {self.module_name_before}')
 
         self.module_name_before = self.module_name
         self.nb_change_bystep =0

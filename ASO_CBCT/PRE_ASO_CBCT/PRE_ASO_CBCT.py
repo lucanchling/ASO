@@ -7,24 +7,22 @@ import time
 import argparse
 import numpy as np
 import SimpleITK as sitk
-from utils.utils import WriteJsonLandmarks,ICP,ExtractFilesFromFolder,MergeJson,WriteJson
+
+fpath = os.path.join(os.path.dirname(__file__), '..')
+sys.path.append(fpath)
+
+from utils import WriteJsonLandmarks,ICP,ExtractFilesFromFolder,MergeJson,WriteJson
 
 def main(args):
     scan_extension = [".nrrd", ".nrrd.gz", ".nii", ".nii.gz", ".gipl", ".gipl.gz"]
-    lm_extension = ['.json']
-
-    list_landmark = args.list_landmark[0].split(' ')
+    
     input_dir, gold_dir, out_dir = args.input[0], args.gold_folder[0], args.output_folder[0]
     
-    MergeJson(input_dir)
-
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     
-    input_files, input_json_files = ExtractFilesFromFolder(input_dir, scan_extension, lm_extension)
+    input_files = ExtractFilesFromFolder(input_dir, scan_extension)
 
-    gold_file, gold_json_file = ExtractFilesFromFolder(gold_dir, scan_extension, lm_extension, gold=True)
-    
     for i in range(len(input_files)):
         
         input_file, input_json_file = input_files[i],input_json_files[i]
@@ -71,11 +69,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument('input',nargs=1)
-    parser.add_argument('gold_folder',nargs=1)
     parser.add_argument('output_folder',nargs=1)
-    parser.add_argument('add_inname',nargs=1)
-    parser.add_argument('list_landmark',nargs=1)
-    parser.add_argument('model_folder',nargs=1)
     parser.add_argument('fullyAutomated',nargs=1)
 
     args = parser.parse_args()
