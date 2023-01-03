@@ -57,6 +57,24 @@
       <description>Jaw use to orient</description>
     </string>
 
+
+    <string>
+      <name>folder_error</name>
+      <label>folder_error</label>
+      <index>6</index>
+      <description>path for error folder </description>
+    </string>
+
+
+
+
+    <string>
+      <name>log_path</name>
+      <label>log_path</label>
+      <index>7</index>
+      <description>path for the log</description>
+    </string>
+
     
 
 

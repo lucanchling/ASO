@@ -7,6 +7,7 @@ set(MODULE_PYTHON_SCRIPTS
   Methode/Methode.py
   Methode/IOS.py
   Methode/CBCT.py
+  Methode/Progress.py
   )
 
 set(MODULE_PYTHON_RESOURCES
@@ -14,7 +15,6 @@ set(MODULE_PYTHON_RESOURCES
   Resources/UI/${MODULE_NAME}.ui
   Resources/UI/Lower.png
   Resources/UI/Upper.png
-  RESOURCES/UI/style.qss
 
 
   )

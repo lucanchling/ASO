@@ -6,11 +6,12 @@ import os
 import time
 import sys
 import argparse
+from tqdm import tqdm
 fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
 from utils import (vtkICP, InitIcp, SelectKey, ICP, TransformSurf, UpperOrLower, PatientNumber, 
 LoadJsonLandmarks, WriteSurf, WriteJsonLandmarks, search,
- listlandmark2diclandmark, ReadSurf, Files_vtk_json, Jaw, Lower , Upper, ApplyTransform)
+ listlandmark2diclandmark, ReadSurf, Files_vtk_json,Files_vtk_json_link, Jaw, Lower , Upper, ApplyTransform,WritefileError)
 
 
 print('semi aso ios chargee')
@@ -31,9 +32,15 @@ def main(args):
 
 
 
+    if not os.path.exists(os.path.split(args.log_path[0])[0]):
+        os.mkdir(os.path.split(args.log_path[0])[0])
 
+    with open(args.log_path[0],'w') as log_f :
+        log_f.truncate(0)
 
-    list_file=Files_vtk_json(args.input[0])
+    
+
+   
 
 
 
@@ -48,49 +55,71 @@ def main(args):
     icp = {'Lower':icp_lower,'Upper':icp_upper}
     print('--------------'*10)
 
-    print(list_file)
+
 
 
     if args.jaw[0] == 'Upper':
         jaw = Jaw(Upper())
+        link = True
     elif args.jaw[0] == 'Lower':
         jaw = Jaw(Lower())
-    
-    for file in list_file:
-        
-        print(iter,file)
+        link = True
+    elif args.jaw[0] == 'Upper/Lower' or args.jaw[0] =='Lower/Upper':
+        link = False
 
+    if link :
+        list_file=Files_vtk_json_link(args.input[0])
+
+    else :
+        list_file = Files_vtk_json(args.input[0])
+
+    
+
+
+    print(list_file)
+
+    for index ,file in tqdm(enumerate(list_file),total = len(list_file)) :
+        file_jaw = file
+        if link :
+            file_jaw = file[jaw()]
+        else :
+            jaw = Jaw(file_jaw['json'])
+
+        
+        if file_jaw['json'] is None:
+            continue
         try :
-            output_icp = icp[jaw()].run(file[jaw()]['json'],dic_gold[jaw()])
-        except KeyError:
-            print('error  KeyError')
+            output_icp = icp[jaw()].run(file_jaw['json'],dic_gold[jaw()])
+        except KeyError as k:
+            print('error  KeyError',k,file_jaw)
+            WritefileError(file_jaw['json'],args.folder_error[0],f'Please verify this file {file_jaw["json"]} or {dic_gold[jaw()]}, we dont find this landmark {k} ')
+            with open(args.log_path[0],'r+') as log_f:
+                log_f.write(str(index))   
             continue
 
-        surf_input = ReadSurf(file[jaw()]['vtk'])
+        surf_input = ReadSurf(file_jaw['vtk'])
         surf_output = TransformSurf(surf_input,output_icp['matrix'])
 
-        WriteJsonLandmarks(output_icp['source_Or'], file[jaw()]['json'],file[jaw()]['json'],args.add_inname[0],args.output_folder[0])
-        WriteSurf(surf_output,args.output_folder[0],file[jaw()]['vtk'],args.add_inname[0])
+        WriteJsonLandmarks(output_icp['source_Or'], file_jaw['json'],file_jaw['json'],args.add_inname[0],args.output_folder[0])
+        WriteSurf(surf_output,args.output_folder[0],file_jaw['vtk'],args.add_inname[0])
 
 
-        surf_input = ReadSurf(file[jaw.inv()]['vtk'])
-        surf_output = TransformSurf(surf_input,output_icp['matrix'])
-        WriteSurf(surf_output,args.output_folder[0],file[jaw.inv()]['vtk'],args.add_inname[0])
+        if link :
 
-        json_input = LoadJsonLandmarks(file[jaw.inv()]['json'])
-        json_output = ApplyTransform(json_input,output_icp['matrix'])
-        WriteJsonLandmarks(json_output,file[jaw.inv()]['json'],file[jaw.inv()]['json'],args.add_inname[0],args.output_folder[0])
+            surf_input = ReadSurf(file[jaw.inv()]['vtk'])
+            surf_output = TransformSurf(surf_input,output_icp['matrix'])
+            WriteSurf(surf_output,args.output_folder[0],file[jaw.inv()]['vtk'],args.add_inname[0])
+            
+            if not file[jaw.inv()]['json'] is None:
 
-        print(f"""<filter-progress>{0}</filter-progress>""")
-        sys.stdout.flush()
-        time.sleep(0.2)
-        print(f"""<filter-progress>{2}</filter-progress>""")
-        sys.stdout.flush()
-        time.sleep(0.2)
-        print(f"""<filter-progress>{0}</filter-progress>""")
-        sys.stdout.flush()
-        time.sleep(0.2)
+                json_input = LoadJsonLandmarks(file[jaw.inv()]['json'])
+                json_output = ApplyTransform(json_input,output_icp['matrix'])
+                WriteJsonLandmarks(json_output,file[jaw.inv()]['json'],file[jaw.inv()]['json'],args.add_inname[0],args.output_folder[0])
 
+
+
+        with open(args.log_path[0],'r+') as log_f:
+            log_f.write(str(index))
 
 
 if __name__ == "__main__":
@@ -108,6 +137,8 @@ if __name__ == "__main__":
     parser.add_argument('add_inname',nargs=1)
     parser.add_argument('list_landmark',nargs=1)
     parser.add_argument('jaw',nargs=1)
+    parser.add_argument('folder_error',nargs=1)
+    parser.add_argument('log_path',nargs=1)
 
     args = parser.parse_args()
 

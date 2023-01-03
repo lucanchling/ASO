@@ -61,16 +61,11 @@ def LoadJsonLandmarks(ldmk_path,full_landmark=True,list_landmark=[]):
 
 
 def WriteSurf(surf, output_folder,name,inname):
-    print('in beginning writesurf',output_folder)
     dir, name = os.path.split(name)
     name, extension = os.path.splitext(name)
 
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
-
-    print('name extension',name,extension)
-    print('out surf',os.path.join(output_folder,f"{name}{inname}{extension}"))
-
 
     writer = vtk.vtkPolyDataWriter()
     writer.SetFileName(os.path.join(output_folder,f"{name}{inname}{extension}"))
@@ -192,3 +187,13 @@ def listlandmark2diclandmark(list_landmark):
     out ={'Upper':upper,'Lower':lower}
 
     return out
+
+
+
+def WritefileError(file,folder_error,message):
+    if not os.path.exists(folder_error):
+        os.mkdir(folder_error)
+    name = os.path.basename(file)
+    name , _ = os.path.splitext(name)
+    with open(os.path.join(folder_error,f'{name}Error.txt'),'w') as f:
+        f.write(message)

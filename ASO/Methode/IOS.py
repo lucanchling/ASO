@@ -1,12 +1,22 @@
 from Methode.Methode import Methode
+from Methode.Progress import DisplayALIIOS,DisplayASOIOS,DisplayCrownSeg
 import slicer
 import webbrowser
 import glob
 import os
+import vtk
+import shutil
 
 class Auto_IOS(Methode):
     def __init__(self, widget):
         super().__init__(widget)
+
+
+        self.list_landmark = {'DB','MB','O','CB','CL','OIP','R','RIP'}
+        self.list_teeth = {'UR1', 'UR2', 'UR3', 'UR4', 'UR5', 'UR6', 'UR7', 'UR8', 'UL1', 'UL2', 'UL3', 'UL4', 'UL5', 'UL6', 'UL7', 'UL8', 
+        'LL1', 'LL2', 'LL3', 'LL4', 'LL5', 'LL6', 'LL7', 'LL8', 'LR1', 'LR2', 'LR3', 'LR4', 'LR5', 'LR6', 'LR7', 'LR8'}
+        self.list_landmark_exit = []
+
 
 
     def NumberScan(self, scan_folder: str):
@@ -24,24 +34,50 @@ class Auto_IOS(Methode):
         return super().TestModel(model_folder)
         
     def TestReference(self, ref_folder: str):
-        list = glob.glob(ref_folder+'/*vtk')
-        out = None
-        if len(list) == 0:
-            out = 'Please choose a folder with json file'
-        elif len(list)>2:
-            out = 'Too many json file '
+        
+        out = []
+        if ref_folder!= '':
+            dic = self.search(ref_folder,'.vtk','.json')
+            if len(dic['.json']) == 0:
+                out.append('Please choose a folder with json file')
+            elif len(dic['.json'])>2:
+                out.append( 'Too many json file ')
+
+            if len(dic['.vtk']) ==0:
+                out.append('Please choose a folder with vkt file')
+            
+            elif len(dic['.vtk'])>2:
+                out.append('Too many vkt file in reference folder')
+
+        else :
+            out = 'Give reference folder with json and vtk file'
+
+        if len(out)== 0:
+            out = None
+        
+        else :
+            out = ' '.join(out)
         return out
 
     def TestCheckbox(self,dic_checkbox) -> str:
         list_teeth, list_landmark, mix, jaw = self.__CheckboxisChecked(dic_checkbox)
-        out = None
+        out = []
         if len(list_teeth)< 3:
-             out = 'Give minimum 3 teeth,'
+             out.append('Give minimum 3 teeth')
         if len(list_landmark)==0:
-            out += "Give minimum 1 landmark,"
+            out.append("Give minimum 1 landmark")
 
         if len(jaw)<1 :
-            out+= 'Choose one jaw,'
+            out.append('Choose one jaw')
+
+        dif_landmark = list(set(mix)-set(self.list_landmark_exit))
+        if len(dif_landmark) != 0:
+            out.append(f'This landmark {" ".join(dif_landmark)} are not available please select another one, choose in this list {" ".join(self.list_landmark_exit)}')
+
+        if len(out) == 0:
+            out = None
+        else :
+            out = ','.join(out)
         return out
 
 
@@ -53,6 +89,7 @@ class Auto_IOS(Methode):
 
 
     def __Model(self,path):
+        
         model = self.search(path,'pth')['pth'][0]
 
         return model
@@ -91,12 +128,44 @@ class Auto_IOS(Methode):
         return out
 
 
-    def Process(self, **kwargs):
-        list_teeth, list_landmark , mix, jaw = self.__CheckboxisChecked(kwargs['dic_checkbox'])
-        print('output checkbox is checked',list_teeth, list_landmark , mix)
+    def __BypassCrownseg__(self,folder,folder_toseg,folder_bypass):
+        files = self.search(folder,'.vtk')['.vtk']
+        toseg = 0
+        for file in files :
+            name = os.path.basename(file)
+            if self.__isSegmented__(file):
+                shutil.copy(file,os.path.join(folder_bypass,name))
 
-        path_seg = os.path.join(slicer.util.tempDirectory(), 'seg')
-        path_preor = os.path.join(slicer.util.tempDirectory(), 'PreOr')
+            else :
+                shutil.copy(file,os.path.join(folder_toseg,name))
+                toseg += 1
+
+        return toseg
+
+
+
+    def __isSegmented__(self,path):
+        properties = ['PredictedID','UniversalID','Universal_ID']
+        reader = vtk.vtkPolyDataReader()
+        reader.SetFileName(path)
+        reader.Update()
+        surf = reader.GetOutput()
+        list_label = [surf.GetPointData().GetArrayName(i) for i in range(surf.GetPointData().GetNumberOfArrays())]
+        out = False 
+        if True in [label in properties for label in list_label]:
+            out = True
+
+        print('segmented', out, path)
+        return out
+
+
+    def Process(self, **kwargs):
+        list_teeth, list_landmark , mix, jaw = self.__CheckboxisChecked(kwargs['dic_checkbox']) 
+
+        path_tmp = slicer.util.tempDirectory()
+        path_input = os.path.join(path_tmp,'intpu_seg')
+        path_seg = os.path.join(path_tmp, 'seg')
+        path_preor = os.path.join(path_tmp, 'PreOr')
 
         if not os.path.exists(path_seg):
             os.mkdir(os.path.join(path_seg))
@@ -105,8 +174,14 @@ class Auto_IOS(Methode):
         if not os.path.exists(path_preor):
             os.mkdir(path_preor)
 
+        if not os.path.exists(path_input):
+            os.mkdir(path_input)
 
-        parameter_seg = {'input':kwargs['input_folder'],
+        path_error = os.path.join(kwargs['folder_output'],'Error')
+
+        number_scan_toseg = self.__BypassCrownseg__(kwargs['input_folder'],path_input,path_seg)
+
+        parameter_seg = {'input':path_input,
                         'output':path_seg,
                         'rotation':40,
                         'resolution':320,
@@ -121,7 +196,10 @@ class Auto_IOS(Methode):
                         'gold_folder':kwargs['gold_folder'],
                         'output_folder':path_preor,
                         'add_inname':kwargs['add_in_namefile'],
-                        'list_teeth':','.join(list_teeth) }
+                        'list_teeth':','.join(list_teeth),
+                        'jaw':'/'.join(jaw),
+                        'folder_error': path_error,
+                        'log_path': kwargs['logPath']}
 
         parameter_aliios ={'input':path_preor,
                             'dir_models':kwargs['model_folder_ali'],
@@ -136,7 +214,9 @@ class Auto_IOS(Methode):
                             'output_folder':kwargs['folder_output'],
                             'add_inname':kwargs['add_in_namefile'],
                             'list_landmark':','.join(mix),
-                            'jaw':'/'.join(jaw)}
+                            'jaw':'/'.join(jaw),
+                            'folder_error':path_error,
+                            'log_path': kwargs['logPath']}
 
         print('parameter pre aso',parameter_pre_aso)
         print('parameter seg',parameter_seg)
@@ -153,11 +233,18 @@ class Auto_IOS(Methode):
         {'Process':PreOrientProcess,'Parameter':parameter_pre_aso},
         {"Process":aliiosProcess,"Parameter":parameter_aliios},
         {'Process':OrientProcess,'Parameter':parameter_semi_aso}]
+
+
+        numberscan = self.NumberScan(kwargs['input_folder'])
+        display = {'CrownSegmentationcli':DisplayCrownSeg(number_scan_toseg,kwargs['logPath']),
+                    'ALI_IOS':DisplayALIIOS(len(mix),numberscan),
+                    'PRE_ASO_IOS': DisplayASOIOS(numberscan if len(jaw) ==1 else int(numberscan/2) , jaw,kwargs['logPath'] ),
+                    'SEMI_ASO_IOS': DisplayASOIOS(numberscan if len(jaw) ==1 else int(numberscan/2) , jaw,kwargs['logPath'] )}
 #
-        return list_process
+        return list_process ,display 
 
     def DicLandmark(self):
-        dic = {'Landmark':{'Occlusal':['DB','MB','O'],'Cervical':['CB','CL','OIP','R','RIP']}}
+        dic = {'Landmark':{'Occlusal':['O','MB','DB'],'Cervical':['CB','CL','OIP','R','RIP']}}
 
         return dic
 
@@ -166,8 +253,39 @@ class Auto_IOS(Methode):
 
 
     def existsLandmark(self,folderpath,reference_folder,model_folder):
+        out  = None
+        if reference_folder!='':
+            list_json = self.search(reference_folder,'.json')['.json']
+            list_landmark = []
+            for file_json in list_json:
+                list_landmark += self.ListLandmarksJson(file_json)
 
-        return None
+            self.list_landmark_exit = list_landmark
+            teeth=[]
+            landmarks=[]
+            for lmk in list_landmark:
+                teeth.append(lmk[:3])
+                landmarks.append(lmk[3:])
+            teeth = set(teeth)
+            landmarks = set(landmarks)
+
+            out = {}
+            for tooth in self.list_teeth:
+                out[tooth]=False
+            for lmk in self.list_landmark:
+                out[lmk]= False
+
+            for tooth in teeth:
+                out[tooth] = True
+
+            for lmk in landmarks:
+                out[lmk]= True
+            
+
+
+            print(out)
+
+        return out
 
 
     def Sugest(self):
@@ -220,7 +338,6 @@ class Auto_IOS(Methode):
 
 
 
-
 class Semi_IOS(Auto_IOS):
 
        
@@ -228,12 +345,61 @@ class Semi_IOS(Auto_IOS):
 
     def TestScan(self, scan_folder: str):
         out = None
-        dic = self.search(scan_folder,'vtk','json')
-        if len(dic['vtk']) != len(dic['json']): 
-            print('dif ',len(dic['vtk']) - len(dic['json']))
-            # out = 'Give folder with the same number of vkt file and json file'
+        if scan_folder != '':
+            dic = self.search(scan_folder,'vtk','json')
+            if len(dic['vtk']) != len(dic['json']): 
+                print('dif ',len(dic['vtk']) - len(dic['json']))
+                # out = 'Give folder with the same number of vkt file and json file'`
+
+        else :
+            out = 'Choose a folder with scan and landmark'
         return out 
 
+
+    def TestReference(self, ref_folder: str):
+        out = []
+        if ref_folder!= '':
+            dic = self.search(ref_folder,'.json')
+            if len(dic['.json']) == 0:
+                out.append('Please choose a folder with json file')
+            elif len(dic['.json'])>2:
+                out.append( 'Too many json file ')
+        if len(out) == 0:
+            out = None
+
+        else :
+            out = out.split(',')
+          
+        return out
+    def TestProcess(self,**kwargs) -> str:
+        out  = ''
+
+        scan = self.TestScan(kwargs['input_folder'])
+        if isinstance(scan,str):
+            out = out + f'{scan},'
+
+        reference =self.TestReference(kwargs['gold_folder'])
+        if isinstance(reference,str):
+            out = out + f'{reference},'
+
+        if kwargs['folder_output'] == '':
+            out = out + "Give output folder,"
+
+        testcheckbox = self.TestCheckbox(kwargs['dic_checkbox'])
+        if isinstance(testcheckbox,str):
+            out = out + f"{testcheckbox},"
+
+        if kwargs['add_in_namefile']== '':
+            out = out + "Give something to add in name of file,"
+
+
+        if out != '':
+            out=out[:-1]
+
+        else : 
+            out = None
+
+        return out
 
     def __CheckboxisChecked(self,diccheckbox : dict):
         
@@ -241,7 +407,6 @@ class Semi_IOS(Auto_IOS):
         landmarks= []
         jaw = []
         mix = []
-        print(diccheckbox)
         if not len(diccheckbox) == 0:
 
             for checkboxs in diccheckbox['Teeth']['Adult'].values():
@@ -271,14 +436,21 @@ class Semi_IOS(Auto_IOS):
 
     def Process(self, **kwargs):
         teeth, landmark , mix , jaw = self.__CheckboxisChecked(kwargs['dic_checkbox'])
+        path_error = os.path.join(kwargs['folder_output'],'Error')
 
-        parameter= {'input':kwargs['input_folder'],'gold_folder':kwargs['gold_folder'],'output_folder':kwargs['folder_output'],'add_inname':kwargs['add_in_namefile'],'list_landmark':','.join(mix),'Jaw':'/'.join(jaw)}
+        parameter= {'input':kwargs['input_folder'],'gold_folder':kwargs['gold_folder'],
+        'output_folder':kwargs['folder_output'],
+        'add_inname':kwargs['add_in_namefile'],
+        'list_landmark':','.join(mix),
+        'jaw':'/'.join(jaw),
+        'folder_error':path_error,
+        'log_path': kwargs['logPath']}
 
 
         print('parameter',parameter)
         OrientProcess = slicer.modules.semi_aso_ios
-
-        return [{'Process':OrientProcess,'Parameter':parameter}]
+        numberscan = self.NumberScan(kwargs['input_folder'])
+        return [{'Process':OrientProcess,'Parameter':parameter}], { 'SEMI_ASO_IOS': DisplayASOIOS(numberscan if len(jaw) ==1 else int(numberscan/2) , jaw,kwargs['logPath'] )}
 
 
     def Sugest(self):
