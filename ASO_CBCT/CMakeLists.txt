@@ -1,8 +1,9 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME SEMI_ASO_CBCT)
+set(MODULE_NAME ASO_CBCT)
 
 set(MODULE_PYTHON_SCRIPTS 
-  ${MODULE_NAME}.py)
+  ${MODULE_NAME}.py
+  utils/utils.py)
 
 SlicerMacroBuildScriptedCLI(
   NAME ${MODULE_NAME}

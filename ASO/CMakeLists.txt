@@ -7,6 +7,7 @@ set(MODULE_PYTHON_SCRIPTS
   Methode/Methode.py
   Methode/IOS.py
   Methode/CBCT.py
+  Methode/Progress.py
   )
 
 set(MODULE_PYTHON_RESOURCES

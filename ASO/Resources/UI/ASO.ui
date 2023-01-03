@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>581</width>
-    <height>872</height>
+    <width>579</width>
+    <height>732</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -38,20 +38,6 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>Scan / Landmark Folder</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Reference Folder</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QLabel" name="label_7">
               <property name="text">
                <string>Model Folder Seg/Or</string>
@@ -62,6 +48,20 @@
              <widget class="QLabel" name="label_6">
               <property name="text">
                <string>Model Folder ALI</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>Scan / Landmark Folder</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Reference Folder</string>
               </property>
              </widget>
             </item>
@@ -98,16 +98,16 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEditScanLmPath"/>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEditRefFolder"/>
-            </item>
-            <item>
              <widget class="QLineEdit" name="lineEditModelSegOr"/>
             </item>
             <item>
              <widget class="QLineEdit" name="lineEditModelAli"/>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEditScanLmPath"/>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEditRefFolder"/>
             </item>
            </layout>
           </item>
@@ -121,6 +121,20 @@
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="ButtonSearchModelSegOr">
+              <property name="text">
+               <string>search</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="ButtonSearchModelAli">
+              <property name="text">
+               <string>Search</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QPushButton" name="ButtonSearchScanLmFolder">
               <property name="text">
                <string>Search</string>
@@ -129,20 +143,6 @@
             </item>
             <item>
              <widget class="QPushButton" name="ButtonSearchReference">
-              <property name="text">
-               <string>Search</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="ButtonSearchModelSegOr">
-              <property name="text">
-               <string>Search</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="ButtonSearchModelAli">
               <property name="text">
                <string>Search</string>
               </property>
@@ -250,8 +250,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>87</width>
-                   <height>37</height>
+                   <width>537</width>
+                   <height>198</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_14">
@@ -305,8 +305,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>87</width>
-                   <height>184</height>
+                   <width>537</width>
+                   <height>198</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_12">

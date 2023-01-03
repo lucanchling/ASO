@@ -790,7 +790,7 @@ def AngleAndAxisVectors(v1, v2):
 888        8888888 88888888 8888888888  "Y8888P"
 """
 
-def ExtractFilesFromFolder(folder_path, scan_extension, lm_extension=None, gold=False):
+def ExtractFilesFromFolder(folder_path, scan_extension, lm_extension, gold=False):
     """
     Create list of files that are in folder with adequate extension
     """
@@ -799,9 +799,8 @@ def ExtractFilesFromFolder(folder_path, scan_extension, lm_extension=None, gold=
     json_files = []
     normpath = os.path.normpath("/".join([folder_path, '**', '']))
     for file in sorted(glob.iglob(normpath, recursive=True)):
-        if lm_extension is not None:
-            if os.path.isfile(file) and True in [ext in file for ext in lm_extension]:
-                json_files.append(file)
+        if os.path.isfile(file) and True in [ext in file for ext in lm_extension]:
+            json_files.append(file)
         if os.path.isfile(file) and True in [ext in file for ext in scan_extension]:
             scan_files.append(file)
     

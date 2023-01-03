@@ -2,6 +2,8 @@
 from abc import ABC, abstractmethod
 import os
 import glob
+import json
+
 class Methode(ABC):
     def __init__(self,widget):
         self.widget = widget
@@ -175,5 +177,14 @@ class Methode(ABC):
 
 
 
-
+    def ListLandmarksJson(self,json_file):
         
+        with open(json_file) as f:
+            data = json.load(f)
+        
+        return [data["markups"][0]["controlPoints"][i]['label'] for i in range(len(data["markups"][0]["controlPoints"]))]
+
+
+
+
+

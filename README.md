@@ -1,4 +1,4 @@
-# Automated Standardized Orientation
+# Automatic Standardize Orientation
 
 Automatic Standerize Orientation (ASO) is an extension for 3D Slicer to perform automatic orientation either IOS or CBCT.
 

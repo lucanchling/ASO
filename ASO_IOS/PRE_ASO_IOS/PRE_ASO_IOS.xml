@@ -57,6 +57,27 @@
       <description>Jaw use to orient</description>
     </string>
 
+
+<<<<<<< HEAD:ASO_IOS/PRE_ASO_IOS/PRE_ASO_IOS.xml
+    <string>
+      <name>folder_error</name>
+      <label>folder_error</label>
+      <index>6</index>
+      <description>path for error folder </description>
+    </string>
+
+=======
+>>>>>>> 355a436 (to merge luc branch):ASO_IOS/ASO_IOS.xml
+
+
+
+    <string>
+      <name>log_path</name>
+      <label>log_path</label>
+      <index>7</index>
+      <description>path for the log</description>
+    </string>
+
     
 
 

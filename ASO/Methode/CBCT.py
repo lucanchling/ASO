@@ -87,23 +87,18 @@ class CBCT(Methode):
 
     def DicLandmark(self):
         dic = {'Head':
-                {'Cranial Base' : sorted(['Ba', 'S', 'N', 'RPo', 'LPo', 'RFZyg', 'LFZyg', 'C2', 'C3', 'C4']),
+                {'Cranial Base' :sorted(['Ba', 'S', 'N', 'RPo', 'LPo', 'RFZyg', 'LFZyg', 'C2', 'C3', 'C4']),
 
-                'Upper' : sorted(['RInfOr', 'LInfOr', 'LMZyg', 'RPF', 'LPF', 'PNS', 'ANS', 'A', 'UR3O', 'UR1O', 'UL3O', 'UR6DB', 'UR6MB', 'UL6MB', 'UL6DB', 'IF', 'ROr', 'LOr', 'RMZyg', 'RNC', 'LNC', 'UR7O', 'UR5O', 'UR4O', 'UR2O', 'UL1O', 'UL2O', 'UL4O', 'UL5O', 'UL7O', 'UL7R', 'UL5R', 'UL4R', 'UL2R', 'UL1R', 'UR2R', 'UR4R', 'UR5R', 'UR7R', 'UR6MP', 'UL6MP', 'UL6R', 'UR6R', 'UR6O', 'UL6O', 'UL3R', 'UR3R', 'UR1R']),
+                'Upper' : ['RInfOr', 'LInfOr', 'LMZyg', 'RPF', 'LPF', 'PNS', 'ANS', 'A', 'UR3O', 'UR1O', 'UL3O', 'UR6DB', 'UR6MB', 'UL6MB', 'UL6DB', 'IF', 'ROr', 'LOr', 'RMZyg', 'RNC', 'LNC', 'UR7O', 'UR5O', 'UR4O', 'UR2O', 'UL1O', 'UL2O', 'UL4O', 'UL5O', 'UL7O', 'UL7R', 'UL5R', 'UL4R', 'UL2R', 'UL1R', 'UR2R', 'UR4R', 'UR5R', 'UR7R', 'UR6MP', 'UL6MP', 'UL6R', 'UR6R', 'UR6O', 'UL6O', 'UL3R', 'UR3R', 'UR1R'],
 
-                'Lower' : sorted(['RCo', 'RGo', 'Me', 'Gn', 'Pog', 'PogL', 'B', 'LGo', 'LCo', 'LR1O', 'LL6MB', 'LL6DB', 'LR6MB', 'LR6DB', 'LAF', 'LAE', 'RAF', 'RAE', 'LMCo', 'LLCo', 'RMCo', 'RLCo', 'RMeF', 'LMeF', 'RSig', 'RPRa', 'RARa', 'LSig', 'LARa', 'LPRa', 'LR7R', 'LR5R', 'LR4R', 'LR3R', 'LL3R', 'LL4R', 'LL5R', 'LL7R', 'LL7O', 'LL5O', 'LL4O', 'LL3O', 'LL2O', 'LL1O', 'LR2O', 'LR3O', 'LR4O', 'LR5O', 'LR7O', 'LL6R', 'LR6R', 'LL6O', 'LR6O', 'LR1R', 'LL1R', 'LL2R', 'LR2R']),
+                'Lower' : ['RCo', 'RGo', 'Me', 'Gn', 'Pog', 'PogL', 'B', 'LGo', 'LCo', 'LR1O', 'LL6MB', 'LL6DB', 'LR6MB', 'LR6DB', 'LAF', 'LAE', 'RAF', 'RAE', 'LMCo', 'LLCo', 'RMCo', 'RLCo', 'RMeF', 'LMeF', 'RSig', 'RPRa', 'RARa', 'LSig', 'LARa', 'LPRa', 'LR7R', 'LR5R', 'LR4R', 'LR3R', 'LL3R', 'LL4R', 'LL5R', 'LL7R', 'LL7O', 'LL5O', 'LL4O', 'LL3O', 'LL2O', 'LL1O', 'LR2O', 'LR3O', 'LR4O', 'LR5O', 'LR7O', 'LL6R', 'LR6R', 'LL6O', 'LR6O', 'LR1R', 'LL1R', 'LL2R', 'LR2R'],
 
                 }}
 
         return dic
 
         
-    def ListLandmarksJson(self,json_file):
-        
-        with open(json_file) as f:
-            data = json.load(f)
-        
-        return [data["markups"][0]["controlPoints"][i]['label'] for i in range(len(data["markups"][0]["controlPoints"]))]
+
         
     def Sugest(self):
         return ['Ba','S','N','RPo','LPo','ROr','LOr']
@@ -190,21 +185,20 @@ class Semi_CBCT(CBCT):
     def Process(self, **kwargs):
         list_lmrk_str = self.CheckboxisChecked(kwargs['dic_checkbox'],in_str=True)
        
-        parameter_semi_aso= {'input':kwargs['input_folder'],
+        parameter= {'input':kwargs['input_folder'],
                     'gold_folder':kwargs['gold_folder'],
                     'output_folder':kwargs['folder_output'],
                     'add_inname':kwargs['add_in_namefile'],
                     'list_landmark':list_lmrk_str,
-                    'model_folder':kwargs['model_folder_ali'],
+                    'model_folder':kwargs['model_folder'],
                     'fullyAutomated':kwargs['fullyAutomated'],
                 }
-        print('parameter',parameter_semi_aso)
+        print('parameter',parameter)
 
-        OrientProcess = slicer.modules.semi_aso_cbct
-        
-        list_process = [{'Process':OrientProcess,'Parameter':parameter_semi_aso}]
-        
-        return list_process
+        OrientProcess = slicer.modules.aso_cbct
+        process = slicer.cli.run(OrientProcess, None, parameter)
+
+        return [process]
 
 class Auto_CBCT(CBCT):
     
@@ -250,32 +244,30 @@ class Auto_CBCT(CBCT):
         
         # ALI CBCT
         
-        parameter_ali =  {'input': kwargs['input_folder'], 
-                    'dir_models': kwargs['model_folder_ali'], 
+        aliparam =  {'input': kwargs['input_folder'], 
+                    'dir_models': kwargs['model_folder'], 
                     'landmarks': list_lmrk_str, 
                     'save_in_folder': False, 
                     'output_dir': kwargs['input_folder'],
                     'temp_fold': '/home/luciacev/Documents/Slicer_temp_ALI'}
-        ALIProcess = slicer.modules.ali_cbct
         
-        print('ALI param:',parameter_ali)
+        ALIProcess = slicer.modules.ali_cbct
+        Processes.append(slicer.cli.run(ALIProcess, None, aliparam))
+        print('aliparams:',aliparam)
+        
         # ICP        
        
-        parameter_semi_aso = {'input':kwargs['input_folder'],
+        parameter= {'input':kwargs['input_folder'],
                     'gold_folder':kwargs['gold_folder'],
                     'output_folder':kwargs['folder_output'],
                     'add_inname':kwargs['add_in_namefile'],
                     'list_landmark':list_lmrk_str,
-                    'model_folder':kwargs['model_folder_ali'],
+                    'model_folder':kwargs['model_folder'],
                     'fullyAutomated':kwargs['fullyAutomated'],
                 }
-        OrientProcess = slicer.modules.semi_aso_cbct
+        print('asoparam:',parameter)
+        OrientProcess = slicer.modules.aso_cbct
+        Processes.append(slicer.cli.run(OrientProcess, None, parameter))
 
-        print("SEMI_ASO param:",parameter_semi_aso)
-        list_process = [{'Process':ALIProcess,'Parameter': parameter_ali},
-                        {'Process':OrientProcess,'Parameter':parameter_semi_aso}]
-        
-        return list_process
-        
-        
+        return Processes
     
