@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <executable>
   <category>Automated Dental Tools.Advanced</category>
-  <index>1</index>
-  <title>ASO_CBCT</title>
+  <index>2</index>
+  <title>SEMI_ASO_CBCT</title>
   <description><![CDATA[This is a CLI module that can be bundled in an extension]]></description>
   <version>0.0.1</version>
   <documentation-url>https://github.com/username/project</documentation-url>
@@ -48,13 +48,6 @@
       <label>list_landmark</label>
       <index>4</index>
       <description>Landmarks use for orientation</description>
-    </string>
-
-    <string>
-      <name>model_folder</name>
-      <label>model_folder</label>
-      <index>5</index>
-      <description>Folder with different models</description>
     </string>
 
     <string>

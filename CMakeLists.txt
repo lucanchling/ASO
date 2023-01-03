@@ -22,6 +22,8 @@ include(${Slicer_USE_FILE})
 # Extension modules
 add_subdirectory(ASO)
 add_subdirectory(ASO_CBCT)
+add_subdirectory(ASO_CBCT/SEMI_ASO_CBCT)
+add_subdirectory(ASO_CBCT/PRE_ASO_CBCT)
 add_subdirectory(ASO_IOS)
 add_subdirectory(ASO_IOS/SEMI_ASO_IOS)
 add_subdirectory(ASO_IOS/PRE_ASO_IOS)

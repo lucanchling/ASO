@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <executable>
   <category>Automated Dental Tools.Advanced</category>
-  <index>2</index>
-  <title>PRE_ASO_IOS</title>
+  <index>1</index>
+  <title>PRE_ASO_CBCT</title>
   <description><![CDATA[This is a CLI module that can be bundled in an extension]]></description>
   <version>0.0.1</version>
   <documentation-url>https://github.com/username/project</documentation-url>
@@ -23,46 +23,18 @@
     </string>
 
     <string>
-      <name>gold_folder</name>
-      <label>gold_folder</label>
-      <index>1</index>
-      <description>Folder with gold landmark</description>
-    </string>
-
-    <string>
       <name>output_folder</name>
       <label>output_folder</label>
-      <index>2</index>
+      <index>1</index>
       <description>Output Path</description>
     </string>
 
     <string>
-      <name>add_inname</name>
-      <label>add_inname</label>
-      <index>3</index>
-      <description>Something to add in name of each file</description>
+      <name>fullyAutomated</name>
+      <label>fullyAutomated</label>
+      <index>2</index>
+      <description>Boolean to know whether the method is the fullyAutomated or semiAutomated</description>
     </string>
-
-    <string>
-      <name>list_teeth</name>
-      <label>list_teeth</label>
-      <index>4</index>
-      <description>Landmark use for orientation</description>
-    </string>
-
-    <string>
-      <name>jaw</name>
-      <label>jaw</label>
-      <index>5</index>
-      <description>Jaw use to orient</description>
-    </string>
-
-    
-
-
-
-
-
 
 
 

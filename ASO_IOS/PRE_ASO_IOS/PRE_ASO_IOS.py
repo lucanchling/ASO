@@ -4,12 +4,12 @@ import os
 import sys
 import time
 import argparse
-from tqdm import tqdm
+
 
 fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
 
-from utils import ( UpperOrLower, search, ReadSurf, WriteSurf,PatientNumber,ICP, InitIcp, vtkICP,vtkMeanTeeth,TransformSurf,Files_vtk_link, Jaw ,Upper, Lower,ToothNoExist,WritefileError, NoSegmentationSurf)
+from utils import ( UpperOrLower, search, ReadSurf, WriteSurf,PatientNumber,ICP, InitIcp, vtkICP,vtkMeanTeeth,TransformSurf,Files_vtk, Jaw ,Upper, Lower)
 
 
 print('pre aso ios charge')
@@ -44,86 +44,45 @@ def main(args) :
 
 
 
-    if not os.path.exists(os.path.split(args.log_path[0])[0]):
-        os.mkdir(os.path.split(args.log_path[0])[0])
-
-    with open(args.log_path[0],'w') as log_f :
-        log_f.truncate(0)
 
 
-
-
-
+    list_files=Files_vtk(args.input[0])
+    print('list files', list_files)
 
     if args.jaw[0] == 'Upper':
         jaw = Jaw(Upper())
-        link = True
     elif args.jaw[0] == 'Lower':
         jaw = Jaw(Lower())
-        link = True
-    elif args.jaw[0] == 'Upper/Lower' or args.jaw[0] == 'Lower/Upper':
-        link = False
-
-    if link:
-        list_files=Files_vtk_link(args.input[0])
-
-    
-    else :
-        list_files=search(args.input[0],'.vtk')['.vtk']
-
-
-
-
     methode = [ InitIcp(),vtkICP()]
-    option_upper = vtkMeanTeeth(dic_teeth['Upper'])
-    option_lower = vtkMeanTeeth(dic_teeth['Lower'])
-    icp_upper = ICP(methode, option=option_upper)
-    icp_lower = ICP(methode, option=option_lower)
-    icp = {'Upper':icp_upper,'Lower':icp_lower}
+    option = vtkMeanTeeth(dic_teeth[jaw()])
+    icp = ICP(methode, option=option)
 
 
-
-    for index , file in tqdm(enumerate(list_files),total=len(list_files)):
-        file_vtk = file
-        if link:
-            file_vtk = file[jaw()]
-        if not link :
-            jaw = Jaw(file_vtk)
+ 
+    for i , file in enumerate(list_files):
 
 
-        try :
-            output_icp = icp[jaw()].run(file_vtk,gold[jaw()])
-        except ToothNoExist as tne:
-            print(f'Error {tne}, for this file {file_vtk}')
-          
-            WritefileError(file_vtk,args.folder_error[0],f'Error {str(tne)}, for this file {file_vtk}')
-
-            with open(args.log_path[0],'r+') as log_f:
-                log_f.write(str(index))  
-            continue
-
-        except NoSegmentationSurf as nss :
-
-            print(f'Error {nss}, for this file {file_vtk}')
-          
-            WritefileError(file_vtk,args.folder_error[0],f'Error {str(nss)}, for this file {file_vtk}')
-
-            with open(args.log_path[0],'r+') as log_f:
-                log_f.write(str(index))  
-            continue
-
+        output_icp = icp.run(file[jaw()],gold[jaw()])
             
 
     
 
-        WriteSurf(output_icp['source_Or'],args.output_folder[0],os.path.basename(file_vtk),args.add_inname[0])
-        if link:
-            surf_lower = ReadSurf(file[jaw.inv()])
-            output_lower = TransformSurf(surf_lower,output_icp['matrix'])
-            WriteSurf(output_lower,args.output_folder[0],os.path.basename(file[jaw.inv()]),args.add_inname[0])
+        WriteSurf(output_icp['source_Or'],args.output_folder[0],os.path.basename(file[jaw()]),args.add_inname[0])
 
-        with open(args.log_path[0],'r+') as log_f:
-            log_f.write(str(index))  
+        surf_lower = ReadSurf(file[jaw.inv()])
+        output_lower = TransformSurf(surf_lower,output_icp['matrix'])
+        WriteSurf(output_lower,args.output_folder[0],os.path.basename(file[jaw.inv()]),args.add_inname[0])
+
+        print(f"""<filter-progress>{0}</filter-progress>""")
+        sys.stdout.flush()
+        time.sleep(0.2)
+        print(f"""<filter-progress>{2}</filter-progress>""")
+        sys.stdout.flush()
+        time.sleep(0.2)
+        print(f"""<filter-progress>{0}</filter-progress>""")
+        sys.stdout.flush()
+        time.sleep(0.2)
+
 if __name__ == "__main__":
     
 
@@ -139,8 +98,6 @@ if __name__ == "__main__":
     parser.add_argument('add_inname',nargs=1)
     parser.add_argument('list_teeth',nargs=1)
     parser.add_argument('jaw',nargs=1)
-    parser.add_argument('folder_error',nargs=1)
-    parser.add_argument('log_path',nargs=1)
 
     args = parser.parse_args()
 

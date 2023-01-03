@@ -2,7 +2,7 @@ import os
 import logging
 import time
 import vtk, qt, slicer
-from qt import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QCheckBox, QPushButton, QPixmap , QIcon, QSize, QLabel,QHBoxLayout, QGridLayout, QMediaPlayer
+from qt import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QCheckBox, QPushButton, QPixmap , QIcon, QSize, QLabel,QHBoxLayout, QGridLayout
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
 from functools import partial
@@ -10,8 +10,6 @@ from functools import partial
 from Methode.IOS import Auto_IOS, Semi_IOS
 from Methode.CBCT import Semi_CBCT, Auto_CBCT
 from Methode.Methode import Methode
-from Methode.Progress import Display
-
 
 
 
@@ -180,7 +178,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.dicchckbox={}  
         self.dicchckbox2={}
         self.fullyAutomated = False
-        self.display = Display
         """
         exemple dic = {'teeth'=['A,....],'Type'=['O',...]}
         """
@@ -317,6 +314,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def SwitchMode(self,index):
         if index == 0: # Semi-Automated
             self.ui.label_6.setVisible(False)
+            self.ui.label_7.setVisible(False)
             self.ui.lineEditModelAli.setVisible(False)
             self.ui.lineEditModelAli.setText(' ')
             self.ui.lineEditModelSegOr.setVisible(False)
@@ -328,6 +326,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         if index == 1: # Fully Automated
             self.ui.label_6.setVisible(True)
+            self.ui.label_7.setVisible(True)
             self.ui.lineEditModelAli.setVisible(True)
             self.ui.ButtonSearchModelAli.setVisible(True)
             self.ui.lineEditModelSegOr.setVisible(True)
@@ -405,6 +404,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
             else:
                 lineEdit.setText(model_folder)
+                self.enableCheckbox()
         
     def ChosePathOutput(self):
         out_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder")
@@ -422,8 +422,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         for checkbox in self.logic.iterillimeted(self.dicchckbox):
             if checkbox.text in best and checkbox.isEnabled():
                 checkbox.setCheckState(True)
-            # else :
-            #     checkbox.setCheckState(False)
+            else :
+                checkbox.setCheckState(False)
 
 
     
@@ -434,17 +434,11 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             return
 
 
-        # for checkboxs,checkboxs2 in zip(self.dicchckbox.values(),self.dicchckbox2.values()):
-        #     for checkbox, checkbox2 in zip(checkboxs,checkboxs2):
-                #if checkbox.text in status.keys(): 
-        for checkbox , checkbox2 in zip(self.logic.iterillimeted(self.dicchckbox),self.logic.iterillimeted(self.dicchckbox)):
-
-                try :
-                    checkbox.setVisible(status[checkbox.text])
-                    checkbox2.setVisible(status[checkbox2.text])
-
-                except:
-                    pass
+        for checkboxs,checkboxs2 in zip(self.dicchckbox.values(),self.dicchckbox2.values()):
+            for checkbox, checkbox2 in zip(checkboxs,checkboxs2):
+                #if checkbox.text in status.keys():            
+                checkbox.setVisible(status[checkbox.text])
+                checkbox2.setVisible(status[checkbox2.text])
 
 
 
@@ -492,12 +486,11 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                                         folder_output = self.ui.lineEditOutputPath.text, model_folder_ali = self.ui.lineEditModelAli.text, model_folder_segor = self.ui.lineEditModelSegOr.text,
                                         add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox, fullyAutomated = self.fullyAutomated)
 
-        print('error',error)
         if isinstance(error,str):
             qt.QMessageBox.warning(self.parent, 'Warning',error.replace(',','\n'))
 
         else :
-            list_Processes, self.display = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
+            list_Processes = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
                                         folder_output = self.ui.lineEditOutputPath.text, model_folder_ali = self.ui.lineEditModelAli.text, model_folder_segor = self.ui.lineEditModelSegOr.text,
                                         add_in_namefile = self.ui.lineEditAddName.text, 
                                         dic_checkbox = self.dicchckbox, fullyAutomated = self.fullyAutomated,logPath= self.log_path)
@@ -558,7 +551,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.progressBar.setValue(0)
 
             if self.nb_change_bystep == 0 and self.module_name_before:
-                print(f'Erreur this module didnt work {self.module_name_before}')
+                print(f'Error this module doesnt work {self.module_name_before}')
 
             self.module_name_before = self.module_name
             self.nb_change_bystep =0
@@ -566,52 +559,34 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         if progress == 0:
             self.updateProgessBar = False
 
+        if 'ASO' in self.module_name:
+            if progress != 0 and self.updateProgessBar == False:
+                self.updateProgessBar = True
+                self.nb_patient_treat+=1
+                self.ui.progressBar.setValue(self.nb_patient_treat/self.nb_patient*100)
+                self.ui.LabelProgressPatient.setText(f"Patient : {self.nb_patient_treat} / {self.nb_patient}")
+                self.nb_change_bystep  += 1
+        elif self.module_name == 'CrownSegmentationcli':
+            if os.path.isfile(self.log_path):
+                path_time = os.path.getmtime(self.log_path)
+                if path_time != self.time_log:
+                    # if progress was made
+                    self.time_log = path_time
+                    self.progress_seg += 1
+                    progressbar_value = self.progress_seg /(40+2) #40 number of rotation
+                    self.nb_patient_treat = int(progressbar_value)
+                    self.ui.progressBar.setValue(progressbar_value/self.nb_patient*100)
+                    self.ui.LabelProgressPatient.setText(f"Patient : {self.nb_patient_treat} / {self.nb_patient}")
+                    self.nb_change_bystep  += 1
 
-        if self.display[self.module_name].isProgress(progress = progress, updateProgessBar = self.updateProgessBar): 
-            progress_bar , message =self.display[self.module_name]()
-            self.ui.progressBar.setValue(progress_bar)
-            self.ui.LabelProgressPatient.setText(message)
-            self.nb_change_bystep += 1
-
-
-        # if 'ASO_IOS' in self.module_name:
-        #     if os.path.isfile(self.log_path):
-        #         path_time = os.path.getmtime(self.log_path)
-        #         if path_time != self.time_log:
-        #             self.time_log = path_time
-        #             self.nb_patient_treat+=1
-        #             self.ui.progressBar.setValue(self.nb_patient_treat/self.nb_patient*100)
-        #             self.ui.LabelProgressPatient.setText(f"Patient : {self.nb_patient_treat} / {self.nb_patient}")
-        #             self.nb_change_bystep += 1
-                    
-        # elif 'ASO' in self.module_name:
-        #     if progress != 0 and self.updateProgessBar == False:
-        #         self.updateProgessBar = True
-        #         self.nb_patient_treat+=1
-        #         self.ui.progressBar.setValue(self.nb_patient_treat/self.nb_patient*100)
-        #         self.ui.LabelProgressPatient.setText(f"Patient : {self.nb_patient_treat} / {self.nb_patient}")
-        #         self.nb_change_bystep  += 1
-        # elif self.module_name == 'CrownSegmentationcli':
-        #     if os.path.isfile(self.log_path):
-        #         path_time = os.path.getmtime(self.log_path)
-        #         if path_time != self.time_log:
-        #             # if progress was made
-        #             self.time_log = path_time
-        #             self.progress_seg += 1
-        #             progressbar_value = self.progress_seg /(40+2) #40 number of rotation
-        #             self.nb_patient_treat = int(progressbar_value)
-        #             self.ui.progressBar.setValue(progressbar_value/self.nb_patient*100)
-        #             self.ui.LabelProgressPatient.setText(f"Patient : {self.nb_patient_treat} / {self.nb_patient}")
-        #             self.nb_change_bystep  += 1
-
-        # elif self.module_name == 'ALI_IOS':
-        #     if progress == 100 and self.updateProgessBar == False:
-        #         self.progress_ali_ios +=1 
-        #         nb_landmark = 11
-        #         self.ui.progressBar.setValue(self.progress_ali_ios/(nb_landmark*self.nb_patient)*100)
-        #         self.nb_patient_treat = int(self.progress_ali_ios//nb_landmark)
-        #         self.ui.LabelProgressPatient.setText(f'Patient : {self.nb_patient_treat} / {self.nb_patient}')
-        #         self.nb_change_bystep  += 1
+        elif self.module_name == 'ALI_CBCT':
+            if progress == 100 and self.updateProgessBar == False:
+                self.progress_ali_ios +=1 
+                nb_landmark = 6
+                self.ui.progressBar.setValue(self.progress_ali_ios/(nb_landmark*self.nb_patient)*100)
+                self.nb_patient_treat = int(self.progress_ali_ios//nb_landmark)
+                self.ui.LabelProgressPatient.setText(f'Patient : {self.nb_patient_treat} / {self.nb_patient}')
+                self.nb_change_bystep  += 1
 
 
         if self.process.GetStatus() & self.process.Completed:
@@ -641,7 +616,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.progressBar.setValue(0)
 
         if self.nb_change_bystep == 0:
-            print(f'Erreur this module didnt work {self.module_name_before}')
+            print(f'Error this module doesnt work {self.module_name_before}')
 
         self.module_name_before = self.module_name
         self.nb_change_bystep =0

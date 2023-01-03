@@ -398,13 +398,28 @@ class vtkTeeth:
         if not self.isLabelSurface(surf,property):
             property = self.GetLabelSurface(surf)
         self.property = property
+    
+    def ListLabelSurface(self,surf):
+        string_data = str(surf.GetPointData()).split('\n')
+        for i, data in enumerate(string_data) :
+            if 'Number Of Arrays:' in data :
+                number = [int(i) for i in data.split() if i.isdigit()][0]
+                index = i+1
+                continue
+        list_label = []
+        for i in range(index,index+number):
+            list_label.append(string_data[i].split('=')[-1])
+        for i in range(len(list_label)):
+            list_label[i] = list_label[i].strip()
+
+        return list_label
 
 
 
     def GetLabelSurface(self,surf,Preference='Universal_ID'):
         out = None
 
-        list_label = [surf.GetPointData().GetArrayName(i) for i in range(surf.GetPointData().GetNumberOfArrays())]
+        list_label = self.ListLabelSurface(surf)
 
         if len(list_label)!=0 :
             for label in list_label:
@@ -419,7 +434,7 @@ class vtkTeeth:
 
     def isLabelSurface(self,surf,property):
         out = False
-        list_label = [surf.GetPointData().GetArrayName(i) for i in range(surf.GetPointData().GetNumberOfArrays())]
+        list_label = self.ListLabelSurface(surf)
         if property in list_label:
             out = True
         return out
@@ -431,8 +446,7 @@ class vtkIterTeeth(vtkTeeth):
     def __init__(self, list_teeth, surf, property=None):
         super().__init__(list_teeth, property)
         self.CheckLabelSurface(surf,property)
-        if not self.isLabelSurface(surf,self.property):
-            raise NoSegmentationSurf(self.property)
+
         self.region_id = vtk_to_numpy(surf.GetPointData().GetScalars(self.property))
         self.verts = vtk_to_numpy(surf.GetPoints().GetData())
 
@@ -445,8 +459,6 @@ class vtkIterTeeth(vtkTeeth):
             raise StopIteration
         
         verts_crown = np.argwhere(self.region_id==self.list_teeth[self.iter])
-        if len(verts_crown)== 0 :
-            raise ToothNoExist(self.list_teeth[self.iter])
 
         self.iter += 1 
         return np.array(self.verts[verts_crown]) , self.list_teeth[self.iter-1]
@@ -522,6 +534,7 @@ class SelectKey:
     def __call__(self,input):
         assert isinstance(input,dict)
         out ={}
+        print('selectkey',self.list_key,input)
         for key in self.list_key:
             out[key]=input[key]
         return out
@@ -811,26 +824,4 @@ def SameNumberPoint(source,target):
 
 
 
-class ToothNoExist(Exception):
-    def __init__(self, tooth ) -> None:
-        dic = {1: 'UR8', 2: 'UR7', 3: 'UR6', 4: 'UR5', 5: 'UR4', 6: 'UR3', 7: 'UR2', 8: 'UR1', 9: 'UL1', 10: 'UL2', 11: 'UL3',
-         12: 'UL4', 13: 'UL5', 14: 'UL6', 15: 'UL7', 16: 'UL8', 17: 'LL8', 18: 'LL7', 19: 'LL6', 20: 'LL5', 21: 'LL4', 22: 'LL3', 
-         23: 'LL2', 24: 'LL1', 25: 'LR1', 26: 'LR2', 27: 'LR3', 28: 'LR4', 29: 'LR5', 30: 'LR6', 31: 'LR7', 32: 'LR8', 'UR8': 1, 'UR7': 2}
-        if isinstance(tooth,int):
-            tooth = dic[tooth]
-        self.message =f'This tooth {tooth} is not segmented or doesnt exist '
-        super().__init__(self.message)
-
-
-    def __str__(self) -> str:
-        return self.message
-
-
-
-class NoSegmentationSurf(Exception):
-    def __init__(self, property) -> None:
-        self.message = f'This surf doesnt have this property {property}'
-        super().__init__(self.message)
-
-    def __str__(self) -> str:
-        return self.message
+    
