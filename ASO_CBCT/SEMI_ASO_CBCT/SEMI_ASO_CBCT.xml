@@ -51,13 +51,11 @@
     </string>
 
     <string>
-      <name>fullyAutomated</name>
-      <label>fullyAutomated</label>
-      <index>6</index>
-      <description>Boolean to know whether the method is the fullyAutomated or semiAutomated</description>
+      <name>log_path</name>
+      <label>log_path</label>
+      <index>5</index>
+      <description>path for the log</description>
     </string>
-
-
 
   </parameters>
 </executable>

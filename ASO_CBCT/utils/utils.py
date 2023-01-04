@@ -592,7 +592,6 @@ def ICP(input_file,input_json_file,gold_file,gold_json_file,list_landmark):
     TransformList.append(TransformMatrixsitk)
 
 
-
     # Compute the final transform (inverse all the transforms)
     TransformSITK = sitk.CompositeTransform(3)
     for i in range(len(TransformList)-1,-1,-1):

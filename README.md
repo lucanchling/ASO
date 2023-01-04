@@ -1,9 +1,9 @@
 # Automated Standardized Orientation
 
-Automatic Standerize Orientation (ASO) is an extension for 3D Slicer to perform automatic orientation either IOS or CBCT.
+Automated Standerized Orientation (ASO) is an extension for 3D Slicer to perform automatic orientation either on IOS or CBCT files.
 
 ## ASO Modules
-ASO module provide a convenient user interfacer allowing to oriented different type of scans:
+ASO module provide a convenient user interfacer allowing to oriente different type of scans:
 - [CBCT](#aso-cbct) scan
 - [IOS](#aso-ios) scan
 
@@ -11,8 +11,6 @@ The implementation is based on iterative closest point's algorithm.
 
 
 ## ASO-CBCT
-
-
 
 
 

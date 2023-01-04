@@ -103,3 +103,52 @@ class DisplayASOIOS(Display):
                 out = True
         
         return out
+
+class DisplayASOCBCT(Display):
+    def __init__(self,nb_progress,log_path) -> None:
+        self.nb_progress_total = nb_progress
+        self.log_path = log_path
+        self.time_log = 0
+        super().__init__()
+
+    def __call__(self, **kwds) -> Tuple[float, str]:
+        self.progress+=1
+        self.progress_bar = (self.progress/self.nb_progress_total*100)
+        self.message = (f"Scan : {self.progress} / {self.nb_progress_total}")
+        return self.progress_bar, self.message
+
+
+    def isProgress(self, **kwds) -> bool:
+        out = False 
+        if os.path.isfile(self.log_path):
+            path_time = os.path.getmtime(self.log_path)
+            if path_time != self.time_log:
+                self.time_log = path_time
+                out = True
+        
+        return out
+
+class DisplayALICBCT(Display):
+    def __init__(self,nb_landmark,nb_scan) -> None:
+        self.nb_landmark = nb_landmark
+        self.nb_scan_total = nb_scan
+        self.pred_step = 0
+        super().__init__()
+
+    def __call__(self)  -> Tuple[float, str] :
+        self.progress+=1
+        self.progress_bar = (self.progress/(self.nb_landmark*self.nb_scan_total))*100
+        nb_scan_treat = int(self.progress//self.nb_landmark)
+        self.message = f'Scan : {nb_scan_treat} / {self.nb_scan_total}'
+        return self.progress_bar, self.message
+
+
+
+    def isProgress(self, **kwds) -> bool:
+        out = False
+        if kwds['progress'] == 200:
+            self.pred_step+=1
+        if kwds['progress'] == 100 and kwds['updateProgessBar'] == False:
+            if self.pred_step>3:
+                out = True
+        return out

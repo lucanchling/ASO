@@ -159,27 +159,26 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
         """
-            8b           d8                          88              88           88                         
-            `8b         d8'                          ""              88           88                         
-            `8b       d8'                                           88           88                         
-            `8b     d8'    ,adPPYYba,  8b,dPPYba,  88  ,adPPYYba,  88,dPPYba,   88   ,adPPYba,  ,adPPYba,  
-            `8b   d8'     ""     `Y8  88P'   "Y8  88  ""     `Y8  88P'    "8a  88  a8P_____88  I8[    ""  
-            `8b d8'      ,adPPPPP88  88          88  ,adPPPPP88  88       d8  88  8PP"""""""   `"Y8ba,   
-            `888'       88,    ,88  88          88  88,    ,88  88b,   ,a8"  88  "8b,   ,aa  aa    ]8I  
-            `8'        `"8bbdP"Y8  88          88  `"8bbdP"Y8  8Y"Ybbd8"'   88   `"Ybbd8"'  `"YbbdP"'  
-                                                                                                            
+            888     888        d8888 8888888b.  8888888        d8888 888888b.   888      8888888888  .d8888b.  
+            888     888       d88888 888   Y88b   888         d88888 888  "88b  888      888        d88P  Y88b 
+            888     888      d88P888 888    888   888        d88P888 888  .88P  888      888        Y88b.      
+            Y88b   d88P     d88P 888 888   d88P   888       d88P 888 8888888K.  888      8888888     "Y888b.   
+             Y88b d88P     d88P  888 8888888P"    888      d88P  888 888  "Y88b 888      888            "Y88b. 
+              Y88o88P     d88P   888 888 T88b     888     d88P   888 888    888 888      888              "888 
+               Y888P     d8888888888 888  T88b    888    d8888888888 888   d88P 888      888        Y88b  d88P 
+                Y8P     d88P     888 888   T88b 8888888 d88P     888 8888888P"  88888888 8888888888  "Y8888P"
         """
         self.MethodeDic={'Semi_IOS':Semi_IOS(self), 'Auto_IOS':Auto_IOS(self),
                          'Semi_CBCT':Semi_CBCT(self),'Auto_CBCT':Auto_CBCT(self)}
 
         self.ActualMeth= Methode
         self.ActualMeth= self.MethodeDic['Semi_CBCT']
+        self.type = 'CBCT'
         self.nb_scan = 0
         self.startprocess =0
         self.patient_process = 0
         self.dicchckbox={}  
         self.dicchckbox2={}
-        self.fullyAutomated = False
         self.display = Display
         """
         exemple dic = {'teeth'=['A,....],'Type'=['O',...]}
@@ -201,14 +200,14 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         """
                               
-                                            88               88           
-                                            88               ""    ,d     
-                                            88                     88     
-                                            88  8b,dPPYba,   88  MM88MMM  
-                                            88  88P'   `"8a  88    88     
-                                            88  88       88  88    88     
-                                            88  88       88  88    88,    
-                                            88  88       88  88    "Y888  
+                                        8888888 888b    888 8888888 88888888888 
+                                          888   8888b   888   888       888     
+                                          888   88888b  888   888       888     
+                                          888   888Y88b 888   888       888     
+                                          888   888 Y88b888   888       888     
+                                          888   888  Y88888   888       888     
+                                          888   888   Y8888   888       888     
+                                        8888888 888    Y888 8888888     888 
                               
         """
         # self.initCheckbox(self.MethodeDic['Semi_IOS'],self.ui.LayoutLandmarkSemiIOS,self.ui.tohideIOS)
@@ -242,14 +241,14 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         """
                                                                                        
-                        ,ad8888ba,                                                                           
-                        d8"'    `"8b                                                                   ,d     
-                        d8'                                                                             88     
-                        88              ,adPPYba,   8b,dPPYba,   8b,dPPYba,    ,adPPYba,   ,adPPYba,  MM88MMM  
-                        88             a8"     "8a  88P'   `"8a  88P'   `"8a  a8P_____88  a8"     ""    88     
-                        Y8,            8b       d8  88       88  88       88  8PP"""""""  8b            88     
-                        Y8a.    .a8P  "8a,   ,a8"  88       88  88       88  "8b,   ,aa  "8a,   ,aa    88,    
-                        `"Y8888Y"'    `"YbbdP"'   88       88  88       88   `"Ybbd8"'   `"Ybbd8"'    "Y888  
+                     .d8888b.   .d88888b.  888b    888 888b    888 8888888888  .d8888b.  88888888888 
+                    d88P  Y88b d88P" "Y88b 8888b   888 8888b   888 888        d88P  Y88b     888     
+                    888    888 888     888 88888b  888 88888b  888 888        888    888     888     
+                    888        888     888 888Y88b 888 888Y88b 888 8888888    888            888     
+                    888        888     888 888 Y88b888 888 Y88b888 888        888            888     
+                    888    888 888     888 888  Y88888 888  Y88888 888        888    888     888     
+                    Y88b  d88P Y88b. .d88P 888   Y8888 888   Y8888 888        Y88b  d88P     888     
+                     "Y8888P"   "Y88888P"  888    Y888 888    Y888 8888888888  "Y8888P"      888 
                                                                                                             
         """
 
@@ -302,14 +301,14 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
 
                                                                                                                                                                     
-88888888888                                                 88                                88888888ba                                                            
-88                                                   ,d     ""                                88      "8b                 ,d       ,d                               
-88                                                   88                                       88      ,8P                 88       88                               
-88aaaaa      88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPYba,       88aaaaaa8P'  88       88  MM88MMM  MM88MMM   ,adPPYba,   8b,dPPYba,   
-88           88       88  88P'   `"8a  a8"     ""    88     88  a8"     "8a  88P'   `"8a      88""""""8b,  88       88    88       88     a8"     "8a  88P'   `"8a  
-88           88       88  88       88  8b            88     88  8b       d8  88       88      88      `8b  88       88    88       88     8b       d8  88       88  
-88           "8a,   ,a88  88       88  "8a,   ,aa    88,    88  "8a,   ,a8"  88       88      88      a8P  "8a,   ,a88    88,      88,    "8a,   ,a8"  88       88  
-88            `"YbbdP'Y8  88       88   `"Ybbd8"'    "Y888  88   `"YbbdP"'   88       88      88888888P"    `"YbbdP'Y8    "Y888    "Y888   `"YbbdP"'   88       88  
+                        888888b.   888     888 88888888888 88888888888  .d88888b.  888b    888  .d8888b.  
+                        888  "88b  888     888     888         888     d88P" "Y88b 8888b   888 d88P  Y88b 
+                        888  .88P  888     888     888         888     888     888 88888b  888 Y88b.      
+                        8888888K.  888     888     888         888     888     888 888Y88b 888  "Y888b.   
+                        888  "Y88b 888     888     888         888     888     888 888 Y88b888     "Y88b. 
+                        888    888 888     888     888         888     888     888 888  Y88888       "888 
+                        888   d88P Y88b. .d88P     888         888     Y88b. .d88P 888   Y8888 Y88b  d88P 
+                        8888888P"   "Y88888P"      888         888      "Y88888P"  888    Y888  "Y8888P"
                                                                                                                                                                     
                                                                                                                                                                     
 
@@ -324,7 +323,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.ButtonSearchModelAli.setVisible(False)
             self.ui.ButtonSearchModelSegOr.setVisible(False)
             self.ui.ButtonDowloadModels.setVisible(False)
-            self.fullyAutomated = False
 
         if index == 1: # Fully Automated
             self.ui.label_6.setVisible(True)
@@ -333,25 +331,32 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.lineEditModelSegOr.setVisible(True)
             self.ui.ButtonSearchModelSegOr.setVisible(True)
             self.ui.ButtonDowloadModels.setVisible(True)
-            self.fullyAutomated = True
 
     def SwitchType(self,index):
         if self.ui.CbInputType.currentIndex == 0 and self.ui.CbModeType.currentIndex == 0:
             self.ActualMeth = self.MethodeDic['Semi_CBCT']
             self.ui.stackedWidget.setCurrentIndex(0)
+            self.type = 'CBCT'
         
         elif self.ui.CbInputType.currentIndex == 0 and self.ui.CbModeType.currentIndex == 1:
             self.ActualMeth = self.MethodeDic['Auto_CBCT']
             self.ui.stackedWidget.setCurrentIndex(1)
+            self.type = 'CBCT'
+
+            self.ui.lineEditRefFolder.setText('/home/luciacev/Desktop/Luc_Anchling/DATA/ASO_CBCT/GOLD/Sara')
+            self.ui.lineEditModelSegOr.setText('/home/luciacev/Desktop/Luc_Anchling/Models/ASO')
+            self.ui.lineEditModelAli.setText('/home/luciacev/Desktop/Maxime_Gillot/Data/ALI_CBCT/MODELS')
+            self.ui.lineEditOutputPath.setText('/home/luciacev/Desktop/Luc_Anchling/DATA/ASO_CBCT/TEST/Output')
 
         elif self.ui.CbInputType.currentIndex == 1 and self.ui.CbModeType.currentIndex == 0:
             self.ActualMeth = self.MethodeDic['Semi_IOS']
             self.ui.stackedWidget.setCurrentIndex(2)
-        
+            self.type='IOS'
+
         elif self.ui.CbInputType.currentIndex == 1 and self.ui.CbModeType.currentIndex == 1:
             self.ActualMeth = self.MethodeDic['Auto_IOS']
             self.ui.stackedWidget.setCurrentIndex(3)
-        
+            self.type = 'IOS'
         # UI Changes and boolean fullyAutomated
         self.SwitchMode(self.ui.CbModeType.currentIndex)
 
@@ -405,6 +410,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
             else:
                 lineEdit.setText(model_folder)
+                self.enableCheckbox()
         
     def ChosePathOutput(self):
         out_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder")
@@ -434,17 +440,22 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             return
 
 
-        # for checkboxs,checkboxs2 in zip(self.dicchckbox.values(),self.dicchckbox2.values()):
-        #     for checkbox, checkbox2 in zip(checkboxs,checkboxs2):
-                #if checkbox.text in status.keys(): 
-        for checkbox , checkbox2 in zip(self.logic.iterillimeted(self.dicchckbox),self.logic.iterillimeted(self.dicchckbox)):
+        if self.type == 'IOS':
+            for checkbox , checkbox2 in zip(self.logic.iterillimeted(self.dicchckbox),self.logic.iterillimeted(self.dicchckbox)):
 
-                try :
+                    try :
+                        checkbox.setVisible(status[checkbox.text])
+                        checkbox2.setVisible(status[checkbox2.text])
+
+                    except:
+                        pass
+
+        if self.type == 'CBCT':
+            for checkboxs,checkboxs2 in zip(self.dicchckbox.values(),self.dicchckbox2.values()):
+                for checkbox, checkbox2 in zip(checkboxs,checkboxs2):
                     checkbox.setVisible(status[checkbox.text])
                     checkbox2.setVisible(status[checkbox2.text])
 
-                except:
-                    pass
 
 
 
@@ -471,14 +482,14 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     """
                                                                                     
-                        88888888ba                                                                          
-                        88      "8b                                                                         
-                        88      ,8P                                                                         
-                        88aaaaaa8P'  8b,dPPYba,   ,adPPYba,    ,adPPYba,   ,adPPYba,  ,adPPYba,  ,adPPYba,  
-                        88""""""'    88P'   "Y8  a8"     "8a  a8"     ""  a8P_____88  I8[    ""  I8[    ""  
-                        88           88          8b       d8  8b          8PP"""""""   `"Y8ba,    `"Y8ba,   
-                        88           88          "8a,   ,a8"  "8a,   ,aa  "8b,   ,aa  aa    ]8I  aa    ]8I  
-                        88           88           `"YbbdP"'    `"Ybbd8"'   `"Ybbd8"'  `"YbbdP"'  `"YbbdP"'  
+                    8888888b.  8888888b.   .d88888b.   .d8888b.  8888888888  .d8888b.   .d8888b.  
+                    888   Y88b 888   Y88b d88P" "Y88b d88P  Y88b 888        d88P  Y88b d88P  Y88b 
+                    888    888 888    888 888     888 888    888 888        Y88b.      Y88b.      
+                    888   d88P 888   d88P 888     888 888        8888888     "Y888b.    "Y888b.   
+                    8888888P"  8888888P"  888     888 888        888            "Y88b.     "Y88b. 
+                    888        888 T88b   888     888 888    888 888              "888       "888 
+                    888        888  T88b  Y88b. .d88P Y88b  d88P 888        Y88b  d88P Y88b  d88P 
+                    888        888   T88b  "Y88888P"   "Y8888P"  8888888888  "Y8888P"   "Y8888P"  
                                                                                 
                                                                                     
     """
@@ -490,9 +501,9 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def onPredictButton(self):
         error = self.ActualMeth.TestProcess(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
                                         folder_output = self.ui.lineEditOutputPath.text, model_folder_ali = self.ui.lineEditModelAli.text, model_folder_segor = self.ui.lineEditModelSegOr.text,
-                                        add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox, fullyAutomated = self.fullyAutomated)
+                                        add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox)
 
-        print('error',error)
+        # print('error',error)
         if isinstance(error,str):
             qt.QMessageBox.warning(self.parent, 'Warning',error.replace(',','\n'))
 
@@ -500,15 +511,15 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             list_Processes, self.display = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
                                         folder_output = self.ui.lineEditOutputPath.text, model_folder_ali = self.ui.lineEditModelAli.text, model_folder_segor = self.ui.lineEditModelSegOr.text,
                                         add_in_namefile = self.ui.lineEditAddName.text, 
-                                        dic_checkbox = self.dicchckbox, fullyAutomated = self.fullyAutomated,logPath= self.log_path)
+                                        dic_checkbox = self.dicchckbox, logPath= self.log_path)
 
             self.nb_extension_launch = len(list_Processes)
-
+            self.Processes = []
             self.onProcessStarted()
             for process in list_Processes:
                 self.process = slicer.cli.run(process['Process'],None,process['Parameter'])
+                self.Processes.append(self.process)
                 self.processObserver = self.process.AddObserver('ModifiedEvent',self.onProcessUpdate)
-                
 
             
 
@@ -526,13 +537,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.LabelProgressExtension.setText(f'Extension : 0 / {self.nb_extension_launch}')
         self.nb_extnesion_did = 0
 
-        self.nb_patient_treat = 0
-        self.progress = 0
-        self.progress_seg = 0
-        self.time_log = 0 
-        self.progress_ali_ios = 0
         self.module_name_before = 0
-        self.all_progress = 0
         self.nb_change_bystep = 0
 
 
@@ -549,6 +554,14 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.module_name = caller.GetModuleTitle()
         self.ui.LabelNameExtension.setText(self.module_name)
 
+        if caller.GetStatus() & caller.Completed:
+            if caller.GetStatus() & caller.ErrorsMask:
+            # error
+                errorText = caller.GetErrorText()
+                print("\n"+ 70*"=" + "\n\n" + errorText)
+                print(70*"=")
+                self.onCancel()
+                
 
         if self.module_name_before != self.module_name:
             
@@ -557,8 +570,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.LabelProgressExtension.setText(f'Extension : {self.nb_extnesion_did} / {self.nb_extension_launch}')
             self.ui.progressBar.setValue(0)
 
-            if self.nb_change_bystep == 0 and self.module_name_before:
-                print(f'Erreur this module didnt work {self.module_name_before}')
+            # if self.nb_change_bystep == 0 and self.module_name_before:
+            #     print(f'Error this module doesn\'t work {self.module_name_before}')
 
             self.module_name_before = self.module_name
             self.nb_change_bystep =0
@@ -640,8 +653,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.LabelProgressExtension.setText(f'Extension : {self.nb_extnesion_did} / {self.nb_extension_launch}')
         self.ui.progressBar.setValue(0)
 
-        if self.nb_change_bystep == 0:
-            print(f'Erreur this module didnt work {self.module_name_before}')
+        # if self.nb_change_bystep == 0:
+        #     print(f'Erreur this module didnt work {self.module_name_before}')
 
         self.module_name_before = self.module_name
         self.nb_change_bystep =0
@@ -658,8 +671,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def onCancel(self):
 
-
-        self.process.Cancel()
+        for process in self.Processes:
+            process.Cancel()
 
 
         self.RunningUI(False)
@@ -707,14 +720,16 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     """
                                                                                                                         
-   ad88                                                 88                                88               88           
-  d8"                                            ,d     ""                                88               ""    ,d     
-  88                                             88                                       88                     88     
-MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPYba,       88  8b,dPPYba,   88  MM88MMM  
-  88     88       88  88P'   `"8a  a8"     ""    88     88  a8"     "8a  88P'   `"8a      88  88P'   `"8a  88    88     
-  88     88       88  88       88  8b            88     88  8b       d8  88       88      88  88       88  88    88     
-  88     "8a,   ,a88  88       88  "8a,   ,aa    88,    88  "8a,   ,a8"  88       88      88  88       88  88    88,    
-  88      `"YbbdP'Y8  88       88   `"Ybbd8"'    "Y888  88   `"YbbdP"'   88       88      88  88       88  88    "Y888  
+            8888888888 888     888 888b    888  .d8888b.      8888888 888b    888 8888888 88888888888 
+            888        888     888 8888b   888 d88P  Y88b       888   8888b   888   888       888     
+            888        888     888 88888b  888 888    888       888   88888b  888   888       888     
+            8888888    888     888 888Y88b 888 888              888   888Y88b 888   888       888     
+            888        888     888 888 Y88b888 888              888   888 Y88b888   888       888     
+            888        888     888 888  Y88888 888    888       888   888  Y88888   888       888     
+            888        Y88b. .d88P 888   Y8888 Y88b  d88P       888   888   Y8888   888       888     
+            888         "Y88888P"  888    Y888  "Y8888P"      8888888 888    Y888 8888888     888     
+                                                                                                                                      
+                                                                                                                                    
                                                                                                                         
                                                                                                                         
     """
@@ -968,15 +983,14 @@ MM88MMM  88       88  8b,dPPYba,    ,adPPYba,  MM88MMM  88   ,adPPYba,   8b,dPPY
 
 
     """
-                                                                                            
-                                ,ad8888ba,             88                                   
-                                d8"'    `"8b     ,d     88                                   
-                                d8'        `8b    88     88                                   
-                                88          88  MM88MMM  88,dPPYba,    ,adPPYba,  8b,dPPYba,  
-                                88          88    88     88P'    "8a  a8P_____88  88P'   "Y8  
-                                Y8,        ,8P    88     88       88  8PP"""""""  88          
-                                Y8a.    .a8P     88,    88       88  "8b,   ,aa  88          
-                                `"Y8888Y"'      "Y888  88       88   `"Ybbd8"'  88          
+                          .d88888b.  88888888888 888    888 8888888888 8888888b.   .d8888b.  
+                         d88P" "Y88b     888     888    888 888        888   Y88b d88P  Y88b 
+                         888     888     888     888    888 888        888    888 Y88b.      
+                         888     888     888     8888888888 8888888    888   d88P  "Y888b.   
+                         888     888     888     888    888 888        8888888P"      "Y88b. 
+                         888     888     888     888    888 888        888 T88b         "888 
+                         Y88b. .d88P     888     888    888 888        888  T88b  Y88b  d88P 
+                          "Y88888P"      888     888    888 8888888888 888   T88b  "Y8888P"    
     """
 
     def cleanup(self):
@@ -1152,8 +1166,6 @@ class ASOLogic(ScriptedLoadableModuleLogic):
 
 
 
-
-
     def iterillimeted(self,iter):
         out = []
         if isinstance(iter,dict):
@@ -1166,6 +1178,8 @@ class ASOLogic(ScriptedLoadableModuleLogic):
                 out.append(thing)
         
         return out
+
+
 
 
 

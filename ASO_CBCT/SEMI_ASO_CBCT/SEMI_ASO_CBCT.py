@@ -14,6 +14,13 @@ sys.path.append(fpath)
 from utils import WriteJsonLandmarks,ICP,ExtractFilesFromFolder,MergeJson,WriteJson
 
 def main(args):
+    
+    if not os.path.exists(os.path.split(args.log_path[0])[0]):
+        os.mkdir(os.path.split(args.log_path[0])[0])
+
+    with open(args.log_path[0],'w') as log_f :
+        log_f.truncate(0)
+    
     scan_extension = [".nrrd", ".nrrd.gz", ".nii", ".nii.gz", ".gipl", ".gipl.gz"]
     lm_extension = ['.json']
 
@@ -57,15 +64,8 @@ def main(args):
             sitk.WriteImage(output, file_outpath)
 
 
-        print(f"""<filter-progress>{0}</filter-progress>""")
-        sys.stdout.flush()
-        time.sleep(0.2)
-        print(f"""<filter-progress>{2}</filter-progress>""")
-        sys.stdout.flush()
-        time.sleep(0.2)
-        print(f"""<filter-progress>{0}</filter-progress>""")
-        sys.stdout.flush()
-        time.sleep(0.2)
+        with open(args.log_path[0],'r+') as log_f:
+            log_f.write(str(i))
 
 if __name__ == "__main__":
     
@@ -79,8 +79,8 @@ if __name__ == "__main__":
     parser.add_argument('output_folder',nargs=1)
     parser.add_argument('add_inname',nargs=1)
     parser.add_argument('list_landmark',nargs=1)
-    parser.add_argument('fullyAutomated',nargs=1)
-
+    parser.add_argument('log_path',nargs=1)
+    
     args = parser.parse_args()
 
     main(args)

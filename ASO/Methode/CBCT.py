@@ -1,4 +1,5 @@
 from Methode.Methode import Methode
+from Methode.Progress import DisplayASOCBCT, DisplayALICBCT
 import webbrowser
 import os 
 import slicer
@@ -201,10 +202,12 @@ class Semi_CBCT(CBCT):
         print('parameter',parameter_semi_aso)
 
         OrientProcess = slicer.modules.semi_aso_cbct
-        
         list_process = [{'Process':OrientProcess,'Parameter':parameter_semi_aso}]
+
+        nb_scan = self.NumberScan(kwargs['input_folder'])
+        display =  {'SEMI_ASO_CBCT':DisplayASOCBCT(nb_scan)}
         
-        return list_process
+        return list_process, display
 
 class Auto_CBCT(CBCT):
     
@@ -244,38 +247,59 @@ class Auto_CBCT(CBCT):
         return out
 
     def Process(self, **kwargs):
-        Processes = []
+
+        # PRE ASO CBCT
+        
+        parameter_pre_aso = {'input': kwargs['input_folder'],
+                             'output_folder': kwargs['input_folder'],
+                             'model_folder':kwargs['model_folder_segor'],
+                             'log_path':kwargs['logPath']}
+        
+        PreOrientProcess = slicer.modules.pre_aso_cbct
 
         list_lmrk_str = self.CheckboxisChecked(kwargs['dic_checkbox'],in_str=True)
-        
+        nb_landmark = len(list_lmrk_str.split(' '))
+
+        #print('PRE_ASO param:', parameter_pre_aso)
+
         # ALI CBCT
+
+        temp_folder = slicer.util.tempDirectory()
         
         parameter_ali =  {'input': kwargs['input_folder'], 
                     'dir_models': kwargs['model_folder_ali'], 
                     'landmarks': list_lmrk_str, 
                     'save_in_folder': False, 
                     'output_dir': kwargs['input_folder'],
-                    'temp_fold': '/home/luciacev/Documents/Slicer_temp_ALI'}
+                    'temp_fold': temp_folder}
         ALIProcess = slicer.modules.ali_cbct
         
-        print('ALI param:',parameter_ali)
-        # ICP        
+        #print('ALI param:',parameter_ali)
+        
+        # SEMI ASO CBCT        
        
         parameter_semi_aso = {'input':kwargs['input_folder'],
                     'gold_folder':kwargs['gold_folder'],
                     'output_folder':kwargs['folder_output'],
                     'add_inname':kwargs['add_in_namefile'],
                     'list_landmark':list_lmrk_str,
-                    'model_folder':kwargs['model_folder_ali'],
-                    'fullyAutomated':kwargs['fullyAutomated'],
+                    'log_path':kwargs['logPath']
                 }
         OrientProcess = slicer.modules.semi_aso_cbct
 
-        print("SEMI_ASO param:",parameter_semi_aso)
-        list_process = [{'Process':ALIProcess,'Parameter': parameter_ali},
-                        {'Process':OrientProcess,'Parameter':parameter_semi_aso}]
-        
-        return list_process
+        #print("SEMI_ASO param:",parameter_semi_aso)
+ 
+        list_process = [{'Process':PreOrientProcess,'Parameter':parameter_pre_aso,'Name':'PRE_ASO_CBCT'},
+                        {'Process':ALIProcess,'Parameter': parameter_ali,'Name':'ALI_CBCT'},
+                        {'Process':OrientProcess,'Parameter':parameter_semi_aso,'Name':'SEMI_ASO_CBCT'}
+        ]
+        nb_scan = self.NumberScan(kwargs['input_folder'])
+
+        display = {'ALI_CBCT':DisplayALICBCT(nb_landmark,nb_scan),
+                   'SEMI_ASO_CBCT':DisplayASOCBCT(nb_scan,kwargs['logPath']),
+                   'PRE_ASO_CBCT':DisplayASOCBCT(nb_scan,kwargs['logPath'])}
+
+        return list_process, display
         
         
     

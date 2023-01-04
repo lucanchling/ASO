@@ -30,12 +30,18 @@
     </string>
 
     <string>
-      <name>fullyAutomated</name>
-      <label>fullyAutomated</label>
+      <name>model_folder</name>
+      <label>model_folder</label>
       <index>2</index>
-      <description>Boolean to know whether the method is the fullyAutomated or semiAutomated</description>
+      <description>Folder with model files</description>
     </string>
 
+    <string>
+      <name>log_path</name>
+      <label>log_path</label>
+      <index>3</index>
+      <description>path for the log</description>
+    </string>
 
 
   </parameters>
