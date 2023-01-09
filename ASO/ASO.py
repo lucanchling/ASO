@@ -367,6 +367,11 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         self.HideComputeItems()
 
+        best = ['ANS','IF','PNS','UL6O']
+        for checkbox in self.logic.iterillimeted(self.dicchckbox):
+            if checkbox.text in best and checkbox.isEnabled():
+                checkbox.setCheckState(True)
+
 
     def SearchScanLm(self):
         scan_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder")

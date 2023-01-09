@@ -9,7 +9,7 @@ import numpy as np
 fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
 
-from utils import (ExtractFilesFromFolder, DenseNet, AngleAndAxisVectors, RotationMatrix)
+from utils import (ExtractFilesFromFolder, DenseNet, AngleAndAxisVectors, RotationMatrix, WriteOutputTxt)
 
 def ResampleImage(image, transform):
     '''
@@ -52,7 +52,10 @@ def ResampleImage(image, transform):
     return resample.Execute(image)
     
 def main(args):
-
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device= "cpu"
+    
     if not os.path.exists(os.path.split(args.log_path[0])[0]):
         os.mkdir(os.path.split(args.log_path[0])[0])
 
@@ -65,7 +68,7 @@ def main(args):
     ckpt_path = os.path.join(args.model_folder[0],'LargeFOV_best.ckpt') # /!\ large and small FOV choice to include /!\ 
 
     model = DenseNet.load_from_checkpoint(checkpoint_path = ckpt_path)
-    model.to('cuda')   
+    model.to(device)   
     model.eval()
     
     scan_extension = [".nrrd", ".nrrd.gz", ".nii", ".nii.gz", ".gipl", ".gipl.gz"]
@@ -75,14 +78,14 @@ def main(args):
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     
-    input_files = ExtractFilesFromFolder(input_dir, scan_extension)
+    input_files, _ = ExtractFilesFromFolder(input_dir, scan_extension)
 
     for i in range(len(input_files)):
         
         input_file = input_files[i]
-
-        img = sitk.ReadImage(input_file)
-        scan = torch.Tensor(sitk.GetArrayFromImage(img)).unsqueeze(0)
+        WriteOutputTxt(input_file)
+        img = sitk.ReadImage(input_file)#,outputPixelType=sitk.sitkFloat32)
+        scan = torch.Tensor(sitk.GetArrayFromImage(img)).unsqueeze(0).unsqueeze(0)
 
         # Translation to center volume
         T = - np.array(img.TransformContinuousIndexToPhysicalPoint(np.array(img.GetSize())/2.0))
@@ -92,12 +95,14 @@ def main(args):
         goal = np.array((0.0,0.0,1.0)) # Direction vector for good orientation
 
         with torch.no_grad():
-            directionVector_pred = model(scan.to('cuda'))
+            directionVector_pred = model(scan.to(device))
 
         directionVector_pred = directionVector_pred.cpu().numpy()
-
+        WriteOutputTxt(directionVector_pred)
+        
+        WriteOutputTxt(Loss(directionVector_pred,goal))
         if Loss(directionVector_pred,goal) > 0.1: # When angle is large enough to apply orientation modification
-
+            
             angle, axis = AngleAndAxisVectors(goal,directionVector_pred[0])
             Rotmatrix = RotationMatrix(axis,angle)
 
@@ -125,7 +130,7 @@ def main(args):
         if not os.path.exists(dir_scan):
             os.makedirs(dir_scan)
         
-        file_outpath = os.path.join(dir_scan,os.path.basename(input_file))
+        file_outpath = os.path.join(dir_scan,os.path.basename(input_file).split('.')[0]+'_New.nii.gz')
         if not os.path.exists(file_outpath):
             sitk.WriteImage(img_out, file_outpath)
 
@@ -134,9 +139,8 @@ def main(args):
 
 if __name__ == "__main__":
     
-    print("Starting")
-    print(sys.argv)
-    
+    WriteOutputTxt("="*70+"\nPRE_ASO")
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument('input',nargs=1)
@@ -147,3 +151,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args)
+
+    WriteOutputTxt("="*70+"\n")

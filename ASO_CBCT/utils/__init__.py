@@ -1,2 +1,2 @@
-from .utils import WriteJsonLandmarks,ICP,ExtractFilesFromFolder,MergeJson,WriteJson,AngleAndAxisVectors,RotationMatrix
+from .utils import WriteJsonLandmarks,ICP,ExtractFilesFromFolder,MergeJson,WriteJson,AngleAndAxisVectors,RotationMatrix,WriteOutputTxt
 from .Net import DenseNet
