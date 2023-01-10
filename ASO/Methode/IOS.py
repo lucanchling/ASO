@@ -30,7 +30,7 @@ class Auto_IOS(Methode):
             out = 'Give folder with vkt file'
         return out
 
-    def TestModel(self, model_folder: str) -> str:
+    def TestModel(self, model_folder: str,lineEditName) -> str:
         return super().TestModel(model_folder)
         
     def TestReference(self, ref_folder: str):

@@ -43,6 +43,12 @@
       <description>path for the log</description>
     </string>
 
+    <string>
+      <name>SmallFOV</name>
+      <label>SmallFOV</label>
+      <index>4</index>
+      <description>Boolean to say whether or not the input file is a Small FOV</description>
+    </string>    
 
   </parameters>
 </executable>

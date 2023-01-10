@@ -1,6 +1,5 @@
 import torch.nn as nn
 import torch.optim as optim
-from monai.networks.nets.densenet import DenseNet121
 from slicer.util import pip_install
 
 try:
@@ -9,6 +8,12 @@ except ImportError:
     pip_install('pytorch_lightning')
     import pytorch_lightning as pl
     
+try :
+    from monai.networks.nets.densenet import DenseNet121
+except ImportError:
+    pip_install('monai==0.7.0')
+    from monai.networks.nets.densenet import DenseNet121
+
 # Different Network
 
 class DenseNet(pl.LightningModule):

@@ -3,13 +3,21 @@
 import argparse
 import SimpleITK as sitk
 import sys,os,time
-import torch
 import numpy as np
+import slicer
+
+from slicer.util import pip_install
+
+try:
+    import torch
+except ImportError:
+    pip_install('torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113')
+    import torch
 
 fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
 
-from utils import (ExtractFilesFromFolder, DenseNet, AngleAndAxisVectors, RotationMatrix, WriteOutputTxt)
+from utils import (ExtractFilesFromFolder, DenseNet, AngleAndAxisVectors, RotationMatrix, WriteOutputTxt, PreASOResample)
 
 def ResampleImage(image, transform):
     '''
@@ -53,22 +61,36 @@ def ResampleImage(image, transform):
     
 def main(args):
     
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    device= "cpu"
-    
     if not os.path.exists(os.path.split(args.log_path[0])[0]):
         os.mkdir(os.path.split(args.log_path[0])[0])
 
     with open(args.log_path[0],'w') as log_f :
         log_f.truncate(0)
 
+    # RESAMPLE BEFORE USING MODELS
+    temp_folder = slicer.util.tempDirectory()
+
+    # Small and Large FOV difference
+    SmallFOVInput = bool(args.SmallFOV[0])
+    
+    if SmallFOVInput:   # Small FOV input
+        scalingFOV = 0.69
+        ckpt_file = 'SmallFOV_best.ckpt'
+    
+    else:   # Large FOV input
+        scalingFOV = 1.45
+        ckpt_file = 'LargeFOV_best.ckpt'
+
+    PreASOResample(args.input,temp_folder,scaling=scalingFOV) # /!\ large and small FOV choice for scaling choice /!\
+
     CosSim = torch.nn.CosineSimilarity() # /!\ if loss < 0.1 dont apply rotation /!\
     Loss = lambda x,y: 1 - CosSim(torch.Tensor(x),torch.Tensor(y))
     
-    ckpt_path = os.path.join(args.model_folder[0],'LargeFOV_best.ckpt') # /!\ large and small FOV choice to include /!\ 
+    ckpt_path = os.path.join(args.model_folder[0],ckpt_file) # /!\ large and small FOV choice to include /!\ 
 
     model = DenseNet.load_from_checkpoint(checkpoint_path = ckpt_path)
-    model.to(device)   
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
     model.eval()
     
     scan_extension = [".nrrd", ".nrrd.gz", ".nii", ".nii.gz", ".gipl", ".gipl.gz"]
@@ -83,10 +105,9 @@ def main(args):
     for i in range(len(input_files)):
         
         input_file = input_files[i]
-        WriteOutputTxt(input_file)
-        img = sitk.ReadImage(input_file)#,outputPixelType=sitk.sitkFloat32)
-        scan = torch.Tensor(sitk.GetArrayFromImage(img)).unsqueeze(0).unsqueeze(0)
-
+        
+        img = sitk.ReadImage(input_file)
+        
         # Translation to center volume
         T = - np.array(img.TransformContinuousIndexToPhysicalPoint(np.array(img.GetSize())/2.0))
         translation = sitk.TranslationTransform(3)
@@ -94,15 +115,16 @@ def main(args):
         
         goal = np.array((0.0,0.0,1.0)) # Direction vector for good orientation
 
+        img_temp = sitk.ReadImage(os.path.join(temp_folder,os.path.basename(input_file)))
+        array = sitk.GetArrayFromImage(img)
+        scan = torch.Tensor(array).unsqueeze(0).unsqueeze(0)
+
         with torch.no_grad():
             directionVector_pred = model(scan.to(device))
-
         directionVector_pred = directionVector_pred.cpu().numpy()
-        WriteOutputTxt(directionVector_pred)
         
-        WriteOutputTxt(Loss(directionVector_pred,goal))
-        if Loss(directionVector_pred,goal) > 0.1: # When angle is large enough to apply orientation modification
-            
+        if Loss(directionVector_pred,goal) > 0.1 and np.min(array) >= -1200: # When angle is large enough to apply orientation modification
+            #                                          Contrast Intensity
             angle, axis = AngleAndAxisVectors(goal,directionVector_pred[0])
             Rotmatrix = RotationMatrix(axis,angle)
 
@@ -130,7 +152,7 @@ def main(args):
         if not os.path.exists(dir_scan):
             os.makedirs(dir_scan)
         
-        file_outpath = os.path.join(dir_scan,os.path.basename(input_file).split('.')[0]+'_New.nii.gz')
+        file_outpath = os.path.join(dir_scan,os.path.basename(input_file).split('.')[0]+'_ALI.nii.gz')
         if not os.path.exists(file_outpath):
             sitk.WriteImage(img_out, file_outpath)
 
@@ -139,7 +161,7 @@ def main(args):
 
 if __name__ == "__main__":
     
-    WriteOutputTxt("="*70+"\nPRE_ASO")
+    # WriteOutputTxt("="*70+"\nPRE_ASO")
 
     parser = argparse.ArgumentParser()
 
@@ -147,9 +169,10 @@ if __name__ == "__main__":
     parser.add_argument('output_folder',nargs=1)
     parser.add_argument('model_folder',nargs=1)
     parser.add_argument('log_path',nargs=1)
+    parser.add_argument('SmallFOV',nargs=1)
 
     args = parser.parse_args()
 
     main(args)
 
-    WriteOutputTxt("="*70+"\n")
+    # WriteOutputTxt("="*70+"\n")

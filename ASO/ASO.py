@@ -219,8 +219,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.initCheckbox(self.MethodeDic['Auto_CBCT'],self.ui.LayoutLandmarkAutoCBCT,self.ui.tohideCBCT)
         self.HideComputeItems()
         # self.initTest(self.MethodeDic['Semi_IOS'])
-
-
+        
 
 
 
@@ -301,14 +300,14 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
 
                                                                                                                                                                     
-                        888888b.   888     888 88888888888 88888888888  .d88888b.  888b    888  .d8888b.  
-                        888  "88b  888     888     888         888     d88P" "Y88b 8888b   888 d88P  Y88b 
-                        888  .88P  888     888     888         888     888     888 88888b  888 Y88b.      
-                        8888888K.  888     888     888         888     888     888 888Y88b 888  "Y888b.   
-                        888  "Y88b 888     888     888         888     888     888 888 Y88b888     "Y88b. 
-                        888    888 888     888     888         888     888     888 888  Y88888       "888 
-                        888   d88P Y88b. .d88P     888         888     Y88b. .d88P 888   Y8888 Y88b  d88P 
-                        8888888P"   "Y88888P"      888         888      "Y88888P"  888    Y888  "Y8888P"
+                888888b.   888     888 88888888888 88888888888  .d88888b.  888b    888  .d8888b.  
+                888  "88b  888     888     888         888     d88P" "Y88b 8888b   888 d88P  Y88b 
+                888  .88P  888     888     888         888     888     888 88888b  888 Y88b.      
+                8888888K.  888     888     888         888     888     888 888Y88b 888  "Y888b.   
+                888  "Y88b 888     888     888         888     888     888 888 Y88b888     "Y88b. 
+                888    888 888     888     888         888     888     888 888  Y88888       "888 
+                888   d88P Y88b. .d88P     888         888     Y88b. .d88P 888   Y8888 Y88b  d88P 
+                8888888P"   "Y88888P"      888         888      "Y88888P"  888    Y888  "Y8888P"
                                                                                                                                                                     
                                                                                                                                                                     
 
@@ -323,6 +322,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.ButtonSearchModelAli.setVisible(False)
             self.ui.ButtonSearchModelSegOr.setVisible(False)
             self.ui.ButtonDowloadModels.setVisible(False)
+            self.ui.checkBoxSmallFOV.setVisible(False)
+
 
         if index == 1: # Fully Automated
             self.ui.label_6.setVisible(True)
@@ -331,6 +332,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.lineEditModelSegOr.setVisible(True)
             self.ui.ButtonSearchModelSegOr.setVisible(True)
             self.ui.ButtonDowloadModels.setVisible(True)
+            self.ui.checkBoxSmallFOV.setVisible(True)
+
 
     def SwitchType(self,index):
         if self.ui.CbInputType.currentIndex == 0 and self.ui.CbModeType.currentIndex == 0:
@@ -343,11 +346,10 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.stackedWidget.setCurrentIndex(1)
             self.type = 'CBCT'
 
-            self.ui.lineEditRefFolder.setText('/home/luciacev/Desktop/Luc_Anchling/DATA/ASO_CBCT/GOLD/Sara')
-            self.ui.lineEditModelSegOr.setText('/home/luciacev/Desktop/Luc_Anchling/Models/ASO')
-            self.ui.lineEditModelAli.setText('/home/luciacev/Desktop/Maxime_Gillot/Data/ALI_CBCT/MODELS')
-            self.ui.lineEditOutputPath.setText('/home/luciacev/Desktop/Luc_Anchling/DATA/ASO_CBCT/TEST/Output')
-
+            self.ui.lineEditRefFolder.setText('/home/lucia/Desktop/Luc/DATA/ASO/GOLD/Felicia')
+            self.ui.lineEditModelSegOr.setText('/home/lucia/Desktop/Luc/Models/ASO')
+            self.ui.lineEditModelAli.setText('/home/lucia/Downloads/ALI_MODELS')
+            
         elif self.ui.CbInputType.currentIndex == 1 and self.ui.CbModeType.currentIndex == 0:
             self.ActualMeth = self.MethodeDic['Semi_IOS']
             self.ui.stackedWidget.setCurrentIndex(2)
@@ -367,7 +369,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         self.HideComputeItems()
 
-        best = ['ANS','IF','PNS','UL6O']
+        best = ['Ba','LPo','N','RPo']
         for checkbox in self.logic.iterillimeted(self.dicchckbox):
             if checkbox.text in best and checkbox.isEnabled():
                 checkbox.setCheckState(True)
@@ -408,7 +410,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def SearchModel(self,lineEdit):
         model_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a model folder")
         if not model_folder == '':
-            error = self.ActualMeth.TestModel(model_folder)
+            error = self.ActualMeth.TestModel(model_folder,lineEdit.name)
 
             if isinstance(error,str):
                     qt.QMessageBox.warning(self.parent, 'Warning', error)
@@ -506,7 +508,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def onPredictButton(self):
         error = self.ActualMeth.TestProcess(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
                                         folder_output = self.ui.lineEditOutputPath.text, model_folder_ali = self.ui.lineEditModelAli.text, model_folder_segor = self.ui.lineEditModelSegOr.text,
-                                        add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox)
+                                        add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox, smallFOV = str(self.ui.checkBoxSmallFOV.isChecked()))
 
         # print('error',error)
         if isinstance(error,str):
@@ -515,8 +517,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         else :
             list_Processes, self.display = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
                                         folder_output = self.ui.lineEditOutputPath.text, model_folder_ali = self.ui.lineEditModelAli.text, model_folder_segor = self.ui.lineEditModelSegOr.text,
-                                        add_in_namefile = self.ui.lineEditAddName.text, 
-                                        dic_checkbox = self.dicchckbox, logPath= self.log_path)
+                                        add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox, logPath= self.log_path, smallFOV = str(self.ui.checkBoxSmallFOV.isChecked()))
 
             self.nb_extension_launch = len(list_Processes)
             self.Processes = []

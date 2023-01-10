@@ -50,7 +50,7 @@ class Methode(ABC):
         pass 
 
     @abstractmethod
-    def TestModel(self,model_folder :str) -> str :
+    def TestModel(self,model_folder :str,lineEditName) -> str :
         """ Verify whether the model folder contains the right models used for ALI and other AI tool
 
         Args:

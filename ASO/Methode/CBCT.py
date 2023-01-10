@@ -211,11 +211,19 @@ class Semi_CBCT(CBCT):
 
 class Auto_CBCT(CBCT):
     
-    def TestModel(self, model_folder: str) -> str:
-        if len(super().search(model_folder,'pth')['pth']) == 0:
-            return 'Folder must have ALI models files'
-        else:
-            return None
+    def TestModel(self, model_folder: str,lineEditName) -> str:
+
+        if lineEditName == 'lineEditModelSegOr':
+            if len(super().search(model_folder,'ckpt')['ckpt']) == 0:
+                return 'Folder must have Pre ASO models files'
+            else:
+                return None
+        
+        if lineEditName == 'lineEditModelAli':
+            if len(super().search(model_folder,'pth')['pth']) == 0:
+                return 'Folder must have ALI models files'
+            else:
+                return None
         
     def TestScan(self, scan_folder: str) -> str:
         return None
@@ -249,11 +257,13 @@ class Auto_CBCT(CBCT):
     def Process(self, **kwargs):
 
         # PRE ASO CBCT
-        
+        temp_folder = slicer.util.tempDirectory()
+
         parameter_pre_aso = {'input': kwargs['input_folder'],
-                             'output_folder': kwargs['input_folder'],
+                             'output_folder': temp_folder,#kwargs['input_folder'],
                              'model_folder':kwargs['model_folder_segor'],
-                             'log_path':kwargs['logPath']}
+                             'log_path':kwargs['logPath'],
+                             'SmallFOV':kwargs['smallFOV']}
         
         PreOrientProcess = slicer.modules.pre_aso_cbct
 
@@ -264,21 +274,21 @@ class Auto_CBCT(CBCT):
 
         # ALI CBCT
 
-        temp_folder = slicer.util.tempDirectory()
+        tempALI_folder = slicer.util.tempDirectory()
         
-        parameter_ali =  {'input': kwargs['input_folder'], 
+        parameter_ali =  {'input': temp_folder,#kwargs['input_folder'], 
                     'dir_models': kwargs['model_folder_ali'], 
                     'landmarks': list_lmrk_str, 
                     'save_in_folder': False, 
-                    'output_dir': kwargs['input_folder'],
-                    'temp_fold': temp_folder}
+                    'output_dir': temp_folder,#kwargs['input_folder'],
+                    'temp_fold': tempALI_folder}
         ALIProcess = slicer.modules.ali_cbct
         
         #print('ALI param:',parameter_ali)
         
         # SEMI ASO CBCT        
        
-        parameter_semi_aso = {'input':kwargs['input_folder'],
+        parameter_semi_aso = {'input':temp_folder,#kwargs['input_folder'],
                     'gold_folder':kwargs['gold_folder'],
                     'output_folder':kwargs['folder_output'],
                     'add_inname':kwargs['add_in_namefile'],

@@ -187,7 +187,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="PageSemiCBCT">
          <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -220,6 +220,13 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
+             <widget class="QCheckBox" name="checkBoxSmallFOV">
+              <property name="text">
+               <string>Use Small FOV scans</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <layout class="QHBoxLayout" name="LayoutLandmarkAutoCBCT">
               <item>
                <widget class="QLabel" name="tohideCBCT">
@@ -250,8 +257,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>87</width>
-                   <height>37</height>
+                   <width>521</width>
+                   <height>198</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_14">
@@ -306,7 +313,7 @@
                    <x>0</x>
                    <y>0</y>
                    <width>87</width>
-                   <height>184</height>
+                   <height>198</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_12">
