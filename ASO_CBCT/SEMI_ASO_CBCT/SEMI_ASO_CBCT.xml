@@ -50,12 +50,5 @@
       <description>Landmarks use for orientation</description>
     </string>
 
-    <string>
-      <name>log_path</name>
-      <label>log_path</label>
-      <index>5</index>
-      <description>path for the log</description>
-    </string>
-
   </parameters>
 </executable>

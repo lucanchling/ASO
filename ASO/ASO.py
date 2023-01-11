@@ -186,7 +186,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         self.log_path  = os.path.join(slicer.util.tempDirectory(), 'process.log')
         self.time = 0 
-        self.list_process = []
 
         #use messletter to add big comment with univers as police
 
@@ -515,19 +514,18 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             qt.QMessageBox.warning(self.parent, 'Warning',error.replace(',','\n'))
 
         else :
-            list_Processes, self.display = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
+            self.list_Processes_Parameters, self.display = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
                                         folder_output = self.ui.lineEditOutputPath.text, model_folder_ali = self.ui.lineEditModelAli.text, model_folder_segor = self.ui.lineEditModelSegOr.text,
                                         add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox, logPath= self.log_path, smallFOV = str(self.ui.checkBoxSmallFOV.isChecked()))
 
-            self.nb_extension_launch = len(list_Processes)
-            self.Processes = []
+            self.nb_extension_launch = len(self.list_Processes_Parameters)
             self.onProcessStarted()
-            for process in list_Processes:
-                self.process = slicer.cli.run(process['Process'],None,process['Parameter'])
-                self.Processes.append(self.process)
-                self.processObserver = self.process.AddObserver('ModifiedEvent',self.onProcessUpdate)
-
             
+            # /!\ Launch of the first process /!\
+            self.process = slicer.cli.run(self.list_Processes_Parameters[0]['Process'],None,self.list_Processes_Parameters[0]['Parameter'])
+            self.processObserver = self.process.AddObserver('ModifiedEvent',self.onProcessUpdate)
+
+            del self.list_Processes_Parameters[0]
 
 
 
@@ -553,21 +551,12 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     
     def onProcessUpdate(self,caller,event):
 
-
         timer = f"Time : {time.time()-self.startTime:.2f}s"
         self.ui.LabelTimer.setText(timer)
         progress = caller.GetProgress()
         self.module_name = caller.GetModuleTitle()
         self.ui.LabelNameExtension.setText(self.module_name)
 
-        if caller.GetStatus() & caller.Completed:
-            if caller.GetStatus() & caller.ErrorsMask:
-            # error
-                errorText = caller.GetErrorText()
-                print("\n"+ 70*"=" + "\n\n" + errorText)
-                print(70*"=")
-                self.onCancel()
-                
 
         if self.module_name_before != self.module_name:
             
@@ -580,7 +569,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             #     print(f'Error this module doesn\'t work {self.module_name_before}')
 
             self.module_name_before = self.module_name
-            self.nb_change_bystep =0
+            self.nb_change_bystep = 0
 
         if progress == 0:
             self.updateProgessBar = False
@@ -632,12 +621,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         #         self.ui.LabelProgressPatient.setText(f'Patient : {self.nb_patient_treat} / {self.nb_patient}')
         #         self.nb_change_bystep  += 1
 
-
-        if self.process.GetStatus() & self.process.Completed:
-            # process complete
-
-
-            if self.process.GetStatus() & self.process.ErrorsMask:
+        if caller.GetStatus() & caller.Completed:
+            if caller.GetStatus() & caller.ErrorsMask:
                 # error
                 print("\n\n ========= PROCESSED ========= \n")
 
@@ -645,12 +630,23 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 print("\n\n ========= ERROR ========= \n")
                 errorText = self.process.GetErrorText()
                 print("CLI execution failed: \n \n" + errorText)
-
-
+            # error
+                # errorText = caller.GetErrorText()
+                # print("\n"+ 70*"=" + "\n\n" + errorText)
+                # print(70*"=")
+                self.onCancel()
+            
             else:
+                try:
+                    self.process = slicer.cli.run(self.list_Processes_Parameters[0]['Process'],None,self.list_Processes_Parameters[0]['Parameter'])
+                    self.processObserver = self.process.AddObserver('ModifiedEvent',self.onProcessUpdate)
+                    del self.list_Processes_Parameters[0]
+                except IndexError:
+                    self.OnEndProcess()
 
 
-                self.OnEndProcess()
+            # else:
+            #     self.OnEndProcess()
 
     def OnEndProcess(self):
 
@@ -677,8 +673,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def onCancel(self):
 
-        for process in self.Processes:
-            process.Cancel()
+        self.process.Cancel()
 
 
         self.RunningUI(False)

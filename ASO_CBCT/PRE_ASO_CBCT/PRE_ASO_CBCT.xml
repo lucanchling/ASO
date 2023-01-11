@@ -37,17 +37,17 @@
     </string>
 
     <string>
-      <name>log_path</name>
-      <label>log_path</label>
-      <index>3</index>
-      <description>path for the log</description>
-    </string>
-
-    <string>
       <name>SmallFOV</name>
       <label>SmallFOV</label>
       <index>4</index>
       <description>Boolean to say whether or not the input file is a Small FOV</description>
+    </string>    
+
+    <string>
+      <name>temp_folder</name>
+      <label>temp_folder</label>
+      <index>5</index>
+      <description>Temp folder for pre aso resample for lightning models</description>
     </string>    
 
   </parameters>

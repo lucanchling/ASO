@@ -14,13 +14,7 @@ sys.path.append(fpath)
 from utils import WriteJsonLandmarks,ICP,ExtractFilesFromFolder,MergeJson,WriteJson
 
 def main(args):
-    
-    if not os.path.exists(os.path.split(args.log_path[0])[0]):
-        os.mkdir(os.path.split(args.log_path[0])[0])
-
-    with open(args.log_path[0],'w') as log_f :
-        log_f.truncate(0)
-    
+       
     scan_extension = [".nrrd", ".nrrd.gz", ".nii", ".nii.gz", ".gipl", ".gipl.gz"]
     lm_extension = ['.json']
 
@@ -42,15 +36,15 @@ def main(args):
 
         output, source_transformed = ICP(input_file,input_json_file,gold_file,gold_json_file,list_landmark)
         
-        # Write JSON
-        dir_json = os.path.dirname(input_json_file.replace(input_dir,out_dir))
-        if not os.path.exists(dir_json):
-            os.makedirs(dir_json)
+        # # Write JSON
+        # dir_json = os.path.dirname(input_json_file.replace(input_dir,out_dir))
+        # if not os.path.exists(dir_json):
+        #     os.makedirs(dir_json)
         
-        json_path = os.path.join(dir_json,os.path.basename(input_json_file).split('.mrk.json')[0]+'_'+args.add_inname[0]+'.mrk.json')
+        # json_path = os.path.join(dir_json,os.path.basename(input_json_file).split('.mrk.json')[0]+'_'+args.add_inname[0]+'.mrk.json')
 
-        if not os.path.exists(json_path):
-            WriteJson(source_transformed,json_path)
+        # if not os.path.exists(json_path):
+        #     WriteJson(source_transformed,json_path)
 
         #WriteJsonLandmarks(source_transformed, input_json_file, output_file=json_path)
 
@@ -63,9 +57,15 @@ def main(args):
         if not os.path.exists(file_outpath):
             sitk.WriteImage(output, file_outpath)
 
-
-        with open(args.log_path[0],'r+') as log_f:
-            log_f.write(str(i))
+        print(f"""<filter-progress>{0}</filter-progress>""")
+        sys.stdout.flush()
+        time.sleep(0.2)
+        print(f"""<filter-progress>{2}</filter-progress>""")
+        sys.stdout.flush()
+        time.sleep(0.2)
+        print(f"""<filter-progress>{0}</filter-progress>""")
+        sys.stdout.flush()
+        time.sleep(0.2)
 
 if __name__ == "__main__":
     
@@ -79,7 +79,6 @@ if __name__ == "__main__":
     parser.add_argument('output_folder',nargs=1)
     parser.add_argument('add_inname',nargs=1)
     parser.add_argument('list_landmark',nargs=1)
-    parser.add_argument('log_path',nargs=1)
     
     args = parser.parse_args()
 

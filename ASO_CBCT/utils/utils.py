@@ -810,6 +810,6 @@ def ExtractFilesFromFolder(folder_path, scan_extension, lm_extension=None, gold=
         return scan_files, json_files
     
     
-def WriteOutputTxt(text, filename='/home/luciacev/Desktop/Luc_Anchling/Projects/ASO/Output.txt'):
+def WriteOutputTxt(text, filename='/home/lucia/Desktop/Luc/Projects/ASO/Output.txt'):
     with open(filename,'a') as f:
         f.write(str(text)+'\n')

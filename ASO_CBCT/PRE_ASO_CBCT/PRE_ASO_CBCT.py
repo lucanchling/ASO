@@ -60,28 +60,22 @@ def ResampleImage(image, transform):
     return resample.Execute(image)
     
 def main(args):
-    
-    if not os.path.exists(os.path.split(args.log_path[0])[0]):
-        os.mkdir(os.path.split(args.log_path[0])[0])
 
-    with open(args.log_path[0],'w') as log_f :
-        log_f.truncate(0)
+    input_dir, out_dir = args.input[0], args.output_folder[0]
 
     # RESAMPLE BEFORE USING MODELS
-    temp_folder = slicer.util.tempDirectory()
+    temp_folder = args.temp_folder[0]
 
     # Small and Large FOV difference
-    SmallFOVInput = bool(args.SmallFOV[0])
-    
-    if SmallFOVInput:   # Small FOV input
-        scalingFOV = 0.69
+    if args.SmallFOV[0] == 'True':  # Small FOV input
+        spacingFOV = 0.69
         ckpt_file = 'SmallFOV_best.ckpt'
-    
-    else:   # Large FOV input
-        scalingFOV = 1.45
+        
+    if args.SmallFOV[0] == 'False': # Large FOV input
+        spacingFOV = 1.45
         ckpt_file = 'LargeFOV_best.ckpt'
 
-    PreASOResample(args.input,temp_folder,scaling=scalingFOV) # /!\ large and small FOV choice for scaling choice /!\
+    PreASOResample(input_dir,temp_folder,spacing=spacingFOV) # /!\ large and small FOV choice for spacing choice /!\
 
     CosSim = torch.nn.CosineSimilarity() # /!\ if loss < 0.1 dont apply rotation /!\
     Loss = lambda x,y: 1 - CosSim(torch.Tensor(x),torch.Tensor(y))
@@ -95,7 +89,6 @@ def main(args):
     
     scan_extension = [".nrrd", ".nrrd.gz", ".nii", ".nii.gz", ".gipl", ".gipl.gz"]
     
-    input_dir, out_dir = args.input[0], args.output_folder[0]
     
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -116,7 +109,7 @@ def main(args):
         goal = np.array((0.0,0.0,1.0)) # Direction vector for good orientation
 
         img_temp = sitk.ReadImage(os.path.join(temp_folder,os.path.basename(input_file)))
-        array = sitk.GetArrayFromImage(img)
+        array = sitk.GetArrayFromImage(img_temp)
         scan = torch.Tensor(array).unsqueeze(0).unsqueeze(0)
 
         with torch.no_grad():
@@ -152,27 +145,34 @@ def main(args):
         if not os.path.exists(dir_scan):
             os.makedirs(dir_scan)
         
-        file_outpath = os.path.join(dir_scan,os.path.basename(input_file).split('.')[0]+'_ALI.nii.gz')
+        file_outpath = os.path.join(dir_scan,os.path.basename(input_file))
         if not os.path.exists(file_outpath):
             sitk.WriteImage(img_out, file_outpath)
 
-        with open(args.log_path[0],'r+') as log_f:
-            log_f.write(str(i))
+        print(f"""<filter-progress>{0}</filter-progress>""")
+        sys.stdout.flush()
+        time.sleep(0.2)
+        print(f"""<filter-progress>{2}</filter-progress>""")
+        sys.stdout.flush()
+        time.sleep(0.2)
+        print(f"""<filter-progress>{0}</filter-progress>""")
+        sys.stdout.flush()
+        time.sleep(0.2)
 
 if __name__ == "__main__":
     
-    # WriteOutputTxt("="*70+"\nPRE_ASO")
+    print("PRE ASO")
 
     parser = argparse.ArgumentParser()
 
     parser.add_argument('input',nargs=1)
     parser.add_argument('output_folder',nargs=1)
     parser.add_argument('model_folder',nargs=1)
-    parser.add_argument('log_path',nargs=1)
     parser.add_argument('SmallFOV',nargs=1)
+    parser.add_argument('temp_folder',nargs=1)
 
     args = parser.parse_args()
-
+    
     main(args)
 
     # WriteOutputTxt("="*70+"\n")

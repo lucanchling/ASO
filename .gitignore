@@ -7,5 +7,4 @@ ASO_CBCT/utils/cache
 .DS_Store
 */cache
 *.npy
-
-.txt
+*.txt

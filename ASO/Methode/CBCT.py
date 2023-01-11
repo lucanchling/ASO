@@ -4,6 +4,8 @@ import webbrowser
 import os 
 import slicer
 import json
+import time
+import qt
 
 class CBCT(Methode):
     def __init__(self, widget):
@@ -258,12 +260,13 @@ class Auto_CBCT(CBCT):
 
         # PRE ASO CBCT
         temp_folder = slicer.util.tempDirectory()
-
+        time.sleep(0.01)
+        tempPREASO_folder = slicer.util.tempDirectory()
         parameter_pre_aso = {'input': kwargs['input_folder'],
                              'output_folder': temp_folder,#kwargs['input_folder'],
                              'model_folder':kwargs['model_folder_segor'],
-                             'log_path':kwargs['logPath'],
-                             'SmallFOV':kwargs['smallFOV']}
+                             'SmallFOV':kwargs['smallFOV'],
+                             'temp_folder': tempPREASO_folder}
         
         PreOrientProcess = slicer.modules.pre_aso_cbct
 
@@ -273,14 +276,15 @@ class Auto_CBCT(CBCT):
         #print('PRE_ASO param:', parameter_pre_aso)
 
         # ALI CBCT
-
-        tempALI_folder = slicer.util.tempDirectory()
+        documentsLocation = qt.QStandardPaths.DocumentsLocation
+        documents = qt.QStandardPaths.writableLocation(documentsLocation)
+        tempALI_folder = os.path.join(documents, slicer.app.applicationName+"_temp_ALI")
         
-        parameter_ali =  {'input': temp_folder,#kwargs['input_folder'], 
+        parameter_ali =  {'input': temp_folder, 
                     'dir_models': kwargs['model_folder_ali'], 
                     'landmarks': list_lmrk_str, 
                     'save_in_folder': False, 
-                    'output_dir': temp_folder,#kwargs['input_folder'],
+                    'output_dir': temp_folder,
                     'temp_fold': tempALI_folder}
         ALIProcess = slicer.modules.ali_cbct
         
@@ -293,7 +297,6 @@ class Auto_CBCT(CBCT):
                     'output_folder':kwargs['folder_output'],
                     'add_inname':kwargs['add_in_namefile'],
                     'list_landmark':list_lmrk_str,
-                    'log_path':kwargs['logPath']
                 }
         OrientProcess = slicer.modules.semi_aso_cbct
 
@@ -306,8 +309,8 @@ class Auto_CBCT(CBCT):
         nb_scan = self.NumberScan(kwargs['input_folder'])
 
         display = {'ALI_CBCT':DisplayALICBCT(nb_landmark,nb_scan),
-                   'SEMI_ASO_CBCT':DisplayASOCBCT(nb_scan,kwargs['logPath']),
-                   'PRE_ASO_CBCT':DisplayASOCBCT(nb_scan,kwargs['logPath'])}
+                   'SEMI_ASO_CBCT':DisplayASOCBCT(nb_scan),
+                   'PRE_ASO_CBCT':DisplayASOCBCT(nb_scan)}
 
         return list_process, display
         
