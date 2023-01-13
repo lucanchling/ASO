@@ -6,7 +6,6 @@ import os
 import glob
 import sys
 import csv
-from .utils import WriteOutputTxt
 
 Spacing = []
 

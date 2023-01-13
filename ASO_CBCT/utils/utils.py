@@ -559,9 +559,10 @@ def ICP(input_file,input_json_file,gold_file,gold_json_file,list_landmark):
     gold_image = sitk.ReadImage(gold_file)
     # print('gold spacing:',gold_image.GetSpacing())
     source = LoadJsonLandmarks(input_image, input_json_file,list_landmark)
-    target = LoadJsonLandmarks(gold_image, gold_json_file,list_landmark, gold=True)
-
     nb_lmrk = len(source.keys())
+
+    target = LoadJsonLandmarks(gold_image, gold_json_file,list_landmark, gold=True)
+    target = {key:target[key] for key in source.keys()} # If source and target don't have the same number of landmarks
 
     # Make sure the landmarks are in the same order
     source = SortDict(source)
@@ -808,8 +809,3 @@ def ExtractFilesFromFolder(folder_path, scan_extension, lm_extension=None, gold=
         return scan_files[0], json_files[0]
     else:
         return scan_files, json_files
-    
-    
-def WriteOutputTxt(text, filename='/home/lucia/Desktop/Luc/Projects/ASO/Output.txt'):
-    with open(filename,'a') as f:
-        f.write(str(text)+'\n')

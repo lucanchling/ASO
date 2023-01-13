@@ -11,7 +11,7 @@ class Methode(ABC):
     @abstractmethod
     def NumberScan(self,scan_folder : str ):
         """
-            count the number of patient in folder
+            Count the number of patient in folder
         Args:
             scan_folder (str): folder path with Scan
 
@@ -23,9 +23,9 @@ class Methode(ABC):
 
     @abstractmethod
     def TestScan(self,scan_folder : str) -> str:
-        """Verify all are good in the folder, if something is wrong the function return string with error message
+        """Verify if the input folder seems good (have everything required to run the mode selected), if something is wrong the function return string with error message
 
-        This function is call when the user want to import scan
+        This function is called when the user want to import scan
 
         Args:
             scan_folder (str): path of folder with scan
@@ -37,7 +37,7 @@ class Methode(ABC):
 
     @abstractmethod
     def TestReference(self,ref_folder :str) -> str :
-        """Look in folder if there are gold landmark, if True return None and if False return str with error message to user
+        """Verify if the reference folder contains reference gold files with landmarks and scans, if True return None and if False return str with error message to user
 
         Args:
             ref_folder (str): folder path with gold landmark 
@@ -71,18 +71,18 @@ class Methode(ABC):
     
     @abstractmethod
     def TestProcess(self,**kwargs)-> str:
-        """Check if all are good to launch the the process, if something is wrong return string with all error
+        """Check if everything is OK before launching the process, if something is wrong return string with all error
 
 
 
         Returns:
-            str or None: return None if there no probleme with input of the process, else return str with all error
+            str or None: return None if there no problem with input of the process, else return str with all error
         """
         pass
 
     @abstractmethod
     def DownloadRef(self):
-        """Download Landmark ref in our gitbub
+        """Download Landmark reference gold files in our gitbub
         """
         pass
 
@@ -123,7 +123,7 @@ class Methode(ABC):
 
 
     @abstractmethod
-    def existsLandmark(self,pathfile : str,pathref : str, pathmodel : str):
+    def existsLandmark(self, pathfile : str,pathref : str, pathmodel : str):
         """return dictionnary. when the value of the landmark in dictionnary is true, the landmark is in input folder and in gold folder
         Args:
             pathfile (str): path

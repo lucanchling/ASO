@@ -17,7 +17,7 @@ except ImportError:
 fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
 
-from utils import (ExtractFilesFromFolder, DenseNet, AngleAndAxisVectors, RotationMatrix, WriteOutputTxt, PreASOResample)
+from utils import (ExtractFilesFromFolder, DenseNet, AngleAndAxisVectors, RotationMatrix, PreASOResample)
 
 def ResampleImage(image, transform):
     '''
@@ -174,5 +174,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     main(args)
-
-    # WriteOutputTxt("="*70+"\n")

@@ -168,6 +168,11 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                Y888P     d8888888888 888  T88b    888    d8888888888 888   d88P 888      888        Y88b  d88P 
                 Y8P     d88P     888 888   T88b 8888888 d88P     888 8888888P"  88888888 8888888888  "Y8888P"
         """
+
+
+
+
+        
         self.MethodeDic={'Semi_IOS':Semi_IOS(self), 'Auto_IOS':Auto_IOS(self),
                          'Semi_CBCT':Semi_CBCT(self),'Auto_CBCT':Auto_CBCT(self)}
 
@@ -209,6 +214,11 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                                         8888888 888    Y888 8888888     888 
                               
         """
+
+
+
+
+        
         # self.initCheckbox(self.MethodeDic['Semi_IOS'],self.ui.LayoutLandmarkSemiIOS,self.ui.tohideIOS)
         # self.initCheckbox(self.MethodeDic['Auto_IOS'],self.ui.LayoutLandmarkAutoIOS,self.ui.tohideIOS)
         self.initTest(self.MethodeDic['Auto_IOS'],self.ui.LayoutAutoIOS_tooth,self.ui.tohideAutoIOS_tooth,self.ui.LayoutLandmarkAutoIOS)
@@ -227,7 +237,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         # self.enableCheckbox()
 
-        self.SwitchMode(0)
+        self.SwitchType(0)
 
 
 
@@ -249,6 +259,11 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                      "Y8888P"   "Y88888P"  888    Y888 888    Y888 8888888888  "Y8888P"      888 
                                                                                                             
         """
+
+
+
+
+        
 
         self.ui.ButtonSearchScanLmFolder.connect('clicked(bool)',self.SearchScanLm)
         self.ui.ButtonSearchReference.connect('clicked(bool)',self.SearchReference)
@@ -273,29 +288,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     """
 
                                                                                                                                                                     
@@ -312,8 +304,11 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     """
     def SwitchMode(self,index):
+        ''' Function to change the UI depending on the mode selected (Semi or Fully Automated) '''
         if index == 0: # Semi-Automated
+            self.ui.label_3.setText('Scan / Landmark Folder')
             self.ui.label_6.setVisible(False)
+            self.ui.label_7.setVisible(False)
             self.ui.lineEditModelAli.setVisible(False)
             self.ui.lineEditModelAli.setText(' ')
             self.ui.lineEditModelSegOr.setVisible(False)
@@ -325,7 +320,9 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
         if index == 1: # Fully Automated
+            self.ui.label_3.setText('Scan Folder')
             self.ui.label_6.setVisible(True)
+            self.ui.label_7.setVisible(True)
             self.ui.lineEditModelAli.setVisible(True)
             self.ui.ButtonSearchModelAli.setVisible(True)
             self.ui.lineEditModelSegOr.setVisible(True)
@@ -333,21 +330,18 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.ButtonDowloadModels.setVisible(True)
             self.ui.checkBoxSmallFOV.setVisible(True)
 
-
     def SwitchType(self,index):
-        if self.ui.CbInputType.currentIndex == 0 and self.ui.CbModeType.currentIndex == 0:
+        ''' Function to change the UI and the Method in ASO depending on the selected type (Semi CBCT, Fully CBCT...) '''
+        if self.ui.CbInputType.currentIndex == 0 and self.ui.CbModeType.currentIndex == 0 or index==0:
             self.ActualMeth = self.MethodeDic['Semi_CBCT']
             self.ui.stackedWidget.setCurrentIndex(0)
             self.type = 'CBCT'
-        
+
         elif self.ui.CbInputType.currentIndex == 0 and self.ui.CbModeType.currentIndex == 1:
             self.ActualMeth = self.MethodeDic['Auto_CBCT']
             self.ui.stackedWidget.setCurrentIndex(1)
             self.type = 'CBCT'
-
-            self.ui.lineEditRefFolder.setText('/home/lucia/Desktop/Luc/DATA/ASO/GOLD/Felicia')
-            self.ui.lineEditModelSegOr.setText('/home/lucia/Desktop/Luc/Models/ASO')
-            self.ui.lineEditModelAli.setText('/home/lucia/Downloads/ALI_MODELS')
+            self.ui.label_7.setText('Orientation Model Folder')
             
         elif self.ui.CbInputType.currentIndex == 1 and self.ui.CbModeType.currentIndex == 0:
             self.ActualMeth = self.MethodeDic['Semi_IOS']
@@ -358,7 +352,9 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ActualMeth = self.MethodeDic['Auto_IOS']
             self.ui.stackedWidget.setCurrentIndex(3)
             self.type = 'IOS'
-        # UI Changes and boolean fullyAutomated
+            self.ui.label_7.setText('Segmentation Model Folder')
+        
+        # UI Changes
         self.SwitchMode(self.ui.CbModeType.currentIndex)
 
         self.dicchckbox=self.ActualMeth.getcheckbox()
@@ -368,14 +364,14 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         self.HideComputeItems()
 
-        best = ['Ba','LPo','N','RPo']
-        for checkbox in self.logic.iterillimeted(self.dicchckbox):
-            if checkbox.text in best and checkbox.isEnabled():
-                checkbox.setCheckState(True)
+        # best = ['Ba','N','RPo']
+        # for checkbox in self.logic.iterillimeted(self.dicchckbox):
+        #     if checkbox.text in best and checkbox.isEnabled():
+        #         checkbox.setCheckState(True)
 
 
     def SearchScanLm(self):
-        scan_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder")
+        scan_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder for Input")
         if not scan_folder == '':
             nb_scans = self.ActualMeth.NumberScan(scan_folder)
             error = self.ActualMeth.TestScan(scan_folder)
@@ -395,7 +391,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     self.ui.lineEditOutputPath.setText(os.path.join(dir,spl+'Or'))
 
     def SearchReference(self):
-        ref_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder")
+        ref_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder for Reference")
         if not ref_folder == '':
             error = self.ActualMeth.TestReference(ref_folder)
 
@@ -461,24 +457,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 for checkbox, checkbox2 in zip(checkboxs,checkboxs2):
                     checkbox.setVisible(status[checkbox.text])
                     checkbox2.setVisible(status[checkbox2.text])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -582,45 +560,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.nb_change_bystep += 1
 
 
-        # if 'ASO_IOS' in self.module_name:
-        #     if os.path.isfile(self.log_path):
-        #         path_time = os.path.getmtime(self.log_path)
-        #         if path_time != self.time_log:
-        #             self.time_log = path_time
-        #             self.nb_patient_treat+=1
-        #             self.ui.progressBar.setValue(self.nb_patient_treat/self.nb_patient*100)
-        #             self.ui.LabelProgressPatient.setText(f"Patient : {self.nb_patient_treat} / {self.nb_patient}")
-        #             self.nb_change_bystep += 1
-                    
-        # elif 'ASO' in self.module_name:
-        #     if progress != 0 and self.updateProgessBar == False:
-        #         self.updateProgessBar = True
-        #         self.nb_patient_treat+=1
-        #         self.ui.progressBar.setValue(self.nb_patient_treat/self.nb_patient*100)
-        #         self.ui.LabelProgressPatient.setText(f"Patient : {self.nb_patient_treat} / {self.nb_patient}")
-        #         self.nb_change_bystep  += 1
-        # elif self.module_name == 'CrownSegmentationcli':
-        #     if os.path.isfile(self.log_path):
-        #         path_time = os.path.getmtime(self.log_path)
-        #         if path_time != self.time_log:
-        #             # if progress was made
-        #             self.time_log = path_time
-        #             self.progress_seg += 1
-        #             progressbar_value = self.progress_seg /(40+2) #40 number of rotation
-        #             self.nb_patient_treat = int(progressbar_value)
-        #             self.ui.progressBar.setValue(progressbar_value/self.nb_patient*100)
-        #             self.ui.LabelProgressPatient.setText(f"Patient : {self.nb_patient_treat} / {self.nb_patient}")
-        #             self.nb_change_bystep  += 1
-
-        # elif self.module_name == 'ALI_IOS':
-        #     if progress == 100 and self.updateProgessBar == False:
-        #         self.progress_ali_ios +=1 
-        #         nb_landmark = 11
-        #         self.ui.progressBar.setValue(self.progress_ali_ios/(nb_landmark*self.nb_patient)*100)
-        #         self.nb_patient_treat = int(self.progress_ali_ios//nb_landmark)
-        #         self.ui.LabelProgressPatient.setText(f'Patient : {self.nb_patient_treat} / {self.nb_patient}')
-        #         self.nb_change_bystep  += 1
-
         if caller.GetStatus() & caller.Completed:
             if caller.GetStatus() & caller.ErrorsMask:
                 # error
@@ -637,16 +576,15 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 self.onCancel()
             
             else:
+                print("\n\n ========= PROCESSED ========= \n")
+
+                print(self.process.GetOutputText())
                 try:
                     self.process = slicer.cli.run(self.list_Processes_Parameters[0]['Process'],None,self.list_Processes_Parameters[0]['Parameter'])
                     self.processObserver = self.process.AddObserver('ModifiedEvent',self.onProcessUpdate)
                     del self.list_Processes_Parameters[0]
                 except IndexError:
                     self.OnEndProcess()
-
-
-            # else:
-            #     self.OnEndProcess()
 
     def OnEndProcess(self):
 
@@ -690,27 +628,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.LabelTimer.setVisible(run)
 
         self.HideComputeItems(run)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -960,29 +877,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     """
                           .d88888b.  88888888888 888    888 8888888888 8888888b.   .d8888b.  
                          d88P" "Y88b     888     888    888 888        888   Y88b d88P  Y88b 
@@ -993,6 +887,11 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                          Y88b. .d88P     888     888    888 888        888  T88b  Y88b  d88P 
                           "Y88888P"      888     888    888 8888888888 888   T88b  "Y8888P"    
     """
+
+
+
+
+
 
     def cleanup(self):
         """
@@ -1116,14 +1015,20 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
 
+"""
+                d8888  .d8888b.   .d88888b.      888       .d88888b.   .d8888b.  8888888  .d8888b.  
+               d88888 d88P  Y88b d88P" "Y88b     888      d88P" "Y88b d88P  Y88b   888   d88P  Y88b 
+              d88P888 Y88b.      888     888     888      888     888 888    888   888   888    888 
+             d88P 888  "Y888b.   888     888     888      888     888 888          888   888        
+            d88P  888     "Y88b. 888     888     888      888     888 888  88888   888   888        
+           d88P   888       "888 888     888     888      888     888 888    888   888   888    888 
+          d8888888888 Y88b  d88P Y88b. .d88P     888      Y88b. .d88P Y88b  d88P   888   Y88b  d88P 
+         d88P     888  "Y8888P"   "Y88888P"      88888888  "Y88888P"   "Y8888P88 8888888  "Y8888P"                                                                                  
+"""
 
 
 
 
-
-#
-# ASOLogic
-#
 
 class ASOLogic(ScriptedLoadableModuleLogic):
     """This class should implement all the actual
@@ -1179,30 +1084,3 @@ class ASOLogic(ScriptedLoadableModuleLogic):
                 out.append(thing)
         
         return out
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

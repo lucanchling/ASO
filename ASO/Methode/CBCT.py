@@ -83,10 +83,10 @@ class CBCT(Methode):
         return out
 
     def DownloadRef(self):
-        webbrowser.open('https://google.com')
+        webbrowser.open('https://github.com/lucanchling/ASO_CBCT/releases/tag/v01_goldmodels')
 
     def DownloadModels(self):
-        webbrowser.open('https://www.google.com/search?source=lnms&tbm=nws&sa=X&ved=2ahUKEwi9rsjYgev7AhUyl4kEHSmjC4EQ_AUoAXoECAIQAw&q=kylian%20mbapp%C3%A9&biw=1920&bih=1095&dpr=1')
+        webbrowser.open('https://github.com/lucanchling/ASO_CBCT/releases/download/v01_preASOmodels/PreASOModels.zip')
 
     def DicLandmark(self):
         dic = {'Head':
@@ -158,12 +158,12 @@ class Semi_CBCT(CBCT):
             out = None
         return out
 
-    def existsLandmark(self,folderpath,reference_folder, model_folder):
+    def existsLandmark(self, input_dir, reference_dir, model_dir):
         
         out = None
-        if folderpath != '' and reference_folder != '':
+        if input_dir != '' and reference_dir != '':
             input_lm = []
-            input_json = super().search(folderpath,'json')['json']
+            input_json = super().search(input_dir,'json')['json']
 
             all_lm = [self.ListLandmarksJson(file) for file in input_json]
             input_lm = all_lm[0]
@@ -172,7 +172,7 @@ class Semi_CBCT(CBCT):
                     if lm not in lm_file:
                         input_lm.remove(lm)
 
-            gold_json = super().search(reference_folder,'json')['json']
+            gold_json = super().search(reference_dir,'json')['json']
             gold_lm = self.ListLandmarksJson(gold_json[0])
             
             available_lm = [lm for lm in input_lm if lm in gold_lm]
@@ -199,7 +199,6 @@ class Semi_CBCT(CBCT):
                     'add_inname':kwargs['add_in_namefile'],
                     'list_landmark':list_lmrk_str,
                     'model_folder':kwargs['model_folder_ali'],
-                    'fullyAutomated':kwargs['fullyAutomated'],
                 }
         print('parameter',parameter_semi_aso)
 
@@ -230,15 +229,15 @@ class Auto_CBCT(CBCT):
     def TestScan(self, scan_folder: str) -> str:
         return None
 
-    def existsLandmark(self, pathfile, pathref, pathmodel):
+    def existsLandmark(self, input_dir, reference_dir, model_dir):
         out = None
-        
-        if pathref != '' and pathmodel != ' ':
 
-            gold_json = super().search(pathref,'json')['json']
+        if reference_dir != '' and model_dir != ' ':
+
+            gold_json = super().search(reference_dir,'json')['json']
             gold_lm = self.ListLandmarksJson(gold_json[0])
 
-            list_model_files = super().search(pathmodel,'pth')['pth']
+            list_model_files = super().search(model_dir,'pth')['pth']
             list_models = [os.path.basename(i).split('_Net')[0] for i in list_model_files]
             
             available_lm = [lm for lm in gold_lm if lm in list_models]
@@ -253,7 +252,7 @@ class Auto_CBCT(CBCT):
             not_available = {key:False for key in not_available_lm} 
             
             out = {**available,**not_available}
-            
+
         return out
 
     def Process(self, **kwargs):
