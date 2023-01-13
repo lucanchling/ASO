@@ -1,56 +1,79 @@
-# Automated Standardized Orientation
+# Automated Standardized Orientation (ASO)
 
 Automated Standerized Orientation (ASO) is an extension for 3D Slicer to perform automatic orientation either on IOS or CBCT files.
 
 ## ASO Modules
-ASO module provide a convenient user interfacer allowing to oriente different type of scans:
-- [CBCT](#aso-cbct) scan
-- [IOS](#aso-ios) scan
 
-The implementation is based on iterative closest point's algorithm.
-
-
-## ASO-CBCT
+ASO module provide a convenient user interface allowing to orient different type of scans:
+- **CBCT** scan
+- **IOS** scan
 
 
+## How the module works?
 
-## ASO-IOS
+### 2 Modes Available (Semi or Fully Automated)
+- **Semi-Automated** (to only run the landmark-based registration with landmark and scans as input)
+- **Fully-Automated** (to perform Pre Orientation steps, landmark Identification and ASO with only scans as input)
+
+| Mode | Input |
+| ----------- | ----------- |
+| Semi-Automated | Scans, Landmark files |
+| Fully-Automated | Scans, ALI Models, Pre ASO Models (for **CBCT** files), Segmentation Models (for **IOS** files) |
 
 
-### Module structure
+## Module Structure
 
-**Input file:**
-The input has to be IOS with teeth's segmentation.
-The teeth's segmentation can be automatically done using the [SlicerDentalModelSeg](https://github.com/DCBIA-OrthoLab/SlicerDentalModelSeg) extension.
 
-The input is folder containg IOS with the following extension:
-```
-.vtk
-```
- 
+### Input file:
+
+| Input Type  | Input Extension Type |
+| ----------- | ----------- |
+| **CBCT** | .nii, .nii.gz, .gipl.gz, .nrrd, .nrrd.gz  |
+| **IOS** | .vtk |
+
+
+> The input has to be IOS with teeth's segmentation.
+The teeth's segmentation can be automatically done using the [SlicerDentalModelSeg](https://github.com/DCBIA-OrthoLab/SlicerDentalModelSeg) extension. 
 The IOS files need to have in their name the type of jaw (Upper or Lower).
 
+### Reference:
 
-**Reference :**
-The user has to indicate the path of the folder containing [Gold Surface](https://github.com/HUTIN1/ASO/releases/tag/v1.0.1). In this folder has to have one vtk file per jaw.
-You can use your own Gold surface or download our Gold surface using the `Download Reference Surface` button in the module `Input section`.
-
-
-
-
-**Landmark selection :**
-The user has to choose which teeth he wants to use as reference to oriented. 
-We suggest using :
- - Upper jaw : 4,5,6,11,12,13
- - Lower jaw : 19, 20, 21, 27,28,29
-This selection applies when you use the `Suggest Teeth` button.
+The user has to choose a folder containing a **Reference Gold File** with an oriented scan with landmarks. 
+You can either use your own files or download ours using the `Download Reference` button in the module `Input section`.
+| Input Type  | Reference Gold Files |
+| ----------- | ----------- |
+| **CBCT** | https://github.com/lucanchling/ASO_CBCT/releases/tag/v01_goldmodels  |
+| **IOS** | https://github.com/HUTIN1/ASO/releases/tag/v1.0.1 |
 
 
-**Label surface:**
-The user has to indicate array name of labels in the vtk surface. By default the name is PredictedID.
+### Landmark selection 
+
+The user has to decide which **landmarks** he will use to run ASO. 
+
+| Input Type  | Landmarks Available |
+| ----------- | ----------- |
+| **CBCT** |  Cranial Base, Lower Bones, Upper Bones, Lower and Upper Teeth |
+| **IOS** |  Upper and Lower Jaw |
+
+>For IOS: The user has to indicate array name of labels in the vtk surface. By default the name is PredictedID.
+
+## Algorithm
+The implementation is based on iterative closest point's algorithm to execute a landmark-based registration. Some preprocessing steps are done to make the orientation works better (and are described respectively in **CBCT** and **IOS** part)
+
+### ASO CBCT
+**Fully-Automated mode:** 
+1. a deep learning model is used to predict head orientation and correct it.
+Models are available for download ([Pre ASO CBCT Models](https://github.com/lucanchling/ASO_CBCT/releases/tag/v01_preASOmodels))
+
+1. a Landmark Identification Algorithm ([ALI CBCT](https://github.com/DCBIA-OrthoLab/ALI_CBCT)) is used to determine user-selected landmarks
+
+1. an ICP transform is used to match both of the reference and the input file
+
+> For the **Semi-Automated** mode, only step **3** is used to match input landmarks with reference's ones.
+### ASO IOS
 
 # Acknowledgements
-Authors: Nathan Hutin (University of Michigan), Luc Anchling (University of Michigan), Juan Carlos Prieto (UNC), Lucia Cevidanes (UoM)
+Nathan Hutin (University of Michigan), Luc Anchling (UoM), Felicia Miranda (UoM), Selene Barone (UoM), Marcela Gurgel (UoM), Najla Al Turkestani (UoM), Juan Carlos Prieto (UNC), Lucia Cevidanes (UoM)
 
 
 # License
