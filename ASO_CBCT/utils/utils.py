@@ -120,7 +120,7 @@ def LoadJsonLandmarks(img, ldmk_path, ldmk_list=None, gold=False):
         except IndexError:
             continue
     if ldmk_list is not None:
-        return {key:landmarks[key] for key in ldmk_list}
+        return {key:landmarks[key] for key in ldmk_list if key in landmarks.keys()}
     
     return landmarks
 
@@ -791,9 +791,7 @@ def AngleAndAxisVectors(v1, v2):
 """
 
 def ExtractFilesFromFolder(folder_path, scan_extension, lm_extension=None, gold=False):
-    """
-    Create list of files that are in folder with adequate extension
-    """
+    """Create list of files that are in folder with adequate extension"""
 
     scan_files = []
     json_files = []
@@ -808,4 +806,25 @@ def ExtractFilesFromFolder(folder_path, scan_extension, lm_extension=None, gold=
     if gold:
         return scan_files[0], json_files[0]
     else:
-        return scan_files, json_files
+        return sorted(scan_files), sorted(json_files)
+
+def GetPatients(scan_files,json_files):
+    """To associate scan and json files to every patient in input folder of SEMI ASO"""
+
+    patients = {}
+
+    for i in range(len(scan_files)):
+        patient = os.path.basename(scan_files[i]).split('_Or')[0].split('_OR')[0].split('_scan')[0].split("_Scanreg")[0].split('.')[0]
+        
+        if patient not in patients.keys():
+            patients[patient] = {"scan":scan_files[i],"json":""}
+        else:
+            patients[patient]["scan"] = scan_files[i]
+
+        patientjson = os.path.basename(json_files[i]).split('_Or')[0].split('_OR')[0].split('_lm')[0].split("_Scanreg")[0].split('.')[0]
+        if patientjson not in patients.keys():
+            patients[patientjson] = {"scan":"","json":json_files[i]}
+        else:
+            patients[patientjson]["json"] = json_files[i]
+
+    return patients

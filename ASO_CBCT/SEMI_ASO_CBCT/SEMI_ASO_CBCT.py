@@ -11,7 +11,7 @@ import SimpleITK as sitk
 fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
 
-from utils import WriteJsonLandmarks,ICP,ExtractFilesFromFolder,MergeJson,WriteJson
+from utils import WriteJsonLandmarks,ICP,ExtractFilesFromFolder,MergeJson,WriteJson,GetPatients
 
 def main(args):
        
@@ -27,12 +27,14 @@ def main(args):
         os.makedirs(out_dir)
     
     input_files, input_json_files = ExtractFilesFromFolder(input_dir, scan_extension, lm_extension)
+    
+    patients = GetPatients(input_files,input_json_files)
 
     gold_file, gold_json_file = ExtractFilesFromFolder(gold_dir, scan_extension, lm_extension, gold=True)
     
-    for i in range(len(input_files)):
+    for patient,data in patients.items():
         
-        input_file, input_json_file = input_files[i],input_json_files[i]
+        input_file, input_json_file = data["scan"],data["json"]
 
         output, source_transformed = ICP(input_file,input_json_file,gold_file,gold_json_file,list_landmark)
         
