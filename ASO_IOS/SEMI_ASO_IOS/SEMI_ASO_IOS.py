@@ -11,7 +11,7 @@ fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
 from utils import (vtkICP, InitIcp, SelectKey, ICP, TransformSurf, UpperOrLower, PatientNumber, 
 LoadJsonLandmarks, WriteSurf, WriteJsonLandmarks, search,
- listlandmark2diclandmark, ReadSurf, Files_vtk_json,Files_vtk_json_link, Jaw, Lower , Upper, ApplyTransform,WritefileError)
+ listlandmark2diclandmark, ReadSurf, Files_vtk_json,Files_vtk_json_semilink, Jaw, Lower , Upper, ApplyTransform,WritefileError)
 
 
 print('semi aso ios chargee')
@@ -68,15 +68,12 @@ def main(args):
         link = False
 
     if link :
-        list_file=Files_vtk_json_link(args.input[0])
+        list_file=Files_vtk_json_semilink(args.input[0])
 
     else :
         list_file = Files_vtk_json(args.input[0])
 
     
-
-
-    print(list_file)
 
     for index ,file in tqdm(enumerate(list_file),total = len(list_file)) :
         file_jaw = file
@@ -88,6 +85,7 @@ def main(args):
         
         if file_jaw['json'] is None:
             continue
+
         try :
             output_icp = icp[jaw()].run(file_jaw['json'],dic_gold[jaw()])
         except KeyError as k:
@@ -105,7 +103,6 @@ def main(args):
 
 
         if link :
-
             surf_input = ReadSurf(file[jaw.inv()]['vtk'])
             surf_output = TransformSurf(surf_input,output_icp['matrix'])
             WriteSurf(surf_output,args.output_folder[0],file[jaw.inv()]['vtk'],args.add_inname[0])

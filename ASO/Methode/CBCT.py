@@ -101,12 +101,7 @@ class CBCT(Methode):
         return dic
 
         
-    def ListLandmarksJson(self,json_file):
-        
-        with open(json_file) as f:
-            data = json.load(f)
-        
-        return [data["markups"][0]["controlPoints"][i]['label'] for i in range(len(data["markups"][0]["controlPoints"]))]
+
         
     def Sugest(self):
         return ['Ba','S','N','RPo','LPo','ROr','LOr']

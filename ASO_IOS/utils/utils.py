@@ -4,7 +4,7 @@ import glob
 import vtk
 import numpy as np
 import json
-
+from vtk.util.numpy_support import vtk_to_numpy
 
 
 
@@ -197,3 +197,16 @@ def WritefileError(file,folder_error,message):
     name , _ = os.path.splitext(name)
     with open(os.path.join(folder_error,f'{name}Error.txt'),'w') as f:
         f.write(message)
+
+
+
+
+
+
+
+
+
+
+
+
+

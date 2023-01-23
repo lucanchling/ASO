@@ -4,6 +4,7 @@ import vtk
 import numpy as np
 from vtk.util.numpy_support import vtk_to_numpy
 from utils.utils import LoadJsonLandmarks, ReadSurf
+from utils.transformation import TranslationDict, RotationMatrix, ApplyTransform, TransformDict
 from random import choice
 
 
@@ -41,8 +42,9 @@ class ICP:
         return source , target
 
     def run(self,source,target) :
-        assert type(source) == type(target), "source and target dont have the same type"
+        assert type(source) == type(target), f"source and target dont have the same type source {type(source)}, target {type(target)}"
         assert self.list_icp!=None , "give icp methode"
+
 
 
         if isinstance(source,str):
@@ -196,7 +198,7 @@ class InitIcp:
 
 
         # ============ Compute Rotation Transform ==============
-        R = self.RotationMatrix(axis,angle)
+        R = RotationMatrix(axis,angle)
         # TransformMatrix[:3, :3] = R
         RotationTransformMatrix[:3, :3] = R
        
@@ -223,7 +225,7 @@ class InitIcp:
 
         # ============ Compute Rotation Transform ==============
         RotationTransformMatrix = np.eye(4)
-        R = self.RotationMatrix(abs(source[secondpick] - source[firstpick]),angle)
+        R = RotationMatrix(abs(source[secondpick] - source[firstpick]),angle)
         RotationTransformMatrix[:3, :3] = R
 
         # ============ Apply Rotation Transform ==============
@@ -277,26 +279,6 @@ class InitIcp:
 
 
 
-    def TranslationDict(self,source,transform):
-        '''
-        Apply translation to source dictionary of landmarks
-
-        Parameters
-        ----------
-        source : Dictionary
-            Dictionary containing the source landmarks.
-        transform : numpy array
-            Translation to be applied to the source.
-        
-        Returns
-        -------
-        Dictionary
-            Dictionary containing the translated source landmarks.
-        '''
-        sourcee = source.copy()
-        for key in sourcee.keys():
-            sourcee[key] = sourcee[key] + transform
-        return sourcee
 
 
 
@@ -329,33 +311,7 @@ class InitIcp:
         return distance
 
 
-    def RotationMatrix(self,axis, theta):
-        """
-        Return the rotation matrix associated with counterclockwise rotation about
-        the given axis by theta radians.
 
-        Parameters
-        ----------
-        axis : np.array
-            Axis of rotation
-        theta : float
-            Angle of rotation in radians
-        
-        Returns
-        -------
-        np.array
-            Rotation matrix
-        """
-
-        axis = np.asarray(axis)
-        axis = axis / np.linalg.norm(axis)
-        a = np.cos(theta / 2.0)
-        b, c, d = -axis * np.sin(theta / 2.0)
-        aa, bb, cc, dd = a * a, b * b, c * c, d * d
-        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-        return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-                        [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-                        [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
 
         
 
@@ -529,50 +485,6 @@ class SelectKey:
 
 
 
-
-
-def TransformSurf(surf,matrix):
-    assert isinstance(surf,vtk.vtkPolyData)
-    surf_copy = vtk.vtkPolyData()
-    surf_copy.DeepCopy(surf)
-    surf = surf_copy
-
-    vtkpoint = surf.GetPoints()
-    points = vtk_to_numpy(vtkpoint.GetData())
-
-
-    points = TransformList(points, matrix)
-
-    vpoints = vtk.vtkPoints()
-    vpoints.SetNumberOfPoints(points.shape[0])
-    for i in range(points.shape[0]):
-        vpoints.SetPoint(i,points[i])
-
-
-    surf.SetPoints(vpoints)
-
-    return surf
-
-
-
-
-def TransformList(input,matrix):
-    type = np.array
-    if isinstance(input,list):
-        input = np.array(input)
-        type = list
-
-    a = np.ones((input.shape[0],1))
-
-    input = np.hstack((input,a))
-    matrix = matrix[:3,:]
-    input = np.matmul(matrix ,input.T).T
-
-    if isinstance(type,list):
-        input = input.tolist()
-
-    return input
-
     
 
     
@@ -586,26 +498,6 @@ def TransformList(input,matrix):
 
 
 
-def TranslationDict(source,transform):
-    '''
-    Apply translation to source dictionary of landmarks
-
-    Parameters
-    ----------
-    source : Dictionary
-        Dictionary containing the source landmarks.
-    transform : numpy array
-        Translation to be applied to the source.
-    
-    Returns
-    -------
-    Dictionary
-        Dictionary containing the translated source landmarks.
-    '''
-    sourcee = source.copy()
-    for key in sourcee.keys():
-        sourcee[key] = sourcee[key] + transform
-    return sourcee
 
 
 
@@ -676,46 +568,6 @@ def VTKMatrixToNumpy(matrix):
 
 
 
-
-
-
-
-def TransformDict(source,transform):
-    '''
-    Apply a transform matrix to a set of landmarks
-    
-    Parameters
-    ----------
-    source : dict
-        Dictionary of landmarks
-    transform : np.array
-        Transform matrix
-    
-    Returns
-    -------
-    source : dict
-        Dictionary of transformed landmarks
-    '''
-
-    sourcee = source.copy()
-    for key in sourcee.keys():
-        sourcee[key] = transform @ np.append(sourcee[key],1)
-        sourcee[key] = sourcee[key][:3]
-    return sourcee
-
-
-
-def ApplyTransform(input,transform):
-    if isinstance(input,vtk.vtkPolyData):
-        input = TransformSurf(input,transform)
-
-    if isinstance(input,dict):
-        input = TransformDict(input,transform)
-
-    if isinstance(input,(list,np.ndarray)):
-        input = TransformList(input,transform)
-
-    return input
 
 
 
@@ -815,7 +667,7 @@ class ToothNoExist(Exception):
     def __init__(self, tooth ) -> None:
         dic = {1: 'UR8', 2: 'UR7', 3: 'UR6', 4: 'UR5', 5: 'UR4', 6: 'UR3', 7: 'UR2', 8: 'UR1', 9: 'UL1', 10: 'UL2', 11: 'UL3',
          12: 'UL4', 13: 'UL5', 14: 'UL6', 15: 'UL7', 16: 'UL8', 17: 'LL8', 18: 'LL7', 19: 'LL6', 20: 'LL5', 21: 'LL4', 22: 'LL3', 
-         23: 'LL2', 24: 'LL1', 25: 'LR1', 26: 'LR2', 27: 'LR3', 28: 'LR4', 29: 'LR5', 30: 'LR6', 31: 'LR7', 32: 'LR8', 'UR8': 1, 'UR7': 2}
+         23: 'LL2', 24: 'LL1', 25: 'LR1', 26: 'LR2', 27: 'LR3', 28: 'LR4', 29: 'LR5', 30: 'LR6', 31: 'LR7', 32: 'LR8'}
         if isinstance(tooth,int):
             tooth = dic[tooth]
         self.message =f'This tooth {tooth} is not segmented or doesnt exist '

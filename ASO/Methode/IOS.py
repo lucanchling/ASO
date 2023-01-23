@@ -21,7 +21,7 @@ class Auto_IOS(Methode):
 
     def NumberScan(self, scan_folder: str):
             
-        return len(super().search(scan_folder,'vtk')['vtk'])
+        return len(super().search(scan_folder,'.vtk')['.vtk'])
 
 
     def TestScan(self, scan_folder: str):
@@ -31,7 +31,18 @@ class Auto_IOS(Methode):
         return out
 
     def TestModel(self, model_folder: str,lineEditName) -> str:
-        return super().TestModel(model_folder)
+        files = self.search(model_folder,'.pth')['.pth']
+        out = None
+        if 'lineEditModelSegOr' == lineEditName:
+            if len(files) != 1 :
+                out = 'Please give folder with only one .pth file'
+
+
+        elif lineEditName == 'lineEditModelAli':
+            if len(files) !=4 :
+                out == 'Please five folder with 4 .pth files'
+
+        return out
         
     def TestReference(self, ref_folder: str):
         
@@ -74,6 +85,22 @@ class Auto_IOS(Methode):
         if len(dif_landmark) != 0:
             out.append(f'This landmark {" ".join(dif_landmark)} are not available please select another one, choose in this list {" ".join(self.list_landmark_exit)}')
 
+        dic = {'Upper': {'left': ['UR8', 'UR7', 'UR6', 'UR5', 'UR4', 'UR3'], 'middle': ['UR2', 'UR1', 'UL1', 'UL2'], 'right': ['UL3', 'UL4', 'UL5', 'UL6', 'UL7', 'UL8']}, 
+        'Lower': {'left': ['LR8', 'LR7', 'LR6', 'LR5', 'LR4', 'LR3'], 'middle': ['LR2', 'LR1', 'LL1', 'LL2'], 'right': ['LL3', 'LL4', 'LL5', 'LL6', 'LL7', 'LL8']}}
+
+        print('list teeth',list_teeth)
+        if len(jaw) >=1 and len(list_teeth) >= 1 :
+            for j in jaw :
+                good = 0
+                for side in ['left','middle','right']:
+                    for tooth in list_teeth:
+                        if tooth in dic[j][side] :
+                            good += 1 
+                            break
+                if good != 3 :
+                    out.append(f'Please give one right tooth one left tooth and one anterior tooth')
+
+
         if len(out) == 0:
             out = None
         else :
@@ -85,12 +112,13 @@ class Auto_IOS(Methode):
         webbrowser.open('https://github.com/HUTIN1/ASO/releases/tag/v1.0.0')
 
     def DownloadModels(self):
-        return super().DownloadModels()
+        webbrowser.open('https://github.com/baptistebaquero/ALIDDM/releases/download/v1.0.3/Models.zip')
+        webbrowser.open('https://github.com/DCBIA-OrthoLab/SlicerDentalModelSeg/releases/download/v3.0/07-21-22_val-loss0.169.pth')
 
 
     def __Model(self,path):
         
-        model = self.search(path,'pth')['pth'][0]
+        model = self.search(path,'.pth')['.pth'][0]
 
         return model
 
@@ -176,6 +204,9 @@ class Auto_IOS(Methode):
 
         if not os.path.exists(path_input):
             os.mkdir(path_input)
+
+        if not os.path.exists(kwargs['folder_output']):
+            os.mkdir(kwargs['folder_output'])
 
         path_error = os.path.join(kwargs['folder_output'],'Error')
 
@@ -296,6 +327,7 @@ class Auto_IOS(Methode):
         dic = {'UR8': 1, 'UR7': 2, 'UR6': 3, 'UR5': 4, 'UR4': 5, 'UR3': 6, 'UR2': 7, 'UR1': 8, 'UL1': 9, 'UL2': 10, 'UL3': 11, 
        'UL4': 12, 'UL5': 13, 'UL6': 14, 'UL7': 15, 'UL8': 16, 'LL8': 17, 'LL7': 18, 'LL6': 19, 'LL5': 20, 'LL4': 21, 'LL3': 22, 
        'LL2': 23, 'LL1': 24, 'LR1': 25, 'LR2': 26, 'LR3': 27, 'LR4': 28, 'LR5': 29, 'LR6': 30, 'LR7': 31, 'LR8': 32}
+        dic_child = {'A': 'UR5', 'B': 'UR4', 'C': 'UR3', 'D': 'UR2', 'E': 'UR1', 'F': 'UL1', 'G': 'UL2', 'H': 'UL3', 'I': 'UL4', 'J': 'UL5', 'K': 'LL5', 'L': 'LL4', 'M': 'LL3', 'N': 'LL2', 'O': 'LL1', 'P': 'LR1', 'Q': 'LR2', 'R': 'LR3', 'S': 'LR4', 'T': 'LR5'}
 
         teeth = []
         landmarks= []
@@ -307,6 +339,11 @@ class Auto_IOS(Methode):
                 for checkbox in checkboxs:
                     if checkbox.isChecked():
                         teeth.append(checkbox.text)
+
+            for checkboxs in diccheckbox['Teeth']['Child'].values():
+                for checkbox in checkboxs:
+                    if checkbox.isChecked():
+                        teeth = list(set(teeth).union(set((dic_child[checkbox.name]))))
 
 
             for checkboxs in diccheckbox['Landmark'].values():

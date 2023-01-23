@@ -5,11 +5,17 @@ import sys
 import time
 import argparse
 from tqdm import tqdm
+# from pytorch3d.loss import chamfer_distance
+# from torch import float32, tensor
+# import torch
+
 
 fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
 
-from utils import ( UpperOrLower, search, ReadSurf, WriteSurf,PatientNumber,ICP, InitIcp, vtkICP,vtkMeanTeeth,TransformSurf,Files_vtk_link, Jaw ,Upper, Lower,ToothNoExist,WritefileError, NoSegmentationSurf)
+from utils import ( UpperOrLower, search, ReadSurf, WriteSurf,PatientNumber,ICP, InitIcp, vtkICP,
+vtkMeanTeeth,TransformSurf,Files_vtk_link, Jaw ,Upper, Lower,ToothNoExist,
+WritefileError, NoSegmentationSurf, PrePreAso)
 
 
 print('pre aso ios charge')
@@ -17,6 +23,8 @@ print('pre aso ios charge')
     
 def main(args) :
     print('icp meanteeth launch')
+
+    # device = torch.device('cuda')
 
     lower  = [17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
     dic_teeth={'Upper':[],'Lower':[]}
@@ -38,8 +46,8 @@ def main(args) :
 
     gold ={}
 
-    gold[UpperOrLower(gold_files[0])]= gold_files[0]
-    gold[UpperOrLower(gold_files[1])]= gold_files[1]
+    gold[UpperOrLower(gold_files[0])]= ReadSurf(gold_files[0])
+    gold[UpperOrLower(gold_files[1])]= ReadSurf(gold_files[1])
 
 
 
@@ -89,10 +97,15 @@ def main(args) :
             file_vtk = file[jaw()]
         if not link :
             jaw = Jaw(file_vtk)
-
+            
+        surf = ReadSurf(file_vtk)
+        
 
         try :
-            output_icp = icp[jaw()].run(file_vtk,gold[jaw()])
+            surf, matrix = PrePreAso(surf,gold[jaw()],dic_teeth[jaw()])
+            output_icp = icp[jaw()].run(surf,gold[jaw()])
+
+
         except ToothNoExist as tne:
             print(f'Error {tne}, for this file {file_vtk}')
           
@@ -119,7 +132,9 @@ def main(args) :
         WriteSurf(output_icp['source_Or'],args.output_folder[0],os.path.basename(file_vtk),args.add_inname[0])
         if link:
             surf_lower = ReadSurf(file[jaw.inv()])
-            output_lower = TransformSurf(surf_lower,output_icp['matrix'])
+            output_lower = TransformSurf(surf_lower,matrix)
+            output_lower = TransformSurf(output_lower,output_icp['matrix'])
+            
             WriteSurf(output_lower,args.output_folder[0],os.path.basename(file[jaw.inv()]),args.add_inname[0])
 
         with open(args.log_path[0],'r+') as log_f:

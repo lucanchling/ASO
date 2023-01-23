@@ -758,7 +758,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         list= []
         for i in range(1,11):
             label = QLabel()
-            pixmap =  QPixmap(f'/home/luciacev/Desktop/Project/ASO/ASO/Resources/UI/{i}_resize_child.png')
+            pixmap =  QPixmap(self.resourcePath(f'Image/{i}_resize_child.png'))
             label.setPixmap(pixmap)
             widget = QWidget()
             check = QCheckBox()
@@ -781,7 +781,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         list =[]
         for i in range(1,17):
             label = QLabel()
-            pixmap =  QPixmap(f'/home/luciacev/Desktop/Project/ASO/ASO/Resources/UI/{i}_resize.png')
+            pixmap =  QPixmap(self.resourcePath(f'Image/{i}_resize.png'))
             label.setPixmap(pixmap)
             widget = QWidget()
             check = QCheckBox()
@@ -803,7 +803,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         list =[]
         for i in range(1,17):
             label = QLabel()
-            pixmap =  QPixmap(f'/home/luciacev/Desktop/Project/ASO/ASO/Resources/UI/{i+16}_resize.png')
+            pixmap =  QPixmap(self.resourcePath(f'Image/{i+16}_resize.png'))
             label.setPixmap(pixmap)
             widget = QWidget()
             check = QCheckBox()
@@ -813,8 +813,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             layout_check.addWidget(check)
 
 
-            layout.addWidget(widget,4,i)
-            layout.addWidget(label,5,i)
+            layout.addWidget(widget,4,17-i)
+            layout.addWidget(label,5,17-i)
 
             list.append(check)
 
@@ -824,7 +824,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         list=[]
         for i in range(1,11):
             label = QLabel()
-            pixmap =  QPixmap(f'/home/luciacev/Desktop/Project/ASO/ASO/Resources/UI/{i+10}_resize_child.png')
+            pixmap =  QPixmap(self.resourcePath(f'Image/{i+10}_resize_child.png'))
             label.setPixmap(pixmap)
             widget = QWidget()
             check = QCheckBox()

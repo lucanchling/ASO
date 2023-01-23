@@ -2,26 +2,55 @@ from dataclasses import dataclass,field ,astuple, asdict
 from typing import Tuple, Union, List
 import os
 import glob
+from time import sleep
 
 
 @dataclass(init=True)
 class Upper:
-    name1 : str = 'Upper'
-    name2 : str = '_U_'
+    name1 : str = field(repr=False ,default='Upper')
+    name2 : str = field(repr=False,default= '_U_' )
 
     def __str__(self) -> str:
         return 'Upper'
+
+    def __eq__(self, __o: object) -> bool:
+        out = False
+        if isinstance(__o,Upper) :
+            out = True
+
+        elif isinstance(__o,str):
+            if __o == 'Upper':
+                out = True 
+        return out
+
+
+    def __ne__(self, __o: object) -> bool:
+        return not self.__eq__(__o)
 
 
 
 @dataclass(init=True)
 class Lower :
-    name1 : str = 'Lower'
-    name2: str = '_L_'
+    name1 : str = field(repr=False, default='Lower')
+    name2: str = field(repr=False, default='_L_')
 
 
     def __str__(self) -> str:
         return 'Lower'
+
+    def __eq__(self, __o: object) -> bool:
+        out = False
+        if isinstance(__o,Lower) :
+            out = True
+
+        elif isinstance(__o,str):
+            if __o == 'Lower':
+                out = True 
+        return out
+
+
+    def __ne__(self, __o: object) -> bool:
+        return not self.__eq__(__o)
 
 
 @dataclass(init=True,repr=True)
@@ -33,7 +62,7 @@ class Jaw:
     def __init__(self,actual) -> None:
         assert isinstance(actual,(Upper,Lower,str))
         if isinstance(actual,str):
-            actual = Files.__type_jaw__(Files,actual)
+            actual = Files.TypeOfJaw(actual)
         self.actual = actual
 
 
@@ -92,27 +121,15 @@ class Files:
     folder : str 
 
 
-    def __type_jaw__(self,name_file : str):
-        out = None
-
-        if True in [upper.lower() in name_file.lower() for upper in astuple(Upper())]:
-            out =Upper()
-
-        elif True in [upper.lower() in name_file.lower() for upper in astuple(Lower())]:
-            out = Lower()
-
-        if out is None:
-            raise ValueError(f"dont found the jaw's type to {name_file}")
-        return out
 
 
     def __name_file__(self,name_file : str):
         name_file = os.path.basename(name_file)
         name_file, _ = os.path.splitext(name_file)
-        jaw = self.__type_jaw__(name_file)
+        jaw = self.TypeOfJaw(name_file)
         name_file = self.__remove_jaw__(name_file,jaw)
         if '_out' in name_file :
-            name_file = name_file.replace('_out','')
+            name_file = name_file.replace('_out','').replace('Or','')
 
         
         return jaw, name_file
@@ -130,6 +147,23 @@ class Files:
             self.__remove_jaw__(name_file,jaw)
 
         return name_file
+
+
+
+    @staticmethod
+    def TypeOfJaw(name_file : str):
+        out = None
+
+        if True in [upper.lower() in name_file.lower() for upper in astuple(Upper())]:
+            out =Upper()
+
+        elif True in [upper.lower() in name_file.lower() for upper in astuple(Lower())]:
+            out = Lower()
+
+        if out is None:
+            raise ValueError(f"dont found the jaw's type to {name_file}")
+        return out
+
 
         
 
@@ -192,13 +226,11 @@ class Files_vtk_link(Files):
         self.list_file= []
         dic =self.search(self.folder,'vtk')
         list_vtk = dic['vtk']
-        print('search',list_vtk)
         
 
         dic ={}
         for vtk in list_vtk:
             jaw , name = self.__name_file__(vtk)
-            print('in files',jaw, name)
             if name in dic:
                 dic[name].append(vtk)
             else :
@@ -216,6 +248,58 @@ class Files_vtk_link(Files):
                 self.list_file.append(Mouth_File(vtk1,vtk2,name1))
 
 
+# @dataclass()
+# class Files_vtk_json_link2(Files):
+#     jaw : str = field(repr=False)
+
+#     def __post_init__(self):
+#         self.list_file = []
+#         self.list_file = self.__organise__(self.folder)
+
+#     def __organise__(self,folder):
+#         list_file = []
+#         dic = self.search(folder,'.vtk','.json')
+#         list_json = dic['.json']
+#         list_vtk = dic['.vtk']
+#         list_notgoodjaw = []
+#         for vtk in list_vtk:
+#             if self.jaw != self.TypeOfJaw(vtk):
+#                 list_notgoodjaw.append(vtk)
+
+
+#         list_vtk = list(set(list_vtk)-set(list_notgoodjaw))
+#         list_jaw = []
+#         json_remove = None
+#         for vtk in list_vtk :
+#             vtk_jaw , vtk_name = self.__name_file__(vtk)
+#             for json in list_json :
+#                 json_jaw , json_name = self.__name_file__(json)
+#                 if vtk_name in json_name :
+#                     fil = Jaw_File(json= json , vtk= vtk, jaw = json_jaw, name = vtk_name)
+#                     list_jaw.append(fil)
+#                     json_remove = json
+#                     break
+#             if json_remove is not None :
+#                 list_json.remove(json)
+
+#             json_remove = None
+
+
+
+        # for jaw_f in list_jaw :
+        #     for vtk in list_notgoodjaw :
+        #         vtk_jaw , vtk_name = self.__name_file__(vtk)
+        #         if vtk_name == jaw_f.name :
+        #             if self.jaw == 'Upper':
+        #                 list_file.append(Mouth_File(Upper=jaw_f, Lower= vtk, name = vtk_name))
+        #             else :
+        #                 list_file.append(Mouth_File(Upper = vtk , Lower= jaw_f, name = vtk_name))
+
+
+        # return list_file
+
+
+
 @dataclass
 class Files_vtk_json(Files):
     def __post_init__(self):
@@ -224,22 +308,26 @@ class Files_vtk_json(Files):
 
     def __organise__(self,folder):
         list_file= []
-        dic =self.search(folder,'vtk','json')
-        list_json = dic['json']
+        dic =self.search(folder,'.vtk','.json')
+
+        list_json = dic['.json']
         list_json.append('Upper_nioegfjhdfjkdffdhjmndfhnmdfhj')
-        list_vtk = dic['vtk']
+        list_vtk = dic['.vtk']
+        json_remove = None
         for vtk in list_vtk:
-            print('in loop ',vtk)
             vtk_jaw , vtk_name = self.__name_file__(vtk)
             for json in list_json:
                 json_jaw , json_name = self.__name_file__(json)
                 if vtk_name in json_name and vtk_jaw==json_jaw :
                     fil = Jaw_File(json = json,vtk= vtk, jaw = json_jaw,name = vtk_name)
                     list_file.append(fil)
-                    list_json.remove(json)
-                else :
-                    fil = Jaw_File(vtk= vtk, jaw = vtk_jaw,name = vtk_name)
-                    list_file.append(fil)
+                    json_remove = json
+                    break
+
+            if json_remove is not None :
+                list_json.remove(json_remove)
+
+            json_remove = None
 
         return list_file
 
@@ -248,7 +336,6 @@ class Files_vtk_json_link(Files_vtk_json):
     def __post_init__(self):
         self.list_file =[]
         list_file = super().__organise__(self.folder)
-        print('inside files vtk json link',list_file)
         list_upper = []
         list_lower = []
         for fil in list_file:
@@ -256,15 +343,78 @@ class Files_vtk_json_link(Files_vtk_json):
                 list_upper.append(fil)
             else:
                 list_lower.append(fil)
-            
-        print('inside class upper lower',list_upper,list_lower)
+
+        lower_remove = None
         for upper in list_upper:
             for lower in list_lower:
+                print(f'upper = {upper.name}, lower = {lower.name}')
+                sleep(0.2)
                 if upper.name == lower.name :
                     fil = Mouth_File(upper,lower,upper.name)
                     self.list_file.append(fil)
-                    list_lower.remove(lower)
+                    lower_remove = lower
+                    break
+            if lower_remove is not None:
+                list_lower.remove(lower_remove)
 
-        # print(self.list_file,'done')
+            lower_remove =None
+
+
+
+@dataclass
+class Files_vtk_json_semilink(Files):
+    def __post_init__(self):
+        self.list_file = []
+        self.list_file = self.__organise__(self.folder)
+
+
+    def __organise__(self,folder):
+        list_file = []
+        dic = self.search(folder,'.vtk','.json')
+        list_vtk = dic['.vtk']
+        list_json = dic['.json']
+
+        fil = {'Upper':[],'Lower':[]}
+        json_remove = None
+        for vtk in list_vtk :
+            vtk_jaw , vtk_name = self.__name_file__(vtk)
+            
+            for json in list_json :
+                json_jaw , json_name = self.__name_file__(json)
+
+                if vtk_name in json_name :
+                    fil[str(vtk_jaw)].append(Jaw_File(json=json, vtk=vtk , name=vtk_name, jaw = json_jaw))
+                    json_remove = json
+
+                    break
+
+                
+            if json_remove is not None :
+                list_json.remove(json_remove)
+
+            else :
+                fil[str(vtk_jaw)].append(Jaw_File(vtk=vtk,name=vtk_name, jaw = vtk_jaw))
+
+            json_remove = None
+
+
+
+        for upper in fil['Upper']:
+            for lower in fil['Lower']:
+                if upper.name == lower.name :
+                    list_file.append(Mouth_File(Upper=upper,Lower=lower, name=upper.name))
+                    break
+
+
+        return list_file
+
+
+            
+
+
+            
+
+
+
 
 
