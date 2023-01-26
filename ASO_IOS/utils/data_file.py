@@ -382,7 +382,7 @@ class Files_vtk_json_semilink(Files):
             for json in list_json :
                 json_jaw , json_name = self.__name_file__(json)
 
-                if vtk_name in json_name :
+                if vtk_name in json_name and vtk_jaw == json_jaw:
                     fil[str(vtk_jaw)].append(Jaw_File(json=json, vtk=vtk , name=vtk_name, jaw = json_jaw))
                     json_remove = json
 
