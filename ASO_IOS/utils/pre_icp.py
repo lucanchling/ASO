@@ -72,8 +72,11 @@ def PrePreAso(source,target,landmarks):
 
 
 
+    dt = np.dot(normal_source,normal_target)
+    if dt > 1.0 :
+        dt = 1.0
 
-    angle_normal = np.arccos(np.dot(normal_source,normal_target))
+    angle_normal = np.arccos(dt)
 
 
     normal_normal = cross(normal_source,normal_target)
@@ -85,11 +88,16 @@ def PrePreAso(source,target,landmarks):
     
     
     direction_source = np.matmul(matrix_normal,direction_source.T).T
+    direction_source = direction_source / np.linalg.norm(direction_source)
+
     
     direction_normal = cross(direction_source,direction_target)
 
+    dt = np.dot(direction_source,direction_target)
+    if dt > 1.0:
+        dt = 1.0
 
-    angle_direction = np.arccos(np.dot(direction_source,direction_target))
+    angle_direction = np.arccos(dt)
     matrix_direction = RotationMatrix(direction_normal ,angle_direction)
 
 
