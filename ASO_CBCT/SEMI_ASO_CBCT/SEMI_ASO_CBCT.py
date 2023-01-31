@@ -38,17 +38,17 @@ def main(args):
 
         output, source_transformed = ICP(input_file,input_json_file,gold_file,gold_json_file,list_landmark)
         
-        # # Write JSON
-        # dir_json = os.path.dirname(input_json_file.replace(input_dir,out_dir))
-        # if not os.path.exists(dir_json):
-        #     os.makedirs(dir_json)
+        # Write JSON
+        dir_json = os.path.dirname(input_json_file.replace(input_dir,out_dir))
+        if not os.path.exists(dir_json):
+            os.makedirs(dir_json)
         
-        # json_path = os.path.join(dir_json,os.path.basename(input_json_file).split('.mrk.json')[0]+'_'+args.add_inname[0]+'.mrk.json')
+        json_path = os.path.join(dir_json,os.path.basename(input_json_file).split('.mrk.json')[0]+'_'+args.add_inname[0]+'.mrk.json')
 
-        # if not os.path.exists(json_path):
-        #     WriteJson(source_transformed,json_path)
+        if not os.path.exists(json_path):
+            WriteJson(source_transformed,json_path)
 
-        #WriteJsonLandmarks(source_transformed, input_json_file, output_file=json_path)
+        WriteJsonLandmarks(source_transformed, input_json_file, output_file=json_path)
 
         # Write Scan
         dir_scan = os.path.dirname(input_file.replace(input_dir,out_dir))
