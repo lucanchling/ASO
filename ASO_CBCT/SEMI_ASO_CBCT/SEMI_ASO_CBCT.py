@@ -48,7 +48,7 @@ def main(args):
         if not os.path.exists(json_path):
             WriteJson(source_transformed,json_path)
 
-        WriteJsonLandmarks(source_transformed, input_json_file, output_file=json_path)
+        # WriteJsonLandmarks(source_transformed, input_json_file, output_file=json_path)
 
         # Write Scan
         dir_scan = os.path.dirname(input_file.replace(input_dir,out_dir))
