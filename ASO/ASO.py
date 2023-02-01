@@ -269,8 +269,9 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.ButtonSearchReference.connect('clicked(bool)',self.SearchReference)
         self.ui.ButtonSearchModelSegOr.connect('clicked(bool)',lambda : self.SearchModel(self.ui.lineEditModelSegOr))
         self.ui.ButtonSearchModelAli.clicked.connect(lambda : self.SearchModel(self.ui.lineEditModelAli))    
-        self.ui.ButtonDowloadRefLm.connect('clicked(bool)',self.DownloadRef)
-        self.ui.ButtonDowloadModels.connect('clicked(bool)',self.DownloadModels)
+        self.ui.ButtonDownloadRefLm.connect('clicked(bool)',self.DownloadRef)
+        self.ui.ButtonDownloadModels.connect('clicked(bool)',self.DownloadModels)
+        self.ui.ButtonDownloadTestFile.connect('clicked(bool)',self.DownloadTestFile)
         self.ui.ButtonOriented.connect('clicked(bool)',self.onPredictButton)
         self.ui.ButtonOutput.connect('clicked(bool)',self.ChosePathOutput)
         self.ui.ButtonCancel.connect('clicked(bool)',self.onCancel)
@@ -315,7 +316,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.lineEditModelSegOr.setText(' ')
             self.ui.ButtonSearchModelAli.setVisible(False)
             self.ui.ButtonSearchModelSegOr.setVisible(False)
-            self.ui.ButtonDowloadModels.setVisible(False)
+            self.ui.ButtonDownloadModels.setVisible(False)
             self.ui.checkBoxSmallFOV.setVisible(False)
 
 
@@ -327,7 +328,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.ButtonSearchModelAli.setVisible(True)
             self.ui.lineEditModelSegOr.setVisible(True)
             self.ui.ButtonSearchModelSegOr.setVisible(True)
-            self.ui.ButtonDowloadModels.setVisible(True)
+            self.ui.ButtonDownloadModels.setVisible(True)
             self.ui.checkBoxSmallFOV.setVisible(True)
 
     def SwitchType(self,index):
@@ -424,6 +425,9 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def DownloadModels(self):
         self.ActualMeth.DownloadModels()
+
+    def DownloadTestFile(self):
+        self.ActualMeth.DownloadTestFile()
 
     def SelectSugestLandmark(self):
         best = self.ActualMeth.Sugest()

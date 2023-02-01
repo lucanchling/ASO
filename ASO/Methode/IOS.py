@@ -18,7 +18,6 @@ class Auto_IOS(Methode):
         self.list_landmark_exit = []
 
 
-
     def NumberScan(self, scan_folder: str):
             
         return len(super().search(scan_folder,'.vtk')['.vtk'])
@@ -115,6 +114,8 @@ class Auto_IOS(Methode):
         webbrowser.open('https://github.com/baptistebaquero/ALIDDM/releases/download/v1.0.3/Models.zip')
         webbrowser.open('https://github.com/DCBIA-OrthoLab/SlicerDentalModelSeg/releases/download/v3.0/07-21-22_val-loss0.169.pth')
 
+    def DownloadTestFile(self):
+        webbrowser.open("https://github.com")
 
     def __Model(self,path):
         

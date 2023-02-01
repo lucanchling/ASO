@@ -87,6 +87,7 @@ class CBCT(Methode):
 
     def DownloadModels(self):
         webbrowser.open('https://github.com/lucanchling/ASO_CBCT/releases/download/v01_preASOmodels/PreASOModels.zip')
+        webbrowser.open('https://github.com/Maxlo24/ALI_CBCT/releases/tag/v0.1-models')
 
     def DicLandmark(self):
         dic = {'Head':
@@ -128,6 +129,9 @@ class CBCT(Methode):
     
 class Semi_CBCT(CBCT):
     
+    def DownloadTestFile(self):
+        webbrowser.open("https://github.com/lucanchling/ASO_CBCT/releases/download/TestFiles/Occlusal_Midsagittal_Test.zip")
+
     def TestModel(self, model_folder: str) -> str:
         return None
 
@@ -207,6 +211,9 @@ class Semi_CBCT(CBCT):
 
 class Auto_CBCT(CBCT):
     
+    def DownloadTestFile(self):
+        webbrowser.open("https://github.com/lucanchling/ASO_CBCT/releases/download/TestFiles/Test_File.nii.gz")
+
     def TestModel(self, model_folder: str,lineEditName) -> str:
 
         if lineEditName == 'lineEditModelSegOr':

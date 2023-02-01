@@ -158,14 +158,21 @@
            <number>15</number>
           </property>
           <item>
-           <widget class="QPushButton" name="ButtonDowloadModels">
+           <widget class="QPushButton" name="ButtonDownloadTestFile">
+            <property name="text">
+             <string>Download Test Files</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="ButtonDownloadModels">
             <property name="text">
              <string>Download Models</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="ButtonDowloadRefLm">
+           <widget class="QPushButton" name="ButtonDownloadRefLm">
             <property name="text">
              <string>Download Reference</string>
             </property>
@@ -257,8 +264,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>521</width>
-                   <height>198</height>
+                   <width>98</width>
+                   <height>37</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_14">
@@ -312,7 +319,7 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>87</width>
+                   <width>98</width>
                    <height>198</height>
                   </rect>
                  </property>
@@ -509,8 +516,6 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="test.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

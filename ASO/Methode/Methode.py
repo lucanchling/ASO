@@ -94,6 +94,12 @@ class Methode(ABC):
         pass
 
     @abstractmethod
+    def DownloadTestFile(self):
+        """Download Test files in our gitbub
+        """
+        pass
+    
+    @abstractmethod
     def Process(self,**kwargs):
         """Launch extension
 
