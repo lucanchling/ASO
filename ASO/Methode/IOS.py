@@ -114,7 +114,7 @@ class Auto_IOS(Methode):
         webbrowser.open('https://github.com/HUTIN1/ASO/releases/download/v1.0.0/identification_landmark_ios_model.zip')
 
     def DownloadTestFile(self):
-        webbrowser.open("https://github.com")
+        webbrowser.open("https://github.com/HUTIN1/ASO/releases/tag/v1.0.1")
 
     def __Model(self,path):
         
