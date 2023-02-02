@@ -49,8 +49,8 @@ You can either download them using the link or  by using the `Download Test File
 | ----------- | ----------- | ----------- |
 | **Semi-CBCT** | [Test Files](https://github.com/lucanchling/ASO_CBCT/releases/download/TestFiles/Occlusal_Midsagittal_Test.zip) | Scan and Fiducial List for this [Reference](https://github.com/lucanchling/ASO_CBCT/releases/download/v01_goldmodels/Occlusal_Midsagittal_Plane.zip)|
 | **Fully-CBCT** | [Test File](https://github.com/lucanchling/ASO_CBCT/releases/download/TestFiles/Test_File.nii.gz) | Only Scan|
-| **Semi-IOS** | | Mesh and Fiducial List|
-| **Fully-IOS** | | Only Mesh |
+| **Semi-IOS** | [Test Files](https://github.com/HUTIN1/ASO/releases/download/v1.0.2/input_test.zip) | Mesh and Fiducial List [Reference](https://github.com/HUTIN1/ASO/releases/download/v1.0.0/Gold_file.zip) |
+| **Fully-IOS** | [Test Files](https://github.com/HUTIN1/ASO/releases/download/v1.0.2/input_test.zip)| Only Mesh [Reference](https://github.com/HUTIN1/ASO/releases/download/v1.0.0/Gold_file.zip) |
 
 ### Reference:
 
@@ -73,14 +73,14 @@ The user has to decide which **landmarks** he will use to run ASO.
 | **CBCT** |  Cranial Base, Lower Bones, Upper Bones, Lower and Upper Teeth |
 | **IOS** |  Upper and Lower Jaw |
 
-For IOS: The user has to indicate array name of labels in the vtk surface. By default the name is PredictedID.
-
 > The landmark selection is handled in the `Option` Section:
 
 For IOS:
-
+  
 <img src="https://user-images.githubusercontent.com/72148963/216392364-61fcfe6a-60dd-433d-8364-cf7c4e31d631.png" width="800"/>
-
+  
+> - if you select only Lower or Upper, the Upper or Lower jaw will be oriented in first and then the other jaw be oriented using the same transformation. (the morphology of the mouth will be kept)
+> - if you select both Lower and Upper, the Upper and Lower will be oriented separately (the morphology of the mouth won't be kept).
 
 For CBCT:
 
@@ -102,7 +102,7 @@ A *Pre-Orientation* and *ALI_CBCT* models are needed
 
 #### For IOS:
 
-> INSERT YOUR BLABLA HERE To add the *Pre-Orientation* models just download [PreASOModels.zip](https://github.com/lucanchling/ASO_CBCT/releases/download/v01_preASOmodels/PreASOModels.zip), unzip it and select it here:
+> To add the *Segmentation model* models just download [model_segmentation.zip](https://github.com/HUTIN1/ASO/releases/download/v1.0.0/model_segmentation.zip), unzip it and select it here:
 > <img src="https://user-images.githubusercontent.com/72148963/216421704-884cf7b9-6fdd-40d4-93f6-47437590b7a3.png" width="600"/>
 
 ### Outputs Options
@@ -132,6 +132,15 @@ For the **Semi-Automated** mode, only step **3** is used to match input landmark
 <img width="1244" alt="MethodASO" src="https://user-images.githubusercontent.com/72148963/216373581-67a4915d-912b-4103-b38d-075ef434d133.png">
 
 ### ASO IOS
+
+  **Semi-Automated mode:**
+ - an ICP transfrom is used to math both of the reference and the input file by using the landmark
+  
+  **Fully-Automated mode:**
+  
+ **<ins> Description of the tool:**
+  incoming
+ 
 # Acknowledgements
 Nathan Hutin (University of Michigan), Luc Anchling (UoM), Felicia Miranda (UoM), Selene Barone (UoM), Marcela Gurgel (UoM), Najla Al Turkestani (UoM), Juan Carlos Prieto (UNC), Lucia Cevidanes (UoM)
 
