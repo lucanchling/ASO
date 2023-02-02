@@ -86,6 +86,32 @@ For CBCT:
 
 <img src="https://user-images.githubusercontent.com/72148963/216392313-cfae2b21-5194-4ce0-ab18-56ad4eda3d2f.png" width="400"/>
 
+### Models Selection
+
+For the **Fully-Automated** Mode, models are required as input, use the `Download Models` Button or follow the following instructions:
+  
+#### For CBCT ([Details](https://github.com/lucanchling/ASO#aso-cbct)):
+A *Pre-Orientation* and *ALI_CBCT* models are needed
+  
+> To add the *Pre-Orientation* models just download [PreASOModels.zip](https://github.com/lucanchling/ASO_CBCT/releases/download/v01_preASOmodels/PreASOModels.zip), unzip it and select it here:
+> <img src="https://user-images.githubusercontent.com/72148963/216419045-8bee40d9-3421-440a-81e3-255547704d47.png" width="600"/>
+
+> To add the *ALI_CBCT* models go to this [link](https://github.com/Maxlo24/ALI_CBCT/releases/tag/v0.1-models), select the desired models, unzip them in a single folder and select it here:
+> <img src="https://user-images.githubusercontent.com/72148963/216420408-33e4269f-dd7f-446c-9186-3ca2b94423ab.png" width="600"/>
+
+
+#### For IOS:
+
+> INSERT YOUR BLABLA HERE To add the *Pre-Orientation* models just download [PreASOModels.zip](https://github.com/lucanchling/ASO_CBCT/releases/download/v01_preASOmodels/PreASOModels.zip), unzip it and select it here:
+> <img src="https://user-images.githubusercontent.com/72148963/216421704-884cf7b9-6fdd-40d4-93f6-47437590b7a3.png" width="600"/>
+
+### Outputs Options
+> You can decide the *Extension* that the output files will have and the folder where they will go in here:
+> <img src="https://user-images.githubusercontent.com/72148963/216422137-e2c4d9a5-43be-45dc-a559-30127008593d.png" width="600"/>
+
+### Let's Run it
+> Now that everything is in order, just press the `Run` Button in this section:
+> <img src="https://user-images.githubusercontent.com/72148963/216423040-2ba01cf7-848d-4c54-8978-582768d25869.png" width="600"/>
 
 
 ## Algorithm
