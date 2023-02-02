@@ -134,13 +134,15 @@ For the **Semi-Automated** mode, only step **3** is used to match input landmark
 ### ASO IOS
 
   **Semi-Automated mode:**
- - an ICP transfrom is used to math both of the reference and the input file by using the landmark
+ - an ICP transfrom is used to macth both of the reference and the input file by using the landmark
   
   **Fully-Automated mode:**
   
  **<ins> Description of the tool:**
-  incoming
- 
+
+<img width="1058" alt="Screenshot 2023-02-02 at 6 48 50 PM" src="https://user-images.githubusercontent.com/72212416/216476826-01ae5185-27f9-4e26-8c3e-494252c0206a.png">
+
+
 # Acknowledgements
 Nathan Hutin (University of Michigan), Luc Anchling (UoM), Felicia Miranda (UoM), Selene Barone (UoM), Marcela Gurgel (UoM), Najla Al Turkestani (UoM), Juan Carlos Prieto (UNC), Lucia Cevidanes (UoM)
 
