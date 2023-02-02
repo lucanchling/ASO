@@ -37,9 +37,9 @@ class Auto_IOS(Methode):
                 out = 'Please give folder with only one .pth file'
 
 
-        elif lineEditName == 'lineEditModelAli':
-            if len(files) !=4 :
-                out == 'Please five folder with 4 .pth files'
+        # elif lineEditName == 'lineEditModelAli':
+        #     if len(files) !=4 :
+        #         out == 'Please five folder with 4 .pth files'
 
         return out
         
@@ -79,9 +79,9 @@ class Auto_IOS(Methode):
         if len(jaw)<1 :
             out.append('Choose one jaw')
 
-        dif_landmark = list(set(mix)-set(self.list_landmark_exit))
-        if len(dif_landmark) != 0:
-            out.append(f'This landmark {" ".join(dif_landmark)} are not available please select another one, choose in this list {" ".join(self.list_landmark_exit)}')
+        # dif_landmark = list(set(mix)-set(self.list_landmark_exit))
+        # if len(dif_landmark) != 0:
+        #     out.append(f'This landmark {" ".join(dif_landmark)} are not available please select another one, choose in this list {" ".join(self.list_landmark_exit)}')
 
         dic = {'Upper': {'left': ['UR8', 'UR7', 'UR6', 'UR5', 'UR4', 'UR3'], 'middle': ['UR2', 'UR1', 'UL1', 'UL2'], 'right': ['UL3', 'UL4', 'UL5', 'UL6', 'UL7', 'UL8']}, 
         'Lower': {'left': ['LR8', 'LR7', 'LR6', 'LR5', 'LR4', 'LR3'], 'middle': ['LR2', 'LR1', 'LL1', 'LL2'], 'right': ['LL3', 'LL4', 'LL5', 'LL6', 'LL7', 'LL8']}}
@@ -110,8 +110,9 @@ class Auto_IOS(Methode):
         webbrowser.open('https://github.com/HUTIN1/ASO/releases/tag/v1.0.0')
 
     def DownloadModels(self):
-        webbrowser.open('https://github.com/HUTIN1/ASO/releases/download/v1.0.0/model_segmentation.zip')
-        webbrowser.open('https://github.com/HUTIN1/ASO/releases/download/v1.0.0/identification_landmark_ios_model.zip')
+        webbrowser.open('https://github.com/HUTIN1/ASO/releases/tag/v1.0.0')
+        # webbrowser.open('https://github.com/HUTIN1/ASO/releases/download/v1.0.0/model_segmentation.zip')
+        # webbrowser.open('https://github.com/HUTIN1/ASO/releases/download/v1.0.0/identification_landmark_ios_model.zip')
 
     def DownloadTestFile(self):
         webbrowser.open("https://github.com/HUTIN1/ASO/releases/tag/v1.0.1")
@@ -222,37 +223,45 @@ class Auto_IOS(Methode):
                         'chooseFDI':0,
                         'logPath':kwargs['logPath']
                         }
-
         parameter_pre_aso= {'input':path_seg,
                         'gold_folder':kwargs['gold_folder'],
-                        'output_folder':path_preor,
+                        'output_folder':kwargs['folder_output'],
                         'add_inname':kwargs['add_in_namefile'],
                         'list_teeth':','.join(list_teeth),
                         'jaw':'/'.join(jaw),
                         'folder_error': path_error,
                         'log_path': kwargs['logPath']}
 
-        parameter_aliios ={'input':path_preor,
-                            'dir_models':kwargs['model_folder_ali'],
-                            'landmarks':' '.join(list_landmark),
-                            'teeth':' '.join(list_teeth),
-                            'save_in_folder':'false',
-                            'output_dir':path_preor
-                            }
+        # parameter_pre_aso= {'input':path_seg,
+        #                 'gold_folder':kwargs['gold_folder'],
+        #                 'output_folder':path_preor,
+        #                 'add_inname':kwargs['add_in_namefile'],
+        #                 'list_teeth':','.join(list_teeth),
+        #                 'jaw':'/'.join(jaw),
+        #                 'folder_error': path_error,
+        #                 'log_path': kwargs['logPath']}
 
-        parameter_semi_aso= {'input':path_preor,
-                            'gold_folder':kwargs['gold_folder'],
-                            'output_folder':kwargs['folder_output'],
-                            'add_inname':kwargs['add_in_namefile'],
-                            'list_landmark':','.join(mix),
-                            'jaw':'/'.join(jaw),
-                            'folder_error':path_error,
-                            'log_path': kwargs['logPath']}
+        # parameter_aliios ={'input':path_preor,
+        #                     'dir_models':kwargs['model_folder_ali'],
+        #                     'landmarks':' '.join(list_landmark),
+        #                     'teeth':' '.join(list_teeth),
+        #                     'save_in_folder':'false',
+        #                     'output_dir':path_preor
+        #                     }
+
+        # parameter_semi_aso= {'input':path_preor,
+        #                     'gold_folder':kwargs['gold_folder'],
+        #                     'output_folder':kwargs['folder_output'],
+        #                     'add_inname':kwargs['add_in_namefile'],
+        #                     'list_landmark':','.join(mix),
+        #                     'jaw':'/'.join(jaw),
+        #                     'folder_error':path_error,
+        #                     'log_path': kwargs['logPath']}
 
         print('parameter pre aso',parameter_pre_aso)
         print('parameter seg',parameter_seg)
-        print('parameter aliios ',parameter_aliios)
-        print('parameter semi ios',parameter_semi_aso)
+        # print('parameter aliios ',parameter_aliios)
+        # print('parameter semi ios',parameter_semi_aso)
 
         PreOrientProcess = slicer.modules.pre_aso_ios
         SegProcess = slicer.modules.crownsegmentationcli
@@ -262,15 +271,17 @@ class Auto_IOS(Methode):
 # {'Process':SegProcess,'Parameter':parameter_seg},{'Process':PreOrientProcess,'Parameter':parameter_pre_aso},
         list_process = [{'Process':SegProcess,'Parameter':parameter_seg},
         {'Process':PreOrientProcess,'Parameter':parameter_pre_aso},
-        {"Process":aliiosProcess,"Parameter":parameter_aliios},
-        {'Process':OrientProcess,'Parameter':parameter_semi_aso}]
+        # {"Process":aliiosProcess,"Parameter":parameter_aliios},
+        # {'Process':OrientProcess,'Parameter':parameter_semi_aso}
+        ]
 
 
         numberscan = self.NumberScan(kwargs['input_folder'])
         display = {'CrownSegmentationcli':DisplayCrownSeg(number_scan_toseg,kwargs['logPath']),
-                    'ALI_IOS':DisplayALIIOS(len(mix),numberscan),
+                    # 'ALI_IOS':DisplayALIIOS(len(mix),numberscan),
                     'PRE_ASO_IOS': DisplayASOIOS(numberscan if len(jaw) ==1 else int(numberscan/2) , jaw,kwargs['logPath'] ),
-                    'SEMI_ASO_IOS': DisplayASOIOS(numberscan if len(jaw) ==1 else int(numberscan/2) , jaw,kwargs['logPath'] )}
+                    # 'SEMI_ASO_IOS': DisplayASOIOS(numberscan if len(jaw) ==1 else int(numberscan/2) , jaw,kwargs['logPath'] )
+                    }
 #
         return list_process ,display 
 
@@ -493,3 +504,8 @@ class Semi_IOS(Auto_IOS):
     def Sugest(self):
         out = ['O','UL6','UL1','UR1','UR6','LL6','LL1','LR1','LR6']
         return out
+
+
+
+    def DownloadTestFile(self):
+        webbrowser.open("https://github.com/HUTIN1/ASO/releases/tag/v1.0.2")
