@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import argparse
+import numpy as np
 from tqdm import tqdm
 # from pytorch3d.loss import chamfer_distance
 # from torch import float32, tensor
@@ -14,7 +15,7 @@ fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
 
 from utils import ( UpperOrLower, search, ReadSurf, WriteSurf,PatientNumber,ICP, InitIcp, vtkICP,
-vtkMeanTeeth,TransformSurf,Files_vtk_link, Jaw ,Upper, Lower,ToothNoExist,
+vtkMeanTeeth,TransformSurf,Files_vtk_link, Jaw ,Upper, Lower,ToothNoExist, vtkMeshTeeth, 
 WritefileError, NoSegmentationSurf, PrePreAso)
 
 
@@ -106,6 +107,7 @@ def main(args) :
             output_icp = icp[jaw()].run(surf,gold[jaw()])
 
 
+
         except ToothNoExist as tne:
             print(f'Error {tne}, for this file {file_vtk}')
           
@@ -114,6 +116,8 @@ def main(args) :
             with open(args.log_path[0],'r+') as log_f:
                 log_f.write(str(index))  
             continue
+
+
 
         except NoSegmentationSurf as nss :
 
@@ -130,6 +134,9 @@ def main(args) :
     
 
         WriteSurf(output_icp['source_Or'],args.output_folder[0],os.path.basename(file_vtk),args.add_inname[0])
+        matrix_final = np.matmul(output_icp['matrix'],matrix)
+        np.save(os.path.join(args.output_folder[0] ,f'matrix_{file["name"]}.npy'), matrix_final)
+
         if link:
             surf_lower = ReadSurf(file[jaw.inv()])
             output_lower = TransformSurf(surf_lower,matrix)

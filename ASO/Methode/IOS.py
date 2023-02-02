@@ -73,10 +73,9 @@ class Auto_IOS(Methode):
     def TestCheckbox(self,dic_checkbox) -> str:
         list_teeth, list_landmark, mix, jaw = self.__CheckboxisChecked(dic_checkbox)
         out = []
-        if len(list_teeth)< 3:
-             out.append('Give minimum 3 teeth')
-        if len(list_landmark)==0:
-            out.append("Give minimum 1 landmark")
+        if len(list_teeth) != 3 and len(list_teeth)!=4:
+             out.append('Give 3 teeth or 4')
+
 
         if len(jaw)<1 :
             out.append('Choose one jaw')
@@ -112,8 +111,8 @@ class Auto_IOS(Methode):
         webbrowser.open('https://github.com/HUTIN1/ASO/releases/tag/v1.0.0')
 
     def DownloadModels(self):
-        webbrowser.open('https://github.com/baptistebaquero/ALIDDM/releases/download/v1.0.3/Models.zip')
-        webbrowser.open('https://github.com/DCBIA-OrthoLab/SlicerDentalModelSeg/releases/download/v3.0/07-21-22_val-loss0.169.pth')
+        webbrowser.open('https://github.com/HUTIN1/ASO/releases/download/v1.0.0/model_segmentation.zip')
+        webbrowser.open('https://github.com/HUTIN1/ASO/releases/download/v1.0.0/identification_landmark_ios_model.zip')
 
 
     def __Model(self,path):
