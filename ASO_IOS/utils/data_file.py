@@ -2,7 +2,6 @@ from dataclasses import dataclass,field ,astuple, asdict
 from typing import Tuple, Union, List
 import os
 import glob
-from time import sleep
 
 
 @dataclass(init=True)
@@ -115,10 +114,13 @@ class Mouth_File:
 
 
 
-@dataclass(init=True,repr=True,eq=True,frozen=False)
+
 class Files:
-    list_file : List[Union[Mouth_File  , Jaw_File]] = field(init=False)
-    folder : str 
+
+    def __init__(self,folder : str) -> None:
+
+        self.list_file : List[Union[Mouth_File  , Jaw_File]] = []
+        self.folder : str = folder
 
 
 
@@ -220,12 +222,15 @@ class Files:
         return out 
 
 
-@dataclass
+
 class Files_vtk_link(Files):
-    def __post_init__(self):
-        self.list_file= []
-        dic =self.search(self.folder,'vtk')
-        list_vtk = dic['vtk']
+    def __init__(self, folder: str) -> None:
+        super().__init__(folder)
+        self.organise(folder)
+        
+    def organise(self,folder):
+        dic =self.search(folder,'.vtk')
+        list_vtk = dic['.vtk']
         
 
         dic ={}
@@ -246,6 +251,8 @@ class Files_vtk_link(Files):
                     vtk1, vtk2 = vtk2, vtk1
 
                 self.list_file.append(Mouth_File(vtk1,vtk2,name1))
+
+        return self.list_file
 
 
 # @dataclass()
@@ -300,13 +307,14 @@ class Files_vtk_link(Files):
 
 
 
-@dataclass
 class Files_vtk_json(Files):
-    def __post_init__(self):
-        self.list_file = []
-        self.list_file = self.__organise__(self.folder)
+    def __init__(self, folder: str) -> None:
+        super().__init__(folder)
+        self.list_file = self.organise(folder)
+        
 
-    def __organise__(self,folder):
+
+    def organise(self,folder):
         list_file= []
         dic =self.search(folder,'.vtk','.json')
 
@@ -331,11 +339,16 @@ class Files_vtk_json(Files):
 
         return list_file
 
-@dataclass
+
+
 class Files_vtk_json_link(Files_vtk_json):
-    def __post_init__(self):
-        self.list_file =[]
-        list_file = super().__organise__(self.folder)
+    def __init__(self, folder: str) -> None:
+        super().__init__(folder)
+        self.organise(folder)
+
+
+    def organise(self,folder):
+        list_file = super().organise(folder)
         list_upper = []
         list_lower = []
         for fil in list_file:
@@ -347,8 +360,6 @@ class Files_vtk_json_link(Files_vtk_json):
         lower_remove = None
         for upper in list_upper:
             for lower in list_lower:
-                print(f'upper = {upper.name}, lower = {lower.name}')
-                sleep(0.2)
                 if upper.name == lower.name :
                     fil = Mouth_File(upper,lower,upper.name)
                     self.list_file.append(fil)
@@ -359,16 +370,18 @@ class Files_vtk_json_link(Files_vtk_json):
 
             lower_remove =None
 
+        return self.list_file
 
 
-@dataclass
+
+
 class Files_vtk_json_semilink(Files):
-    def __post_init__(self):
-        self.list_file = []
-        self.list_file = self.__organise__(self.folder)
+    def __init__(self, folder: str) -> None:
+        super().__init__(folder)
+        self.list_file = self.organise(folder)
 
 
-    def __organise__(self,folder):
+    def organise(self,folder):
         list_file = []
         dic = self.search(folder,'.vtk','.json')
         list_vtk = dic['.vtk']

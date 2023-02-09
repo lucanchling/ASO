@@ -134,8 +134,8 @@ def main(args) :
     
 
         WriteSurf(output_icp['source_Or'],args.output_folder[0],os.path.basename(file_vtk),args.add_inname[0])
-        matrix_final = np.matmul(output_icp['matrix'],matrix)
-        np.save(os.path.join(args.output_folder[0] ,f'matrix_{file["name"]}.npy'), matrix_final)
+        # matrix_final = np.matmul(output_icp['matrix'],matrix)
+        # np.save(os.path.join(args.output_folder[0] ,f'matrix_{file["name"]}.npy'), matrix_final)
 
         if link:
             surf_lower = ReadSurf(file[jaw.inv()])

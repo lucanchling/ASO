@@ -25,16 +25,22 @@ class Auto_IOS(Methode):
 
     def TestScan(self, scan_folder: str):
         out = None
-        if self.NumberScan(scan_folder) == 0 :
+        if scan_folder == '':
+            out = 'Give folder with vtk file'
+        elif self.NumberScan(scan_folder) == 0 :
             out = 'Give folder with vkt file'
         return out
 
     def TestModel(self, model_folder: str,lineEditName) -> str:
-        files = self.search(model_folder,'.pth')['.pth']
         out = None
-        if 'lineEditModelSegOr' == lineEditName:
-            if len(files) != 1 :
-                out = 'Please give folder with only one .pth file'
+        if model_folder == '':
+            out = 'Please five folder with one .pht file'
+        else :
+            files = self.search(model_folder,'.pth')['.pth']
+            
+            if 'lineEditModelSegOr' == lineEditName:
+                if len(files) != 1 :
+                    out = 'Please give folder with only one .pth file'
 
 
         # elif lineEditName == 'lineEditModelAli':
@@ -72,8 +78,12 @@ class Auto_IOS(Methode):
     def TestCheckbox(self,dic_checkbox) -> str:
         list_teeth, list_landmark, mix, jaw = self.__CheckboxisChecked(dic_checkbox)
         out = []
-        if len(list_teeth) != 3 and len(list_teeth)!=4:
-             out.append('Give 3 teeth or 4')
+        if len(jaw) == 1 :
+            if len(list_teeth) != 3 and len(list_teeth)!=4:
+                out.append('Give 3 teeth or 4')
+        elif len(jaw) == 2 :
+            if len(list_teeth) !=6 and len(list_teeth) != 7 and len(list_teeth) != 8 :
+                out.append('Give 6 or 7 or 8 teeth')
 
 
         if len(jaw)<1 :
@@ -83,8 +93,8 @@ class Auto_IOS(Methode):
         # if len(dif_landmark) != 0:
         #     out.append(f'This landmark {" ".join(dif_landmark)} are not available please select another one, choose in this list {" ".join(self.list_landmark_exit)}')
 
-        dic = {'Upper': {'left': ['UR8', 'UR7', 'UR6', 'UR5', 'UR4', 'UR3'], 'middle': ['UR2', 'UR1', 'UL1', 'UL2'], 'right': ['UL3', 'UL4', 'UL5', 'UL6', 'UL7', 'UL8']}, 
-        'Lower': {'left': ['LR8', 'LR7', 'LR6', 'LR5', 'LR4', 'LR3'], 'middle': ['LR2', 'LR1', 'LL1', 'LL2'], 'right': ['LL3', 'LL4', 'LL5', 'LL6', 'LL7', 'LL8']}}
+        dic = {'Upper': {'left': ['UR8', 'UR7', 'UR6', 'UR5', 'UR4'], 'middle': ['UR3','UR2', 'UR1', 'UL1', 'UL2','UL3'], 'right': [ 'UL4', 'UL5', 'UL6', 'UL7', 'UL8']}, 
+        'Lower': {'left': ['LR8', 'LR7', 'LR6', 'LR5', 'LR4'], 'middle': ['LR3','LR2', 'LR1', 'LL1', 'LL2','LL3'], 'right': ['LL4', 'LL5', 'LL6', 'LL7', 'LL8']}}
 
         print('list teeth',list_teeth)
         if len(jaw) >=1 and len(list_teeth) >= 1 :
@@ -107,7 +117,7 @@ class Auto_IOS(Methode):
 
     
     def getTestFileList(self):
-        return ("","")
+        return ("Fully-Automated","https://github.com/HUTIN1/ASO/releases/download/v1.0.1/Test_file_Full-IOS.zip")
         
     def __Model(self,path):
         
@@ -116,13 +126,13 @@ class Auto_IOS(Methode):
         return model
 
     def getSegOrModelList(self):
-        return super().getSegOrModelList()
+        return ('PreASOModel','https://github.com/HUTIN1/ASO/releases/download/v1.0.0/segmentation_model.zip')
     
     def getReferenceList(self):
-        return super().getReferenceList()
+        return {'Gold_Files':'https://github.com/HUTIN1/ASO/releases/download/v1.0.0/Gold_file.zip'}
     
     def getALIModelList(self):
-        return super().getALIModelList()
+        return ('ALIModels','https://github.com/HUTIN1/ASO/releases/download/v1.0.0/identification_landmark_ios_model.zip')
         
 
     def TestProcess(self,**kwargs) -> str:
@@ -387,9 +397,11 @@ class Auto_IOS(Methode):
 
 class Semi_IOS(Auto_IOS):
 
-    def getALIModelList(self):
-        return super().getALIModelList()
 
+    
+    def getTestFileList(self):
+        return ("Semi-Automated","https://github.com/HUTIN1/ASO/releases/download/v1.0.2/Test_file_Semi-IOS.zip")
+    
 
     def TestScan(self, scan_folder: str):
         out = None
@@ -507,5 +519,3 @@ class Semi_IOS(Auto_IOS):
 
 
 
-    def DownloadTestFile(self):
-        webbrowser.open("https://github.com/HUTIN1/ASO/releases/tag/v1.0.2")

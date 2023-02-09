@@ -294,9 +294,9 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # use messletter to add big comment with univers as police
 
         documentsLocation = qt.QStandardPaths.DocumentsLocation
-        documents = qt.QStandardPaths.writableLocation(documentsLocation)
+        self.documents = qt.QStandardPaths.writableLocation(documentsLocation)
         self.SlicerDownloadPath = os.path.join(
-            documents,
+            self.documents,
             slicer.app.applicationName + "Downloads",
             "ASO",
             "ASO_" + self.type,
@@ -320,13 +320,13 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         # self.initCheckbox(self.MethodeDic['Semi_IOS'],self.ui.LayoutLandmarkSemiIOS,self.ui.tohideIOS)
         # self.initCheckbox(self.MethodeDic['Auto_IOS'],self.ui.LayoutLandmarkAutoIOS,self.ui.tohideIOS)
-        self.initTest(
+        self.initCheckboxIOS(
             self.MethodeDic["Auto_IOS"],
             self.ui.LayoutAutoIOS_tooth,
             self.ui.tohideAutoIOS_tooth,
             self.ui.LayoutLandmarkAutoIOS,
         )
-        self.initTest(
+        self.initCheckboxIOS(
             self.MethodeDic["Semi_IOS"],
             self.ui.LayoutSemiIOS_tooth,
             self.ui.tohideSemiIOS_tooth,
@@ -412,13 +412,19 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         if index == 0:  # Fully Automated
             self.ui.label_3.setText("Scan Folder")
-            self.ui.label_6.setVisible(True)
+            # self.ui.label_6.setVisible(True)
             self.ui.label_7.setVisible(True)
-            self.ui.lineEditModelAli.setVisible(True)
-            self.ui.ButtonSearchModelAli.setVisible(True)
             self.ui.lineEditModelSegOr.setVisible(True)
             self.ui.ButtonSearchModelSegOr.setVisible(True)
             self.ui.checkBoxSmallFOV.setVisible(True)
+            if isinstance(self.ActualMeth,(Auto_IOS,Semi_IOS)):
+                self.ui.lineEditModelAli.setVisible(False)
+                self.ui.ButtonSearchModelAli.setVisible(False)
+                self.ui.label_6.setVisible(False)
+            else :
+                self.ui.lineEditModelAli.setVisible(True)
+                self.ui.ButtonSearchModelAli.setVisible(True)
+                self.ui.label_6.setVisible(True)              
 
     def SwitchType(self):
         """Function to change the UI and the Method in ASO depending on the selected type (Semi CBCT, Fully CBCT...)"""
@@ -460,6 +466,13 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         self.dicchckbox = self.ActualMeth.getcheckbox()
         self.dicchckbox2 = self.ActualMeth.getcheckbox2()
+
+        self.SlicerDownloadPath = os.path.join(
+            self.documents,
+            slicer.app.applicationName + "Downloads",
+            "ASO",
+            "ASO_" + self.type,
+        )
 
         self.ClearAllLineEdits()
 
@@ -523,8 +536,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             # Delete the zip file
             os.remove(temp_path)
 
-        else:
-            print("Already downloaded")
+
 
         return out_path
 
@@ -550,7 +562,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 )
                 self.SearchReference(test=True)
                 self.SearchModelSegOr()
-                self.SearchModelALI(test=True)
+                if self.type == "CBCT":
+                    self.SearchModelALI(test=True)
 
             if not scan_folder == "":
                 nb_scans = self.ActualMeth.NumberScan(scan_folder)
@@ -992,7 +1005,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         self.ui.LabelTimer.setVisible(run)
 
-    def initTest(
+    def initCheckboxIOS(
         self,
         methode: Auto_IOS,
         layout: QGridLayout,
