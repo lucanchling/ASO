@@ -36,6 +36,12 @@ class CBCT(Methode):
 
         return patients
     
+    def getReferenceList(self):
+        return {
+            "Occlusal_Midsagittal_Plane": "https://github.com/lucanchling/ASO_CBCT/releases/download/v01_goldmodels/Occlusal_Midsagittal_Plane.zip",
+            "Frankfurt_Horizontal_Midsagittal_Plane": "https://github.com/lucanchling/ASO_CBCT/releases/download/v01_goldmodels/Frankfurt_Horizontal_Midsagittal_Plane.zip",
+
+        }
 
     def TestReference(self, ref_folder: str):
         out = None
@@ -56,6 +62,20 @@ class CBCT(Methode):
         if len(list_landmark) < 3:
              out = 'Select a minimum of 3 landmarks\n'
         return out    
+
+    def TestModel(self, model_folder: str,lineEditName) -> str:
+
+        if lineEditName == 'lineEditModelSegOr':
+            if len(super().search(model_folder,'ckpt')['ckpt']) == 0:
+                return 'Folder must have Pre ASO models files'
+            else:
+                return None
+        
+        if lineEditName == 'lineEditModelAli':
+            if len(super().search(model_folder,'pth')['pth']) == 0:
+                return 'Folder must have ALI models files'
+            else:
+                return None
 
     def TestProcess(self, **kwargs) -> str:
         out=''
@@ -82,15 +102,14 @@ class CBCT(Methode):
 
         return out
 
-    def DownloadRef(self):
-        webbrowser.open('https://github.com/lucanchling/ASO_CBCT/releases/tag/v01_goldmodels')
+    def getSegOrModelList(self):
+        return ("PreASOModels", "https://github.com/lucanchling/ASO_CBCT/releases/download/v01_preASOmodels/PreASOModels.zip")
 
-    def DownloadModels(self):
-        webbrowser.open('https://github.com/lucanchling/ASO_CBCT/releases/download/v01_preASOmodels/PreASOModels.zip')
-        webbrowser.open('https://github.com/Maxlo24/ALI_CBCT/releases/tag/v0.1-models')
+    def getALIModelList(self):
+        return ("ALIModels", "https://github.com/lucanchling/ALI_CBCT/releases/download/models_v01/")
 
     def DicLandmark(self):
-        dic = {'Head':
+        dic = {'Landmark':
                 {'Cranial Base' : sorted(['Ba', 'S', 'N', 'RPo', 'LPo', 'RFZyg', 'LFZyg', 'C2', 'C3', 'C4']),
 
                 'Upper' : sorted(['RInfOr', 'LInfOr', 'LMZyg', 'RPF', 'LPF', 'PNS', 'ANS', 'A', 'UR3O', 'UR1O', 'UL3O', 'UR6DB', 'UR6MB', 'UL6MB', 'UL6DB', 'IF', 'ROr', 'LOr', 'RMZyg', 'RNC', 'LNC', 'UR7O', 'UR5O', 'UR4O', 'UR2O', 'UL1O', 'UL2O', 'UL4O', 'UL5O', 'UL7O', 'UL7R', 'UL5R', 'UL4R', 'UL2R', 'UL1R', 'UR2R', 'UR4R', 'UR5R', 'UR7R', 'UR6MP', 'UL6MP', 'UL6R', 'UR6R', 'UR6O', 'UL6O', 'UL3R', 'UR3R', 'UR1R']),
@@ -127,13 +146,12 @@ class CBCT(Methode):
     
         return listchecked
     
+
 class Semi_CBCT(CBCT):
     
-    def DownloadTestFile(self):
-        webbrowser.open("https://github.com/lucanchling/ASO_CBCT/releases/download/TestFiles/Occlusal_Midsagittal_Test.zip")
 
-    def TestModel(self, model_folder: str) -> str:
-        return None
+    def getTestFileList(self):
+        return ("Semi-Automated", "https://github.com/lucanchling/ASO_CBCT/releases/download/TestFiles/Occlusal_Midsagittal_Test.zip")
 
     def TestScan(self, scan_folder: str):
         out = ''
@@ -158,7 +176,6 @@ class Semi_CBCT(CBCT):
         return out
 
     def existsLandmark(self, input_dir, reference_dir, model_dir):
-        
         out = None
         if input_dir != '' and reference_dir != '':
             input_lm = []
@@ -177,7 +194,7 @@ class Semi_CBCT(CBCT):
             available_lm = [lm for lm in input_lm if lm in gold_lm]
             available = {key:True for key in available_lm}
             
-            dic = self.DicLandmark()['Head']
+            dic = self.DicLandmark()['Landmark']
             list_lm = []
             for key in dic.keys():
                 list_lm.extend(dic[key])
@@ -210,23 +227,9 @@ class Semi_CBCT(CBCT):
         return list_process, display
 
 class Auto_CBCT(CBCT):
-    
-    def DownloadTestFile(self):
-        webbrowser.open("https://github.com/lucanchling/ASO_CBCT/releases/download/TestFiles/Test_File.nii.gz")
 
-    def TestModel(self, model_folder: str,lineEditName) -> str:
-
-        if lineEditName == 'lineEditModelSegOr':
-            if len(super().search(model_folder,'ckpt')['ckpt']) == 0:
-                return 'Folder must have Pre ASO models files'
-            else:
-                return None
-        
-        if lineEditName == 'lineEditModelAli':
-            if len(super().search(model_folder,'pth')['pth']) == 0:
-                return 'Folder must have ALI models files'
-            else:
-                return None
+    def getTestFileList(self):
+        return ("Fully-Automated", "https://github.com/lucanchling/ASO_CBCT/releases/download/TestFiles/Test_Scan.zip")
         
     def TestScan(self, scan_folder: str) -> str:
         return None
@@ -234,7 +237,7 @@ class Auto_CBCT(CBCT):
     def existsLandmark(self, input_dir, reference_dir, model_dir):
         out = None
 
-        if reference_dir != '' and model_dir != ' ':
+        if reference_dir != '' and model_dir != '':
 
             gold_json = super().search(reference_dir,'json')['json']
             gold_lm = self.ListLandmarksJson(gold_json[0])
@@ -245,7 +248,7 @@ class Auto_CBCT(CBCT):
             available_lm = [lm for lm in gold_lm if lm in list_models]
             available = {key:True for key in available_lm}
             
-            dic = self.DicLandmark()['Head']
+            dic = self.DicLandmark()['Landmark']
             list_lm = []
             for key in dic.keys():
                 list_lm.extend(dic[key])
@@ -274,7 +277,8 @@ class Auto_CBCT(CBCT):
         list_lmrk_str = self.CheckboxisChecked(kwargs['dic_checkbox'],in_str=True)
         nb_landmark = len(list_lmrk_str.split(' '))
 
-        #print('PRE_ASO param:', parameter_pre_aso)
+        print('PRE_ASO param:', parameter_pre_aso)
+        print()
 
         # ALI CBCT
         documentsLocation = qt.QStandardPaths.DocumentsLocation
@@ -286,11 +290,12 @@ class Auto_CBCT(CBCT):
                     'landmarks': list_lmrk_str, 
                     'save_in_folder': False, 
                     'output_dir': temp_folder,
-                    'temp_fold': tempALI_folder}
+                    'temp_fold': tempALI_folder,
+                    'DCMInput':False}
         ALIProcess = slicer.modules.ali_cbct
         
-        #print('ALI param:',parameter_ali)
-        
+        print('ALI param:',parameter_ali)
+        print()
         # SEMI ASO CBCT        
        
         parameter_semi_aso = {'input':temp_folder,#kwargs['input_folder'],
@@ -301,7 +306,7 @@ class Auto_CBCT(CBCT):
                 }
         OrientProcess = slicer.modules.semi_aso_cbct
 
-        #print("SEMI_ASO param:",parameter_semi_aso)
+        print("SEMI_ASO param:",parameter_semi_aso)
  
         list_process = [{'Process':PreOrientProcess,'Parameter':parameter_pre_aso,'Name':'PRE_ASO_CBCT'},
                         {'Process':ALIProcess,'Parameter': parameter_ali,'Name':'ALI_CBCT'},

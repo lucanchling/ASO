@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>581</width>
+    <width>669</width>
     <height>872</height>
    </rect>
   </property>
@@ -85,14 +85,17 @@
             </item>
             <item>
              <widget class="QComboBox" name="CbModeType">
+              <property name="currentText">
+               <string>Fully-Automated</string>
+              </property>
               <item>
                <property name="text">
-                <string>Semi-Automated</string>
+                <string>Fully-Automated</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>Fully-Automated</string>
+                <string>Semi-Automated</string>
                </property>
               </item>
              </widget>
@@ -123,60 +126,32 @@
             <item>
              <widget class="QPushButton" name="ButtonSearchScanLmFolder">
               <property name="text">
-               <string>Search</string>
+               <string>Select</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="ButtonSearchReference">
               <property name="text">
-               <string>Search</string>
+               <string>Select</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="ButtonSearchModelSegOr">
               <property name="text">
-               <string>Search</string>
+               <string>Select</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="ButtonSearchModelAli">
               <property name="text">
-               <string>Search</string>
+               <string>Select</string>
               </property>
              </widget>
             </item>
            </layout>
-          </item>
-         </layout>
-        </item>
-        <item row="1" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
-          <property name="topMargin">
-           <number>15</number>
-          </property>
-          <item>
-           <widget class="QPushButton" name="ButtonDownloadTestFile">
-            <property name="text">
-             <string>Download Test Files</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="ButtonDownloadModels">
-            <property name="text">
-             <string>Download Models</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="ButtonDownloadRefLm">
-            <property name="text">
-             <string>Download Reference</string>
-            </property>
-           </widget>
           </item>
          </layout>
         </item>

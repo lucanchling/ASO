@@ -105,25 +105,24 @@ class Auto_IOS(Methode):
             out = ','.join(out)
         return out
 
-
-    def DownloadRef(self):
-        webbrowser.open('https://github.com/HUTIN1/ASO/releases/tag/v1.0.0')
-
-    def DownloadModels(self):
-        webbrowser.open('https://github.com/HUTIN1/ASO/releases/tag/v1.0.0')
-        # webbrowser.open('https://github.com/HUTIN1/ASO/releases/download/v1.0.0/model_segmentation.zip')
-        # webbrowser.open('https://github.com/HUTIN1/ASO/releases/download/v1.0.0/identification_landmark_ios_model.zip')
-
-    def DownloadTestFile(self):
-        webbrowser.open("https://github.com/HUTIN1/ASO/releases/tag/v1.0.1")
-
+    
+    def getTestFileList(self):
+        return ("","")
+        
     def __Model(self,path):
         
         model = self.search(path,'.pth')['.pth'][0]
 
         return model
 
-
+    def getSegOrModelList(self):
+        return super().getSegOrModelList()
+    
+    def getReferenceList(self):
+        return super().getReferenceList()
+    
+    def getALIModelList(self):
+        return super().getALIModelList()
         
 
     def TestProcess(self,**kwargs) -> str:
@@ -388,7 +387,8 @@ class Auto_IOS(Methode):
 
 class Semi_IOS(Auto_IOS):
 
-       
+    def getALIModelList(self):
+        return super().getALIModelList()
 
 
     def TestScan(self, scan_folder: str):

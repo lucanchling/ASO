@@ -1,8 +1,20 @@
-import os
-import logging
-import time
+import os, sys, time, logging, zipfile, urllib.request, shutil, glob
 import vtk, qt, slicer
-from qt import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QCheckBox, QPushButton, QPixmap , QIcon, QSize, QLabel,QHBoxLayout, QGridLayout, QMediaPlayer
+from qt import (
+    QWidget,
+    QVBoxLayout,
+    QScrollArea,
+    QTabWidget,
+    QCheckBox,
+    QPushButton,
+    QPixmap,
+    QIcon,
+    QSize,
+    QLabel,
+    QHBoxLayout,
+    QGridLayout,
+    QMediaPlayer,
+)
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
 from functools import partial
@@ -13,11 +25,6 @@ from Methode.Methode import Methode
 from Methode.Progress import Display
 
 
-
-
-
-
-
 class ASO(ScriptedLoadableModule):
     """Uses ScriptedLoadableModule base class, available at:
     https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
@@ -25,10 +32,18 @@ class ASO(ScriptedLoadableModule):
 
     def __init__(self, parent):
         ScriptedLoadableModule.__init__(self, parent)
-        self.parent.title = "ASO"  # TODO: make this more human readable by adding spaces
-        self.parent.categories = ["Automated Dental Tools"]  # set categories (folders where the module shows up in the module selector)
-        self.parent.dependencies = []  # TODO: add here list of module names that this module requires
-        self.parent.contributors = ["Nathan Hutin (UoM), Luc Anchling (UoM)"]  # TODO: replace with "Firstname Lastname (Organization)"
+        self.parent.title = (
+            "ASO"  # TODO: make this more human readable by adding spaces
+        )
+        self.parent.categories = [
+            "Automated Dental Tools"
+        ]  # set categories (folders where the module shows up in the module selector)
+        self.parent.dependencies = (
+            []
+        )  # TODO: add here list of module names that this module requires
+        self.parent.contributors = [
+            "Nathan Hutin (UoM), Luc Anchling (UoM)"
+        ]  # TODO: replace with "Firstname Lastname (Organization)"
         # TODO: update with short description of the module and a link to online module documentation
         self.parent.helpText = """
         This is an example of scripted loadable module bundled in an extension.
@@ -47,7 +62,6 @@ class ASO(ScriptedLoadableModule):
         # Register sample data sets in Sample Data module
         #
 
-
     def registerSampleData(self):
         """
         Add data sets to Sample Data module.
@@ -56,42 +70,136 @@ class ASO(ScriptedLoadableModule):
         # but if no sample data is available then this method (and associated startupCompeted signal connection) can be removed.
 
         import SampleData
-        iconsPath = os.path.join(os.path.dirname(__file__), 'Resources/Icons')
+
+        iconsPath = os.path.join(os.path.dirname(__file__), "Resources/Icons")
 
         # To ensure that the source code repository remains small (can be downloaded and installed quickly)
         # it is recommended to store data sets that are larger than a few MB in a Github release.
 
         # ALI1
         SampleData.SampleDataLogic.registerCustomSampleDataSource(
-        # Category and sample name displayed in Sample Data module
-        category='ASO',
-        sampleName='ASO1',
-        # Thumbnail should have size of approximately 260x280 pixels and stored in Resources/Icons folder.
-        # It can be created by Screen Capture module, "Capture all views" option enabled, "Number of images" set to "Single".
-        thumbnailFileName=os.path.join(iconsPath, 'ASO1.png'),
-        # Download URL and target file name
-        uris="https://github.com/Slicer/SlicerTestingData/releases/download/SHA256/998cb522173839c78657f4bc0ea907cea09fd04e44601f17c82ea27927937b95",
-        fileNames='ASO1.nrrd',
-        # Checksum to ensure file integrity. Can be computed by this command:
-        #  import hashlib; print(hashlib.sha256(open(filename, "rb").read()).hexdigest())
-        checksums = 'SHA256:998cb522173839c78657f4bc0ea907cea09fd04e44601f17c82ea27927937b95',
-        # This node name will be used when the data set is loaded
-        nodeNames='ASO1'
+            # Category and sample name displayed in Sample Data module
+            category="ASO",
+            sampleName="ASO1",
+            # Thumbnail should have size of approximately 260x280 pixels and stored in Resources/Icons folder.
+            # It can be created by Screen Capture module, "Capture all views" option enabled, "Number of images" set to "Single".
+            thumbnailFileName=os.path.join(iconsPath, "ASO1.png"),
+            # Download URL and target file name
+            uris="https://github.com/Slicer/SlicerTestingData/releases/download/SHA256/998cb522173839c78657f4bc0ea907cea09fd04e44601f17c82ea27927937b95",
+            fileNames="ASO1.nrrd",
+            # Checksum to ensure file integrity. Can be computed by this command:
+            #  import hashlib; print(hashlib.sha256(open(filename, "rb").read()).hexdigest())
+            checksums="SHA256:998cb522173839c78657f4bc0ea907cea09fd04e44601f17c82ea27927937b95",
+            # This node name will be used when the data set is loaded
+            nodeNames="ASO1",
         )
 
         # ASO2
         SampleData.SampleDataLogic.registerCustomSampleDataSource(
-        # Category and sample name displayed in Sample Data module
-        category='ASO',
-        sampleName='ASO2',
-        thumbnailFileName=os.path.join(iconsPath, 'ASO2.png'),
-        # Download URL and target file name
-        uris="https://github.com/Slicer/SlicerTestingData/releases/download/SHA256/1a64f3f422eb3d1c9b093d1a18da354b13bcf307907c66317e2463ee530b7a97",
-        fileNames='ASO2.nrrd',
-        checksums = 'SHA256:1a64f3f422eb3d1c9b093d1a18da354b13bcf307907c66317e2463ee530b7a97',
-        # This node name will be used when the data set is loaded
-        nodeNames='ASO2'
+            # Category and sample name displayed in Sample Data module
+            category="ASO",
+            sampleName="ASO2",
+            thumbnailFileName=os.path.join(iconsPath, "ASO2.png"),
+            # Download URL and target file name
+            uris="https://github.com/Slicer/SlicerTestingData/releases/download/SHA256/1a64f3f422eb3d1c9b093d1a18da354b13bcf307907c66317e2463ee530b7a97",
+            fileNames="ASO2.nrrd",
+            checksums="SHA256:1a64f3f422eb3d1c9b093d1a18da354b13bcf307907c66317e2463ee530b7a97",
+            # This node name will be used when the data set is loaded
+            nodeNames="ASO2",
         )
+
+
+        # self.ui.ButtonSearchModelAli.clicked.connect(
+        #     lambda: self.SearchModel(self.ui.lineEditModelAli)
+        # )
+class PopUpWindow(qt.QDialog):
+    def __init__(self,title="Title",listename=["1","2","3"],type="radio", tocheck=None):
+        QWidget.__init__(self)
+        self.setWindowTitle(title)
+        layout = QGridLayout()
+        self.setLayout(layout)
+        self.ListButtons = []
+        self.listename = listename
+        self.type = type
+
+        if self.type == 'radio':
+            self.radiobutton(layout)
+
+        elif self.type == 'checkbox':
+            self.checkbox(layout)
+            if tocheck is not None:
+                self.toCheck(tocheck)
+    
+    def checkbox(self,layout):
+        j = 0
+        for i in range(len(self.listename)):
+            button = qt.QCheckBox(self.listename[i])
+            self.ListButtons.append(button)
+            if i % 20 == 0:
+                j += 1
+            layout.addWidget(button, i % 20, j)
+        # Add a button to select and deselect all
+        button = qt.QPushButton("Select All")
+        button.connect("clicked()", self.onClickedSelectAll)
+        layout.addWidget(button, len(self.listename)+1, j-2)
+        button = qt.QPushButton("Deselect All")
+        button.connect("clicked()", self.onClickedDeselectAll)
+        layout.addWidget(button, len(self.listename)+1, j-1)
+
+        # Add a button to close the dialog
+        button = qt.QPushButton("OK")
+        button.connect("clicked()", self.onClickedCheckbox)
+        layout.addWidget(button, len(self.listename)+1, j)
+
+    def toCheck(self, tocheck):
+        for i in range(len(self.listename)):
+            if self.listename[i] in tocheck:
+                self.ListButtons[i].setChecked(True)
+
+
+    def onClickedSelectAll(self):
+        for button in self.ListButtons:
+            button.setChecked(True)
+    
+    def onClickedDeselectAll(self):
+        for button in self.ListButtons:
+            button.setChecked(False)
+
+    def onClickedCheckbox(self):
+        TrueFalse = [button.isChecked() for button in self.ListButtons]
+        self.checked = [self.listename[i] for i in range(len(self.listename)) if TrueFalse[i]]
+        self.accept()
+    
+    def radiobutton(self,layout):
+        for i in range(len(self.listename)):
+            radiobutton = qt.QRadioButton(self.listename[i])
+            self.ListButtons.append(radiobutton)
+            radiobutton.connect("clicked(bool)",self.onClickedRadio)
+            layout.addWidget(radiobutton, i, 0)
+    
+    def onClickedRadio(self):
+        self.checked = self.listename[[button.isChecked() for button in self.ListButtons].index(True)]
+        self.accept()
+
+class PopUpProgressBar(qt.QDialog):
+    def __init__(self):
+        QWidget.__init__(self)
+        self.setWindowTitle("Progression")
+        layout = QGridLayout()
+        self.setLayout(layout)
+        self.progressbar = qt.QProgressBar()
+        self.progressbar.setRange(0,100)
+        self.progressbar.setValue(0)
+        layout.addWidget(self.progressbar, 0, 0)
+        self.label = qt.QLabel("0%")
+        layout.addWidget(self.label, 0, 1)
+
+    def setProgress(self, value):
+        self.progressbar.setValue(value)
+        self.label.setText(str(value)+"%")
+
+    def close(self):
+        self.accept()
 
 #
 # ASOWidget
@@ -112,12 +220,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self._parameterNode = None
         self._updatingGUIFromParameterNode = False
 
-
-
-        self.nb_patient = 0 # number of scans in the input folder
-
-
-
+        self.nb_patient = 0  # number of scans in the input folder
 
     def setup(self):
         """
@@ -127,11 +230,10 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         # Load widget from .ui file (created by Qt Designer).
         # Additional widgets can be instantiated manually and added to self.layout.
-        uiWidget = slicer.util.loadUI(self.resourcePath('UI/ASO.ui'))
+        uiWidget = slicer.util.loadUI(self.resourcePath("UI/ASO.ui"))
         self.layout.addWidget(uiWidget)
 
         self.ui = slicer.util.childWidgetVariables(uiWidget)
-
 
         # Set scene in MRML widgets. Make sure that in Qt designer the top-level qMRMLWidget's
         # "mrmlSceneChanged(vtkMRMLScene*)" signal in is connected to each MRML widget's.
@@ -145,18 +247,15 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # Connections
 
         # These connections ensure that we update parameter node when scene is closed
-        self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.onSceneStartClose)
-        self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose)
+        self.addObserver(
+            slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.onSceneStartClose
+        )
+        self.addObserver(
+            slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose
+        )
 
         # These connections ensure that whenever user changes some settings on the GUI, that is saved in the MRML scene
         # (in the selected parameter node).
-
-
-      
-
-
-
-
 
         """
             888     888        d8888 8888888b.  8888888        d8888 888888b.   888      8888888888  .d8888b.  
@@ -169,38 +268,42 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 Y8P     d88P     888 888   T88b 8888888 d88P     888 8888888P"  88888888 8888888888  "Y8888P"
         """
 
+        self.MethodeDic = {
+            "Semi_IOS": Semi_IOS(self),
+            "Auto_IOS": Auto_IOS(self),
+            "Semi_CBCT": Semi_CBCT(self),
+            "Auto_CBCT": Auto_CBCT(self),
+        }
 
-
-
-        
-        self.MethodeDic={'Semi_IOS':Semi_IOS(self), 'Auto_IOS':Auto_IOS(self),
-                         'Semi_CBCT':Semi_CBCT(self),'Auto_CBCT':Auto_CBCT(self)}
-
-        self.ActualMeth= Methode
-        self.ActualMeth= self.MethodeDic['Semi_CBCT']
-        self.type = 'CBCT'
+        self.ActualMeth = Methode
+        self.ActualMeth = self.MethodeDic["Auto_CBCT"]
+        self.type = "CBCT"
         self.nb_scan = 0
-        self.startprocess =0
+        self.startprocess = 0
         self.patient_process = 0
-        self.dicchckbox={}  
-        self.dicchckbox2={}
+        self.dicchckbox = {}
+        self.dicchckbox2 = {}
         self.display = Display
         """
         exemple dic = {'teeth'=['A,....],'Type'=['O',...]}
         """
 
-        self.log_path  = os.path.join(slicer.util.tempDirectory(), 'process.log')
-        self.time = 0 
+        self.log_path = os.path.join(slicer.util.tempDirectory(), "process.log")
+        self.time = 0
 
-        #use messletter to add big comment with univers as police
+        # use messletter to add big comment with univers as police
 
+        documentsLocation = qt.QStandardPaths.DocumentsLocation
+        documents = qt.QStandardPaths.writableLocation(documentsLocation)
+        self.SlicerDownloadPath = os.path.join(
+            documents,
+            slicer.app.applicationName + "Downloads",
+            "ASO",
+            "ASO_" + self.type,
+        )
 
-
-
-
-
-
-
+        if not os.path.exists(self.SlicerDownloadPath):
+            os.makedirs(self.SlicerDownloadPath)
 
         """
                               
@@ -215,37 +318,41 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                               
         """
 
-
-
-
-        
         # self.initCheckbox(self.MethodeDic['Semi_IOS'],self.ui.LayoutLandmarkSemiIOS,self.ui.tohideIOS)
         # self.initCheckbox(self.MethodeDic['Auto_IOS'],self.ui.LayoutLandmarkAutoIOS,self.ui.tohideIOS)
-        self.initTest(self.MethodeDic['Auto_IOS'],self.ui.LayoutAutoIOS_tooth,self.ui.tohideAutoIOS_tooth,self.ui.LayoutLandmarkAutoIOS)
-        self.initTest(self.MethodeDic['Semi_IOS'],self.ui.LayoutSemiIOS_tooth,self.ui.tohideSemiIOS_tooth,self.ui.LayoutLandmarkSemiIOS)
+        self.initTest(
+            self.MethodeDic["Auto_IOS"],
+            self.ui.LayoutAutoIOS_tooth,
+            self.ui.tohideAutoIOS_tooth,
+            self.ui.LayoutLandmarkAutoIOS,
+        )
+        self.initTest(
+            self.MethodeDic["Semi_IOS"],
+            self.ui.LayoutSemiIOS_tooth,
+            self.ui.tohideSemiIOS_tooth,
+            self.ui.LayoutLandmarkSemiIOS,
+        )
 
-        self.initCheckbox(self.MethodeDic['Semi_CBCT'],self.ui.LayoutLandmarkSemiCBCT,self.ui.tohideCBCT) # a decommmente
-        self.initCheckbox(self.MethodeDic['Auto_CBCT'],self.ui.LayoutLandmarkAutoCBCT,self.ui.tohideCBCT)
+        self.initCheckbox(
+            self.MethodeDic["Semi_CBCT"],
+            self.ui.LayoutLandmarkSemiCBCT,
+            self.ui.tohideCBCT,
+        )  # a decommmente
+        self.initCheckbox(
+            self.MethodeDic["Auto_CBCT"],
+            self.ui.LayoutLandmarkAutoCBCT,
+            self.ui.tohideCBCT,
+        )
         self.HideComputeItems()
         # self.initTest(self.MethodeDic['Semi_IOS'])
-        
-
-
 
         # self.dicchckbox=self.ActualMeth.getcheckbox()
         # self.dicchckbox2=self.ActualMeth.getcheckbox2()
 
         # self.enableCheckbox()
 
-        self.SwitchType(0)
-
-
-
-
-
-
-
-
+        # self.SwitchMode(0)
+        self.SwitchType()
 
         """
                                                                                        
@@ -260,34 +367,18 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                                                                                                             
         """
 
-
-
-
-        
-
-        self.ui.ButtonSearchScanLmFolder.connect('clicked(bool)',self.SearchScanLm)
-        self.ui.ButtonSearchReference.connect('clicked(bool)',self.SearchReference)
-        self.ui.ButtonSearchModelSegOr.connect('clicked(bool)',lambda : self.SearchModel(self.ui.lineEditModelSegOr))
-        self.ui.ButtonSearchModelAli.clicked.connect(lambda : self.SearchModel(self.ui.lineEditModelAli))    
-        self.ui.ButtonDownloadRefLm.connect('clicked(bool)',self.DownloadRef)
-        self.ui.ButtonDownloadModels.connect('clicked(bool)',self.DownloadModels)
-        self.ui.ButtonDownloadTestFile.connect('clicked(bool)',self.DownloadTestFile)
-        self.ui.ButtonOriented.connect('clicked(bool)',self.onPredictButton)
-        self.ui.ButtonOutput.connect('clicked(bool)',self.ChosePathOutput)
-        self.ui.ButtonCancel.connect('clicked(bool)',self.onCancel)
+        self.ui.ButtonSearchScanLmFolder.connect("clicked(bool)", self.SearchScanLm)
+        self.ui.ButtonSearchReference.connect("clicked(bool)", self.SearchReference)
+        self.ui.ButtonSearchModelSegOr.connect("clicked(bool)", self.SearchModelSegOr)
+        self.ui.ButtonSearchModelAli.connect("clicked(bool)", self.SearchModelALI)
+        self.ui.ButtonOriented.connect("clicked(bool)", self.onPredictButton)
+        self.ui.ButtonOutput.connect("clicked(bool)", self.ChosePathOutput)
+        self.ui.ButtonCancel.connect("clicked(bool)", self.onCancel)
         self.ui.ButtonSugestLmIOS.clicked.connect(self.SelectSugestLandmark)
         self.ui.ButtonSugestLmCBCT.clicked.connect(self.SelectSugestLandmark)
         self.ui.ButtonSugestLmIOSSemi.clicked.connect(self.SelectSugestLandmark)
         self.ui.CbInputType.currentIndexChanged.connect(self.SwitchType)
-        self.ui.CbModeType.currentIndexChanged.connect(self.SwitchType)    
-        
-
-
-
-
-
-
-
+        self.ui.CbModeType.currentIndexChanged.connect(self.SwitchType)
 
     """
 
@@ -304,65 +395,76 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                                                                                                                                                                     
 
     """
-    def SwitchMode(self,index):
-        ''' Function to change the UI depending on the mode selected (Semi or Fully Automated) '''
-        if index == 0: # Semi-Automated
-            self.ui.label_3.setText('Scan / Landmark Folder')
+
+    def SwitchMode(self, index):
+        """Function to change the UI depending on the mode selected (Semi or Fully Automated)"""
+        if index == 1:  # Semi-Automated
+            self.ui.label_3.setText("Scan / Landmark Folder")
             self.ui.label_6.setVisible(False)
             self.ui.label_7.setVisible(False)
             self.ui.lineEditModelAli.setVisible(False)
-            self.ui.lineEditModelAli.setText(' ')
+            self.ui.lineEditModelAli.setText(" ")
             self.ui.lineEditModelSegOr.setVisible(False)
-            self.ui.lineEditModelSegOr.setText(' ')
+            self.ui.lineEditModelSegOr.setText(" ")
             self.ui.ButtonSearchModelAli.setVisible(False)
             self.ui.ButtonSearchModelSegOr.setVisible(False)
-            self.ui.ButtonDownloadModels.setVisible(False)
             self.ui.checkBoxSmallFOV.setVisible(False)
 
-
-        if index == 1: # Fully Automated
-            self.ui.label_3.setText('Scan Folder')
+        if index == 0:  # Fully Automated
+            self.ui.label_3.setText("Scan Folder")
             self.ui.label_6.setVisible(True)
             self.ui.label_7.setVisible(True)
             self.ui.lineEditModelAli.setVisible(True)
             self.ui.ButtonSearchModelAli.setVisible(True)
             self.ui.lineEditModelSegOr.setVisible(True)
             self.ui.ButtonSearchModelSegOr.setVisible(True)
-            self.ui.ButtonDownloadModels.setVisible(True)
             self.ui.checkBoxSmallFOV.setVisible(True)
 
-    def SwitchType(self,index):
-        ''' Function to change the UI and the Method in ASO depending on the selected type (Semi CBCT, Fully CBCT...) '''
-        if self.ui.CbInputType.currentIndex == 0 and self.ui.CbModeType.currentIndex == 0 or index==0:
-            self.ActualMeth = self.MethodeDic['Semi_CBCT']
+    def SwitchType(self):
+        """Function to change the UI and the Method in ASO depending on the selected type (Semi CBCT, Fully CBCT...)"""
+        if (
+            self.ui.CbInputType.currentIndex == 0
+            and self.ui.CbModeType.currentIndex == 1
+        ):
+            self.ActualMeth = self.MethodeDic["Semi_CBCT"]
             self.ui.stackedWidget.setCurrentIndex(0)
-            self.type = 'CBCT'
+            self.type = "CBCT"
 
-        elif self.ui.CbInputType.currentIndex == 0 and self.ui.CbModeType.currentIndex == 1:
-            self.ActualMeth = self.MethodeDic['Auto_CBCT']
+        elif (
+            self.ui.CbInputType.currentIndex == 0
+            and self.ui.CbModeType.currentIndex == 0
+        ):
+            self.ActualMeth = self.MethodeDic["Auto_CBCT"]
             self.ui.stackedWidget.setCurrentIndex(1)
-            self.type = 'CBCT'
-            self.ui.label_7.setText('Orientation Model Folder')
-            
-        elif self.ui.CbInputType.currentIndex == 1 and self.ui.CbModeType.currentIndex == 0:
-            self.ActualMeth = self.MethodeDic['Semi_IOS']
-            self.ui.stackedWidget.setCurrentIndex(2)
-            self.type='IOS'
+            self.type = "CBCT"
+            self.ui.label_7.setText("Orientation Model Folder")
 
-        elif self.ui.CbInputType.currentIndex == 1 and self.ui.CbModeType.currentIndex == 1:
-            self.ActualMeth = self.MethodeDic['Auto_IOS']
+        elif (
+            self.ui.CbInputType.currentIndex == 1
+            and self.ui.CbModeType.currentIndex == 1
+        ):
+            self.ActualMeth = self.MethodeDic["Semi_IOS"]
+            self.ui.stackedWidget.setCurrentIndex(2)
+            self.type = "IOS"
+
+        elif (
+            self.ui.CbInputType.currentIndex == 1
+            and self.ui.CbModeType.currentIndex == 0
+        ):
+            self.ActualMeth = self.MethodeDic["Auto_IOS"]
             self.ui.stackedWidget.setCurrentIndex(3)
-            self.type = 'IOS'
-            self.ui.label_7.setText('Segmentation Model Folder')
-        
+            self.type = "IOS"
+            self.ui.label_7.setText("Segmentation Model Folder")
         # UI Changes
         self.SwitchMode(self.ui.CbModeType.currentIndex)
 
-        self.dicchckbox=self.ActualMeth.getcheckbox()
-        self.dicchckbox2=self.ActualMeth.getcheckbox2()
+        self.dicchckbox = self.ActualMeth.getcheckbox()
+        self.dicchckbox2 = self.ActualMeth.getcheckbox2()
+
+        self.ClearAllLineEdits()
 
         self.enableCheckbox()
-        
+
         self.HideComputeItems()
 
         # best = ['Ba','N','RPo']
@@ -370,54 +472,208 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         #     if checkbox.text in best and checkbox.isEnabled():
         #         checkbox.setCheckState(True)
 
+    def ClearAllLineEdits(self):
+        """Function to clear all the line edits"""
+        self.ui.lineEditScanLmPath.setText("")
+        self.ui.lineEditRefFolder.setText("")
+        self.ui.lineEditModelAli.setText("")
+        self.ui.lineEditModelSegOr.setText("")
+        self.ui.lineEditOutputPath.setText("")
+    
+    def DownloadUnzip(self, url, directory, folder_name=None, num_downl=1, total_downloads=1):
+        out_path = os.path.join(directory, folder_name)
+
+        if not os.path.exists(out_path):
+            print("Downloading {}...".format(folder_name.split("/")[0]))
+            os.makedirs(out_path)
+
+            temp_path = os.path.join(directory, "temp.zip")
+
+            # Download the zip file from the url
+            with urllib.request.urlopen(url) as response, open(
+                temp_path, "wb"
+            ) as out_file:
+                # Pop up a progress bar with a QProgressDialog
+                progress = qt.QProgressDialog(
+                    "File {} of {}".format(num_downl, total_downloads), "Cancel", 0, 100, self.parent
+                )
+                progress.setWindowModality(qt.Qt.WindowModal)
+                progress.setWindowTitle("Downloading")
+                # progress.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
+                progress.show()
+                length = response.info().get("Content-Length")
+                if length:
+                    length = int(length)
+                    blocksize = max(4096, length // 100)
+                    read = 0
+                    while True:
+                        buffer = response.read(blocksize)
+                        if not buffer:
+                            break
+                        read += len(buffer)
+                        out_file.write(buffer)
+                        progress.setValue(read * 100.0 / length)
+                        qt.QApplication.processEvents()
+                shutil.copyfileobj(response, out_file)
+
+            # Unzip the file
+            with zipfile.ZipFile(temp_path, "r") as zip:
+                zip.extractall(out_path)
+
+            # Delete the zip file
+            os.remove(temp_path)
+
+        else:
+            print("Already downloaded")
+
+        return out_path
 
     def SearchScanLm(self):
-        scan_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder for Input")
-        if not scan_folder == '':
-            nb_scans = self.ActualMeth.NumberScan(scan_folder)
-            error = self.ActualMeth.TestScan(scan_folder)
+        s = PopUpWindow(title="Select Input Folder", listename=["Select your Input Folder", "Test Files"],type="radio")
 
-            if isinstance(error,str):
-                qt.QMessageBox.warning(self.parent, 'Warning', error)
-            else :
-                self.nb_patient = nb_scans
-                self.ui.lineEditScanLmPath.setText(scan_folder)
-                self.ui.LabelInfoPreProc.setText("Number of scans to process : " + str(nb_scans))
-                self.ui.LabelProgressPatient.setText('Patient process : 0 /'+str(nb_scans))
-                self.enableCheckbox()
+        if s.exec_():
+            ret = s.checked
+
+            if ret == "Select your Input Folder":
+                own_scan = True
+                scan_folder = qt.QFileDialog.getExistingDirectory(
+                    self.parent, "Select a scan folder for Input"
+                )
+            else: # Test Files --> Lets do the coffee for everyone /!\
+                own_scan = False
+                name,url = self.ActualMeth.getTestFileList()
+                
+                scan_folder = self.DownloadUnzip(
+                    url=url,
+                    directory=os.path.join(self.SlicerDownloadPath),
+                    folder_name=os.path.join("Test_Files", name),
+                )
+                self.SearchReference(test=True)
+                self.SearchModelSegOr()
+                self.SearchModelALI(test=True)
+
+            if not scan_folder == "":
+                nb_scans = self.ActualMeth.NumberScan(scan_folder)
+                error = self.ActualMeth.TestScan(scan_folder)
+
+                if isinstance(error, str):
+                    qt.QMessageBox.warning(self.parent, "Warning", error)
+                else:
+                    self.nb_patient = nb_scans
+                    self.ui.lineEditScanLmPath.setText(scan_folder)
+                    self.ui.LabelInfoPreProc.setText(
+                        "Number of scans to process : " + str(nb_scans)
+                    )
+                    self.ui.LabelProgressPatient.setText(
+                        "Patient process : 0 /" + str(nb_scans)
+                    )
+                    self.enableCheckbox()
+
+                    if self.ui.lineEditOutputPath.text == "":# and own_scan:
+                        dir, spl = os.path.split(scan_folder)
+                        self.ui.lineEditOutputPath.setText(os.path.join(dir, spl + "Or"))
 
 
-                if self.ui.lineEditOutputPath.text == '':
-                    dir , spl = os.path.split(scan_folder)
-                    self.ui.lineEditOutputPath.setText(os.path.join(dir,spl+'Or'))
+    def SearchReference(self,test=False):
+        referenceList = self.ActualMeth.getReferenceList()
+        refList = list(referenceList.keys())
+        refList.append("Select your own folder")
+        
+        if test:
+            ret = refList[0]
+        
+        else:    
+            s = PopUpWindow(title="Choice of Reference Files",listename=refList,type="radio")
+            s.exec_()
+            ret = s.checked
+            
+        if ret == "Select your own folder":
+            ref_folder = qt.QFileDialog.getExistingDirectory(
+                self.parent, "Select a scan folder for Reference"
+            )
 
-    def SearchReference(self):
-        ref_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder for Reference")
-        if not ref_folder == '':
+        else:  # Automatically Download the reference, unzip it and set the path
+            ref_folder = self.DownloadUnzip(
+                url=referenceList[ret],
+                directory=os.path.join(self.SlicerDownloadPath),
+                folder_name=os.path.join("Reference", ret),
+            )
+
+        # print(ref_folder)
+
+        if not ref_folder == "":
             error = self.ActualMeth.TestReference(ref_folder)
 
-            if isinstance(error,str):
-                qt.QMessageBox.warning(self.parent, 'Warning', error)
+            if isinstance(error, str):
+                qt.QMessageBox.warning(self.parent, "Warning", error)
 
             else:
                 self.ui.lineEditRefFolder.setText(ref_folder)
                 self.enableCheckbox()
+                self.reference_lm = self.ActualMeth.ListLandmarksJson(self.ActualMeth.search(ref_folder,'json')['json'][0])
 
-    def SearchModel(self,lineEdit):
-        model_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a model folder")
-        if not model_folder == '':
-            error = self.ActualMeth.TestModel(model_folder,lineEdit.name)
+    def SearchModelSegOr(self):
 
-            if isinstance(error,str):
-                    qt.QMessageBox.warning(self.parent, 'Warning', error)
+        name, url = self.ActualMeth.getSegOrModelList()
+
+        model_folder = self.DownloadUnzip(
+            url=url,
+            directory=os.path.join(self.SlicerDownloadPath),
+            folder_name=os.path.join("Models", name)
+        )
+        
+
+        if not model_folder == "":
+            error = self.ActualMeth.TestModel(model_folder, self.ui.lineEditModelSegOr.name)
+
+            if isinstance(error, str):
+                qt.QMessageBox.warning(self.parent, "Warning", error)
 
             else:
-                lineEdit.setText(model_folder)
+                self.ui.lineEditModelSegOr.setText(model_folder)
                 self.enableCheckbox()
+
+    def SearchModelALI(self,test=False):
+        listeLandmark = []
+        for key,data in self.ActualMeth.DicLandmark()["Landmark"].items():
+            listeLandmark += data
         
+        if test:
+            ret = self.reference_lm
+
+        else:
+            s = PopUpWindow(title="Chose ALI Models to Download",listename=sorted(listeLandmark),type="checkbox",tocheck=self.reference_lm)
+            s.exec_()
+            ret = s.checked
+
+        name, url = self.ActualMeth.getALIModelList()
+
+        for i,model in enumerate(ret):
+            _ = self.DownloadUnzip(
+                url=os.path.join(url,"{}.zip".format(model)),
+                directory=os.path.join(self.SlicerDownloadPath),
+                folder_name=os.path.join("Models", name,model),
+                num_downl=i+1,
+                total_downloads=len(ret)
+            )
+        
+        model_folder = os.path.join(self.SlicerDownloadPath,"Models", name)
+        
+        if not model_folder == "":
+            error = self.ActualMeth.TestModel(model_folder, self.ui.lineEditModelAli.name)
+
+            if isinstance(error, str):
+                qt.QMessageBox.warning(self.parent, "Warning", error)
+
+            else:
+                self.ui.lineEditModelAli.setText(model_folder)
+                self.enableCheckbox()
+
     def ChosePathOutput(self):
-        out_folder = qt.QFileDialog.getExistingDirectory(self.parent, "Select a scan folder")
-        if not out_folder =='':
+        out_folder = qt.QFileDialog.getExistingDirectory(
+            self.parent, "Select a scan folder"
+        )
+        if not out_folder == "":
             self.ui.lineEditOutputPath.setText(out_folder)
 
     def DownloadRef(self):
@@ -437,36 +693,41 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             # else :
             #     checkbox.setCheckState(False)
 
+    dictedie = {
+        "saveLandmark": "Save Landmark",
+        "ssw": 1,
+    }
 
-    
     def enableCheckbox(self):
+        status = self.ActualMeth.existsLandmark(
+            self.ui.lineEditScanLmPath.text,
+            self.ui.lineEditRefFolder.text,
+            self.ui.lineEditModelAli.text,
+        )
 
-        status = self.ActualMeth.existsLandmark(self.ui.lineEditScanLmPath.text,self.ui.lineEditRefFolder.text,self.ui.lineEditModelAli.text)
         if status is None:
             return
 
-
-        if self.type == 'IOS':
-            for checkbox , checkbox2 in zip(self.logic.iterillimeted(self.dicchckbox),self.logic.iterillimeted(self.dicchckbox)):
-
-                    try :
-                        checkbox.setVisible(status[checkbox.text])
-                        checkbox2.setVisible(status[checkbox2.text])
-
-                    except:
-                        pass
-
-        if self.type == 'CBCT':
-            for checkboxs,checkboxs2 in zip(self.dicchckbox.values(),self.dicchckbox2.values()):
-                for checkbox, checkbox2 in zip(checkboxs,checkboxs2):
+        if self.type == "IOS":
+            for checkbox, checkbox2 in zip(
+                self.logic.iterillimeted(self.dicchckbox),
+                self.logic.iterillimeted(self.dicchckbox),
+            ):
+                try:
                     checkbox.setVisible(status[checkbox.text])
                     checkbox2.setVisible(status[checkbox2.text])
 
+                except:
+                    pass
 
-
-
-
-
+        if self.type == "CBCT":
+            for checkboxs, checkboxs2 in zip(self.dicchckbox.values(), self.dicchckbox2.values()):
+                for checkbox, checkbox2 in zip(checkboxs, checkboxs2):
+                    checkbox.setVisible(status[checkbox.text])
+                    checkbox2.setVisible(status[checkbox2.text])
+                    if status[checkbox.text]:
+                        checkbox.setChecked(True)
+                        checkbox2.setChecked(True)
 
     """
                                                                                     
@@ -482,35 +743,49 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                                                                                     
     """
 
-
-
-
-
     def onPredictButton(self):
-        error = self.ActualMeth.TestProcess(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
-                                        folder_output = self.ui.lineEditOutputPath.text, model_folder_ali = self.ui.lineEditModelAli.text, model_folder_segor = self.ui.lineEditModelSegOr.text,
-                                        add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox, smallFOV = str(self.ui.checkBoxSmallFOV.isChecked()))
+        error = self.ActualMeth.TestProcess(
+            input_folder=self.ui.lineEditScanLmPath.text,
+            gold_folder=self.ui.lineEditRefFolder.text,
+            folder_output=self.ui.lineEditOutputPath.text,
+            model_folder_ali=self.ui.lineEditModelAli.text,
+            model_folder_segor=self.ui.lineEditModelSegOr.text,
+            add_in_namefile=self.ui.lineEditAddName.text,
+            dic_checkbox=self.dicchckbox,
+            smallFOV=str(self.ui.checkBoxSmallFOV.isChecked()),
+        )
 
         # print('error',error)
-        if isinstance(error,str):
-            qt.QMessageBox.warning(self.parent, 'Warning',error.replace(',','\n'))
+        if isinstance(error, str):
+            qt.QMessageBox.warning(self.parent, "Warning", error.replace(",", "\n"))
 
-        else :
-            self.list_Processes_Parameters, self.display = self.ActualMeth.Process(input_folder = self.ui.lineEditScanLmPath.text, gold_folder = self.ui.lineEditRefFolder.text,
-                                        folder_output = self.ui.lineEditOutputPath.text, model_folder_ali = self.ui.lineEditModelAli.text, model_folder_segor = self.ui.lineEditModelSegOr.text,
-                                        add_in_namefile = self.ui.lineEditAddName.text, dic_checkbox = self.dicchckbox, logPath= self.log_path, smallFOV = str(self.ui.checkBoxSmallFOV.isChecked()))
+        else:
+            self.list_Processes_Parameters, self.display = self.ActualMeth.Process(
+                input_folder=self.ui.lineEditScanLmPath.text,
+                gold_folder=self.ui.lineEditRefFolder.text,
+                folder_output=self.ui.lineEditOutputPath.text,
+                model_folder_ali=self.ui.lineEditModelAli.text,
+                model_folder_segor=self.ui.lineEditModelSegOr.text,
+                add_in_namefile=self.ui.lineEditAddName.text,
+                dic_checkbox=self.dicchckbox,
+                logPath=self.log_path,
+                smallFOV=str(self.ui.checkBoxSmallFOV.isChecked()),
+            )
 
             self.nb_extension_launch = len(self.list_Processes_Parameters)
             self.onProcessStarted()
-            
+
             # /!\ Launch of the first process /!\
-            self.process = slicer.cli.run(self.list_Processes_Parameters[0]['Process'],None,self.list_Processes_Parameters[0]['Parameter'])
-            self.processObserver = self.process.AddObserver('ModifiedEvent',self.onProcessUpdate)
+            self.process = slicer.cli.run(
+                self.list_Processes_Parameters[0]["Process"],
+                None,
+                self.list_Processes_Parameters[0]["Parameter"],
+            )
+            self.processObserver = self.process.AddObserver(
+                "ModifiedEvent", self.onProcessUpdate
+            )
 
             del self.list_Processes_Parameters[0]
-
-
-
 
     def onProcessStarted(self):
         self.startTime = time.time()
@@ -518,33 +793,30 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # self.ui.progressBar.setMaximum(self.nb_patient)
         self.ui.progressBar.setValue(0)
 
-
         self.ui.LabelProgressPatient.setText(f"Patient : 0 / {self.nb_patient}")
-        self.ui.LabelProgressExtension.setText(f'Extension : 0 / {self.nb_extension_launch}')
+        self.ui.LabelProgressExtension.setText(
+            f"Extension : 0 / {self.nb_extension_launch}"
+        )
         self.nb_extnesion_did = 0
 
         self.module_name_before = 0
         self.nb_change_bystep = 0
 
-
         self.RunningUI(True)
 
-
-    
-    def onProcessUpdate(self,caller,event):
-
+    def onProcessUpdate(self, caller, event):
         timer = f"Time : {time.time()-self.startTime:.2f}s"
         self.ui.LabelTimer.setText(timer)
         progress = caller.GetProgress()
         self.module_name = caller.GetModuleTitle()
         self.ui.LabelNameExtension.setText(self.module_name)
 
-
         if self.module_name_before != self.module_name:
-            
             self.ui.LabelProgressPatient.setText(f"Patient : 0 / {self.nb_patient}")
-            self.nb_extnesion_did +=1
-            self.ui.LabelProgressExtension.setText(f'Extension : {self.nb_extnesion_did} / {self.nb_extension_launch}')
+            self.nb_extnesion_did += 1
+            self.ui.LabelProgressExtension.setText(
+                f"Extension : {self.nb_extnesion_did} / {self.nb_extension_launch}"
+            )
             self.ui.progressBar.setValue(0)
 
             # if self.nb_change_bystep == 0 and self.module_name_before:
@@ -556,13 +828,13 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         if progress == 0:
             self.updateProgessBar = False
 
-
-        if self.display[self.module_name].isProgress(progress = progress, updateProgessBar = self.updateProgessBar): 
-            progress_bar , message =self.display[self.module_name]()
+        if self.display[self.module_name].isProgress(
+            progress=progress, updateProgessBar=self.updateProgessBar
+        ):
+            progress_bar, message = self.display[self.module_name]()
             self.ui.progressBar.setValue(progress_bar)
             self.ui.LabelProgressPatient.setText(message)
             self.nb_change_bystep += 1
-
 
         if caller.GetStatus() & caller.Completed:
             if caller.GetStatus() & caller.ErrorsMask:
@@ -573,72 +845,62 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 print("\n\n ========= ERROR ========= \n")
                 errorText = self.process.GetErrorText()
                 print("CLI execution failed: \n \n" + errorText)
-            # error
+                # error
                 # errorText = caller.GetErrorText()
                 # print("\n"+ 70*"=" + "\n\n" + errorText)
                 # print(70*"=")
                 self.onCancel()
-            
+
             else:
                 print("\n\n ========= PROCESSED ========= \n")
 
                 print(self.process.GetOutputText())
                 try:
-                    self.process = slicer.cli.run(self.list_Processes_Parameters[0]['Process'],None,self.list_Processes_Parameters[0]['Parameter'])
-                    self.processObserver = self.process.AddObserver('ModifiedEvent',self.onProcessUpdate)
+                    self.process = slicer.cli.run(
+                        self.list_Processes_Parameters[0]["Process"],
+                        None,
+                        self.list_Processes_Parameters[0]["Parameter"],
+                    )
+                    self.processObserver = self.process.AddObserver(
+                        "ModifiedEvent", self.onProcessUpdate
+                    )
                     del self.list_Processes_Parameters[0]
                 except IndexError:
                     self.OnEndProcess()
 
     def OnEndProcess(self):
-
         self.ui.LabelProgressPatient.setText(f"Patient : 0 / {self.nb_patient}")
-        self.nb_extnesion_did +=1
-        self.ui.LabelProgressExtension.setText(f'Extension : {self.nb_extnesion_did} / {self.nb_extension_launch}')
+        self.nb_extnesion_did += 1
+        self.ui.LabelProgressExtension.setText(
+            f"Extension : {self.nb_extnesion_did} / {self.nb_extension_launch}"
+        )
         self.ui.progressBar.setValue(0)
 
         # if self.nb_change_bystep == 0:
         #     print(f'Erreur this module didnt work {self.module_name_before}')
 
         self.module_name_before = self.module_name
-        self.nb_change_bystep =0
+        self.nb_change_bystep = 0
 
-        
-        print('PROCESS DONE.')
+        print("PROCESS DONE.")
         self.RunningUI(False)
 
         stopTime = time.time()
 
-        logging.info(f'Processing completed in {stopTime-self.startTime:.2f} seconds')
-
-
+        logging.info(f"Processing completed in {stopTime-self.startTime:.2f} seconds")
 
     def onCancel(self):
-
         self.process.Cancel()
-
 
         self.RunningUI(False)
 
-
-
-
-    def RunningUI(self, run = False):
-
+    def RunningUI(self, run=False):
         self.ui.ButtonOriented.setVisible(not run)
 
-      
         self.ui.progressBar.setVisible(run)
         self.ui.LabelTimer.setVisible(run)
 
         self.HideComputeItems(run)
-
-
-
-
-
-
-
 
     """
                                                                                                                         
@@ -656,27 +918,24 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                                                                                                                         
     """
 
-
-    def initCheckbox(self,methode,layout,tohide : qt.QLabel):
-        if not tohide is None :
+    def initCheckbox(self, methode, layout, tohide: qt.QLabel):
+        if not tohide is None:
             tohide.setHidden(True)
-        dic  = methode.DicLandmark()
+        dic = methode.DicLandmark()
         # status = methode.existsLandmark('','')
-        dicchebox={}
-        dicchebox2={}
-        for type , tab in dic.items():
-            
+        dicchebox = {}
+        dicchebox2 = {}
+        for type, tab in dic.items():
             Tab = QTabWidget()
             layout.addWidget(Tab)
-            listcheckboxlandmark =[]
+            listcheckboxlandmark = []
             listcheckboxlandmark2 = []
-            
 
-            all_checkboxtab = self.CreateMiniTab(Tab,'All',0)
-            for i, (name , listlandmark) in enumerate(tab.items()):
-                widget = self.CreateMiniTab(Tab,name,i+1)
+            all_checkboxtab = self.CreateMiniTab(Tab, "All", 0)
+            for i, (name, listlandmark) in enumerate(tab.items()):
+                widget = self.CreateMiniTab(Tab, name, i + 1)
                 for landmark in listlandmark:
-                    checkbox  = QCheckBox()
+                    checkbox = QCheckBox()
                     checkbox2 = QCheckBox()
                     checkbox.setText(landmark)
                     checkbox2.setText(landmark)
@@ -686,83 +945,91 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     checkbox.toggled.connect(checkbox2.setChecked)
                     widget.addWidget(checkbox)
                     all_checkboxtab.addWidget(checkbox2)
-                    
+
                     listcheckboxlandmark.append(checkbox)
                     listcheckboxlandmark2.append(checkbox2)
-                    
 
             dicchebox[type] = listcheckboxlandmark
-            dicchebox2[type]=listcheckboxlandmark2
-            
+            dicchebox2[type] = listcheckboxlandmark2
 
         methode.setcheckbox(dicchebox)
         methode.setcheckbox2(dicchebox2)
-        
+
         return dicchebox, dicchebox2
 
-
-
-    def CreateMiniTab(self,tabWidget : QTabWidget, name : str, index : int):
-    
-
-
-
-
-
+    def CreateMiniTab(self, tabWidget: QTabWidget, name: str, index: int):
         new_widget = QWidget()
         # new_widget.setMinimumHeight(3)
         new_widget.resize(tabWidget.size)
 
         layout = QGridLayout(new_widget)
 
-
         scr_box = QScrollArea(new_widget)
         # scr_box.setMinimumHeight(50)
         scr_box.resize(tabWidget.size)
 
-        layout.addWidget(scr_box,0,0)
+        layout.addWidget(scr_box, 0, 0)
 
         new_widget2 = QWidget(scr_box)
-        layout2 = QVBoxLayout(new_widget2) 
+        layout2 = QVBoxLayout(new_widget2)
 
-        
         scr_box.setWidgetResizable(True)
         scr_box.setWidget(new_widget2)
 
-        
-        tabWidget.insertTab(index,new_widget,name)
+        tabWidget.insertTab(index, new_widget, name)
 
         return layout2
 
-    
-    def HideComputeItems(self,run=False):
-        
+    def HideComputeItems(self, run=False):
         self.ui.ButtonOriented.setVisible(not run)
 
         self.ui.ButtonCancel.setVisible(run)
-        
+
         self.ui.LabelProgressPatient.setVisible(run)
         self.ui.LabelProgressExtension.setVisible(run)
         self.ui.LabelNameExtension.setVisible(run)
         self.ui.progressBar.setVisible(run)
-        
+
         self.ui.LabelTimer.setVisible(run)
 
-
-
-    def initTest(self,methode : Auto_IOS ,layout :QGridLayout,tohide : QLabel, layout2 : QVBoxLayout):
-        diccheckbox={"Adult":{},"Child":{}}
+    def initTest(
+        self,
+        methode: Auto_IOS,
+        layout: QGridLayout,
+        tohide: QLabel,
+        layout2: QVBoxLayout,
+    ):
+        diccheckbox = {"Adult": {}, "Child": {}}
         tohide.setHidden(True)
-        dic_teeth ={1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F', 7: 'G', 8: 'H', 9: 'I', 10: 'J', 11: 'T', 12: 'S', 13: 'R', 14: 'Q', 15: 'P', 16: 'O', 17: 'N', 18: 'M', 19: 'L', 20: 'K'}
+        dic_teeth = {
+            1: "A",
+            2: "B",
+            3: "C",
+            4: "D",
+            5: "E",
+            6: "F",
+            7: "G",
+            8: "H",
+            9: "I",
+            10: "J",
+            11: "T",
+            12: "S",
+            13: "R",
+            14: "Q",
+            15: "P",
+            16: "O",
+            17: "N",
+            18: "M",
+            19: "L",
+            20: "K",
+        }
         upper = []
         lower = []
 
-
-
-        list= []
-        for i in range(1,11):
+        list = []
+        for i in range(1, 11):
             label = QLabel()
-            pixmap =  QPixmap(self.resourcePath(f'Image/{i}_resize_child.png'))
+            pixmap = QPixmap(self.resourcePath(f"Image/{i}_resize_child.png"))
             label.setPixmap(pixmap)
             widget = QWidget()
             check = QCheckBox()
@@ -771,21 +1038,51 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             layout_check = QHBoxLayout(widget)
             layout_check.addWidget(check)
 
-
-            layout.addWidget(widget,1,i+3)
-            layout.addWidget(label,0,i+3)
+            layout.addWidget(widget, 1, i + 3)
+            layout.addWidget(label, 0, i + 3)
             list.append(check)
-        diccheckbox['Child']['Upper']=list
+        diccheckbox["Child"]["Upper"] = list
         upper += list
 
-        dic ={1: 'UR8', 2: 'UR7', 3: 'UR6', 4: 'UR5', 5: 'UR4', 6: 'UR3', 7: 'UR2', 8: 'UR1', 9: 'UL1', 10: 'UL2', 11: 'UL3', 12: 'UL4', 
-        13: 'UL5', 14: 'UL6', 15: 'UL7', 16: 'UL8', 17: 'LL8', 18: 'LL7', 19: 'LL6', 20: 'LL5', 21: 'LL4', 22: 'LL3', 23: 'LL2', 24: 'LL1', 
-        25: 'LR1', 26: 'LR2', 27: 'LR3', 28: 'LR4', 29: 'LR5', 30: 'LR6', 31: 'LR7', 32: 'LR8'}
+        dic = {
+            1: "UR8",
+            2: "UR7",
+            3: "UR6",
+            4: "UR5",
+            5: "UR4",
+            6: "UR3",
+            7: "UR2",
+            8: "UR1",
+            9: "UL1",
+            10: "UL2",
+            11: "UL3",
+            12: "UL4",
+            13: "UL5",
+            14: "UL6",
+            15: "UL7",
+            16: "UL8",
+            17: "LL8",
+            18: "LL7",
+            19: "LL6",
+            20: "LL5",
+            21: "LL4",
+            22: "LL3",
+            23: "LL2",
+            24: "LL1",
+            25: "LR1",
+            26: "LR2",
+            27: "LR3",
+            28: "LR4",
+            29: "LR5",
+            30: "LR6",
+            31: "LR7",
+            32: "LR8",
+        }
 
-        list =[]
-        for i in range(1,17):
+        list = []
+        for i in range(1, 17):
             label = QLabel()
-            pixmap =  QPixmap(self.resourcePath(f'Image/{i}_resize.png'))
+            pixmap = QPixmap(self.resourcePath(f"Image/{i}_resize.png"))
             label.setPixmap(pixmap)
             widget = QWidget()
             check = QCheckBox()
@@ -794,92 +1091,89 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             layout_check = QHBoxLayout(widget)
             layout_check.addWidget(check)
 
-
-            layout.addWidget(widget,3,i)
-            layout.addWidget(label,2,i)
+            layout.addWidget(widget, 3, i)
+            layout.addWidget(label, 2, i)
 
             list.append(check)
 
-        diccheckbox['Adult']['Upper']=list
+        diccheckbox["Adult"]["Upper"] = list
         upper += list
 
-
-        list =[]
-        for i in range(1,17):
+        list = []
+        for i in range(1, 17):
             label = QLabel()
-            pixmap =  QPixmap(self.resourcePath(f'Image/{i+16}_resize.png'))
+            pixmap = QPixmap(self.resourcePath(f"Image/{i+16}_resize.png"))
             label.setPixmap(pixmap)
             widget = QWidget()
             check = QCheckBox()
-            check.setText(dic[i+16])
+            check.setText(dic[i + 16])
             check.setEnabled(False)
             layout_check = QHBoxLayout(widget)
             layout_check.addWidget(check)
 
-
-            layout.addWidget(widget,4,17-i)
-            layout.addWidget(label,5,17-i)
+            layout.addWidget(widget, 4, 17 - i)
+            layout.addWidget(label, 5, 17 - i)
 
             list.append(check)
 
-        diccheckbox['Adult']['Lower']=list
+        diccheckbox["Adult"]["Lower"] = list
         lower += list
 
-        list=[]
-        for i in range(1,11):
+        list = []
+        for i in range(1, 11):
             label = QLabel()
-            pixmap =  QPixmap(self.resourcePath(f'Image/{i+10}_resize_child.png'))
+            pixmap = QPixmap(self.resourcePath(f"Image/{i+10}_resize_child.png"))
             label.setPixmap(pixmap)
             widget = QWidget()
             check = QCheckBox()
-            check.setText(dic_teeth[i+10])
+            check.setText(dic_teeth[i + 10])
             check.setEnabled(False)
             layout_check = QHBoxLayout(widget)
             layout_check.addWidget(check)
 
-
-            layout.addWidget(widget,6,i+3)
-            layout.addWidget(label,7,i+3)
+            layout.addWidget(widget, 6, i + 3)
+            layout.addWidget(label, 7, i + 3)
 
             list.append(check)
 
-        diccheckbox['Child']['Lower'] = list
+        diccheckbox["Child"]["Lower"] = list
         lower += list
 
         upper_checbox = QCheckBox()
-        upper_checbox.setText('Upper')
-        upper_checbox.toggled.connect(partial(self.initEnableCheckbox,{'Upper':upper,'Lower':lower},'Upper'))
-        layout.addWidget(upper_checbox,3,0)
+        upper_checbox.setText("Upper")
+        upper_checbox.toggled.connect(
+            partial(self.initEnableCheckbox, {"Upper": upper, "Lower": lower}, "Upper")
+        )
+        layout.addWidget(upper_checbox, 3, 0)
         lower_checkbox = QCheckBox()
-        lower_checkbox.setText('Lower')
-        lower_checkbox.toggled.connect(partial(self.initEnableCheckbox,{'Upper':upper,'Lower':lower},'Lower'))
-        layout.addWidget(lower_checkbox,4,0)
+        lower_checkbox.setText("Lower")
+        lower_checkbox.toggled.connect(
+            partial(self.initEnableCheckbox, {"Upper": upper, "Lower": lower}, "Lower")
+        )
+        layout.addWidget(lower_checkbox, 4, 0)
 
+        dic1, dic2 = self.initCheckbox(methode, layout2, None)
 
-        dic1 , dic2 = self.initCheckbox(methode,layout2,None)
+        methode.setcheckbox(
+            {
+                "Teeth": diccheckbox,
+                "Landmark": dic1,
+                "Jaw": {"Upper": upper_checbox, "Lower": lower_checkbox},
+            }
+        )
+        methode.setcheckbox2(
+            {
+                "Teeth": diccheckbox,
+                "Landmark": dic2,
+                "Jaw": {"Upper": upper_checbox, "Lower": lower_checkbox},
+            }
+        )
 
-
-        methode.setcheckbox({'Teeth':diccheckbox,'Landmark':dic1,'Jaw':{'Upper':upper_checbox,'Lower':lower_checkbox}})
-        methode.setcheckbox2({'Teeth':diccheckbox,'Landmark':dic2,'Jaw':{'Upper':upper_checbox,'Lower':lower_checkbox}})
-
-
-
-
-
-
-    def initEnableCheckbox(self,all_checkbox : dict ,jaw,boolean):
-
-
+    def initEnableCheckbox(self, all_checkbox: dict, jaw, boolean):
         for checkbox in all_checkbox[jaw]:
             checkbox.setEnabled(boolean)
             if (not boolean) and checkbox.isChecked():
                 checkbox.setChecked(False)
-
-
-
-
-
-
 
     """
                           .d88888b.  88888888888 888    888 8888888888 8888888b.   .d8888b.  
@@ -892,18 +1186,13 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                           "Y88888P"      888     888    888 8888888888 888   T88b  "Y8888P"    
     """
 
-
-
-
-
-
     def cleanup(self):
         """
         Called when the application closes and the module widget is destroyed.
         """
         if self.logic.cliNode is not None:
             # if self.logic.cliNode.GetStatus() & self.logic.cliNode.Running:
-            self.logic.cliNode.Cancel() 
+            self.logic.cliNode.Cancel()
 
         self.removeObservers()
 
@@ -919,7 +1208,11 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         Called each time the user opens a different module.
         """
         # Do not react to parameter node changes (GUI wlil be updated when the user enters into the module)
-        self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
+        self.removeObserver(
+            self._parameterNode,
+            vtk.vtkCommand.ModifiedEvent,
+            self.updateGUIFromParameterNode,
+        )
 
     def onSceneStartClose(self, caller, event):
         """
@@ -943,7 +1236,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # Parameter node stores all user choices in parameter values, node selections, etc.
         # so that when the scene is saved and reloaded, these settings are restored.
 
-
     def setParameterNode(self, inputParameterNode):
         """
         Set and observe parameter node.
@@ -957,10 +1249,18 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # Changes of parameter node are observed so that whenever parameters are changed by a script or any other module
         # those are reflected immediately in the GUI.
         if self._parameterNode is not None:
-            self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
+            self.removeObserver(
+                self._parameterNode,
+                vtk.vtkCommand.ModifiedEvent,
+                self.updateGUIFromParameterNode,
+            )
         self._parameterNode = inputParameterNode
         if self._parameterNode is not None:
-            self.addObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
+            self.addObserver(
+                self._parameterNode,
+                vtk.vtkCommand.ModifiedEvent,
+                self.updateGUIFromParameterNode,
+            )
 
         # Initial GUI update
         self.updateGUIFromParameterNode()
@@ -978,11 +1278,19 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self._updatingGUIFromParameterNode = True
 
         # Update node selectors and sliders
-        self.ui.inputSelector.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume"))
-        self.ui.outputSelector.setCurrentNode(self._parameterNode.GetNodeReference("OutputVolume"))
-        self.ui.invertedOutputSelector.setCurrentNode(self._parameterNode.GetNodeReference("OutputVolumeInverse"))
+        self.ui.inputSelector.setCurrentNode(
+            self._parameterNode.GetNodeReference("InputVolume")
+        )
+        self.ui.outputSelector.setCurrentNode(
+            self._parameterNode.GetNodeReference("OutputVolume")
+        )
+        self.ui.invertedOutputSelector.setCurrentNode(
+            self._parameterNode.GetNodeReference("OutputVolumeInverse")
+        )
         # self.ui.imageThresholdSliderWidget.value = float(self._parameterNode.GetParameter("Threshold"))
-        self.ui.invertOutputCheckBox.checked = (self._parameterNode.GetParameter("Invert") == "true")
+        self.ui.invertOutputCheckBox.checked = (
+            self._parameterNode.GetParameter("Invert") == "true"
+        )
 
         # Update buttons states and tooltips
         # if self._parameterNode.GetNodeReference("InputVolume") and self._parameterNode.GetNodeReference("OutputVolume"):
@@ -1004,19 +1312,25 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         if self._parameterNode is None or self._updatingGUIFromParameterNode:
             return
 
-        wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
+        wasModified = (
+            self._parameterNode.StartModify()
+        )  # Modify all properties in a single batch
 
-        self._parameterNode.SetNodeReferenceID("InputVolume", self.ui.inputSelector.currentNodeID)
-        self._parameterNode.SetNodeReferenceID("OutputVolume", self.ui.outputSelector.currentNodeID)
+        self._parameterNode.SetNodeReferenceID(
+            "InputVolume", self.ui.inputSelector.currentNodeID
+        )
+        self._parameterNode.SetNodeReferenceID(
+            "OutputVolume", self.ui.outputSelector.currentNodeID
+        )
         # self._parameterNode.SetParameter("Threshold", str(self.ui.imageThresholdSliderWidget.value))
-        self._parameterNode.SetParameter("Invert", "true" if self.ui.invertOutputCheckBox.checked else "false")
-        self._parameterNode.SetNodeReferenceID("OutputVolumeInverse", self.ui.invertedOutputSelector.currentNodeID)
+        self._parameterNode.SetParameter(
+            "Invert", "true" if self.ui.invertOutputCheckBox.checked else "false"
+        )
+        self._parameterNode.SetNodeReferenceID(
+            "OutputVolumeInverse", self.ui.invertedOutputSelector.currentNodeID
+        )
 
         self._parameterNode.EndModify(wasModified)
-
-
-
-
 
 
 """
@@ -1029,9 +1343,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
           d8888888888 Y88b  d88P Y88b. .d88P     888      Y88b. .d88P Y88b  d88P   888   Y88b  d88P 
          d88P     888  "Y8888P"   "Y88888P"      88888888  "Y88888P"   "Y8888P88 8888888  "Y8888P"                                                                                  
 """
-
-
-
 
 
 class ASOLogic(ScriptedLoadableModuleLogic):
@@ -1052,7 +1363,6 @@ class ASOLogic(ScriptedLoadableModuleLogic):
 
         self.cliNode = None
 
-
     def process(self, parameters):
         """
         Run the processing algorithm.
@@ -1064,27 +1374,23 @@ class ASOLogic(ScriptedLoadableModuleLogic):
         # import time
         # startTime = time.time()
 
-        logging.info('Processing started')
+        logging.info("Processing started")
 
         PredictProcess = slicer.modules.aso_ios
 
-
         self.cliNode = slicer.cli.run(PredictProcess, None, parameters)
-
 
         return PredictProcess
 
-
-
-    def iterillimeted(self,iter):
+    def iterillimeted(self, iter):
         out = []
-        if isinstance(iter,dict):
+        if isinstance(iter, dict):
             iter = list(iter.values())
-        
+
         for thing in iter:
-            if isinstance(thing,(dict,list,set)):
-                out+= self.iterillimeted(thing)
-            else :
+            if isinstance(thing, (dict, list, set)):
+                out += self.iterillimeted(thing)
+            else:
                 out.append(thing)
-        
+
         return out

@@ -1,16 +1,17 @@
-
 from abc import ABC, abstractmethod
 import os
 import glob
 import json
+
+
 class Methode(ABC):
-    def __init__(self,widget):
+    def __init__(self, widget):
         self.widget = widget
         self.diccheckbox = {}
-        self.diccheckbox2={}
+        self.diccheckbox2 = {}
 
     @abstractmethod
-    def NumberScan(self,scan_folder : str ):
+    def NumberScan(self, scan_folder: str):
         """
             Count the number of patient in folder
         Args:
@@ -23,7 +24,7 @@ class Methode(ABC):
         pass
 
     @abstractmethod
-    def TestScan(self,scan_folder : str) -> str:
+    def TestScan(self, scan_folder: str) -> str:
         """Verify if the input folder seems good (have everything required to run the mode selected), if something is wrong the function return string with error message
 
         This function is called when the user want to import scan
@@ -37,22 +38,21 @@ class Methode(ABC):
         """
 
     @abstractmethod
-    def TestReference(self,ref_folder :str) -> str :
+    def TestReference(self, ref_folder: str) -> str:
         """Verify if the reference folder contains reference gold files with landmarks and scans, if True return None and if False return str with error message to user
 
         Args:
-            ref_folder (str): folder path with gold landmark 
+            ref_folder (str): folder path with gold landmark
 
         Return :
             str or None : display str to user like warning
         """
 
-
-        pass 
+        pass
 
     @abstractmethod
-    def TestModel(self,model_folder :str,lineEditName) -> str :
-        """ Verify whether the model folder contains the right models used for ALI and other AI tool
+    def TestModel(self, model_folder: str, lineEditName) -> str:
+        """Verify whether the model folder contains the right models used for ALI and other AI tool
 
         Args:
             model_folder (str): folder path with different models
@@ -61,17 +61,14 @@ class Methode(ABC):
             str or None : display str to user like warning
         """
 
-
-        pass 
-
+        pass
 
     @abstractmethod
     def TestCheckbox(self) -> str:
         pass
 
-    
     @abstractmethod
-    def TestProcess(self,**kwargs)-> str:
+    def TestProcess(self, **kwargs) -> str:
         """Check if everything is OK before launching the process, if something is wrong return string with all error
 
 
@@ -81,33 +78,12 @@ class Methode(ABC):
         """
         pass
 
-    @abstractmethod
-    def DownloadRef(self):
-        """Download Landmark reference gold files in our gitbub
-        """
-        pass
 
     @abstractmethod
-    def DownloadModels(self):
-        """Download Models files in our gitbub
-        """
-        pass
-
-    @abstractmethod
-    def DownloadTestFile(self):
-        """Download Test files in our gitbub
-        """
-        pass
-    
-    @abstractmethod
-    def Process(self,**kwargs):
-        """Launch extension
-
-
-        """
+    def Process(self, **kwargs):
+        """Launch extension"""
 
         pass
-
 
     @abstractmethod
     def DicLandmark(self):
@@ -126,11 +102,8 @@ class Methode(ABC):
 
         pass
 
-
-
-
     @abstractmethod
-    def existsLandmark(self, pathfile : str,pathref : str, pathmodel : str):
+    def existsLandmark(self, pathfile: str, pathref: str, pathmodel: str):
         """return dictionnary. when the value of the landmark in dictionnary is true, the landmark is in input folder and in gold folder
         Args:
             pathfile (str): path
@@ -144,21 +117,56 @@ class Methode(ABC):
     def Sugest(self):
         pass
 
+    @abstractmethod
+    def getTestFileList(self):
+        """ Return a tuple with both the name and the Download link of the test files
+        
+        tuple = ('name','link')
+        """
+        pass
+    
+    @abstractmethod
+    def getReferenceList(self):
+        """
+        Return a dictionnary with both the name and the Download link of the references
 
+        dict = {'name1':'link1','name2':'link2',...}
 
+        """
+        pass
+
+    @abstractmethod
+    def getSegOrModelList(self):
+        """
+        Return a tuple with both the name and the Download link of the Seg or Or model
+
+        tuple = ('name','link')
+
+        """
+        pass
+
+    @abstractmethod
+    def getALIModelList(self):
+        """
+        Return a tuple with both the name and the Download link for ALI model
+
+        tuple = ('name','link')
+
+        """
+        pass
     def getcheckbox(self):
         return self.diccheckbox
 
-    def setcheckbox(self,dicccheckbox):
+    def setcheckbox(self, dicccheckbox):
         self.diccheckbox = dicccheckbox
 
     def getcheckbox2(self):
         return self.diccheckbox2
 
-    def setcheckbox2(self,dicccheckbox):
+    def setcheckbox2(self, dicccheckbox):
         self.diccheckbox2 = dicccheckbox
 
-    def search(self,path,*args):
+    def search(self, path, *args):
         """
         Return a dictionary with args element as key and a list of file in path directory finishing by args extension for each key
 
@@ -171,24 +179,28 @@ class Methode(ABC):
                 '.nrrd.gz' : ['path/c.nrrd']
             }
         """
-        arguments=[]
+        arguments = []
         for arg in args:
             if type(arg) == list:
                 arguments.extend(arg)
             else:
                 arguments.append(arg)
-        return {key: [i for i in glob.iglob(os.path.normpath("/".join([path,'**','*'])),recursive=True) if i.endswith(key)] for key in arguments}
+        return {
+            key: [
+                i
+                for i in glob.iglob(
+                    os.path.normpath("/".join([path, "**", "*"])), recursive=True
+                )
+                if i.endswith(key)
+            ]
+            for key in arguments
+        }
 
-
-
-    def ListLandmarksJson(self,json_file):
-        
+    def ListLandmarksJson(self, json_file):
         with open(json_file) as f:
             data = json.load(f)
-        
-        return [data["markups"][0]["controlPoints"][i]['label'] for i in range(len(data["markups"][0]["controlPoints"]))]
 
-
-
-
-        
+        return [
+            data["markups"][0]["controlPoints"][i]["label"]
+            for i in range(len(data["markups"][0]["controlPoints"]))
+        ]
