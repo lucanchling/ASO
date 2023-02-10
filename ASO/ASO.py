@@ -181,26 +181,6 @@ class PopUpWindow(qt.QDialog):
         self.checked = self.listename[[button.isChecked() for button in self.ListButtons].index(True)]
         self.accept()
 
-class PopUpProgressBar(qt.QDialog):
-    def __init__(self):
-        QWidget.__init__(self)
-        self.setWindowTitle("Progression")
-        layout = QGridLayout()
-        self.setLayout(layout)
-        self.progressbar = qt.QProgressBar()
-        self.progressbar.setRange(0,100)
-        self.progressbar.setValue(0)
-        layout.addWidget(self.progressbar, 0, 0)
-        self.label = qt.QLabel("0%")
-        layout.addWidget(self.label, 0, 1)
-
-    def setProgress(self, value):
-        self.progressbar.setValue(value)
-        self.label.setText(str(value)+"%")
-
-    def close(self):
-        self.accept()
-
 #
 # ASOWidget
 #
@@ -497,7 +477,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         out_path = os.path.join(directory, folder_name)
 
         if not os.path.exists(out_path):
-            print("Downloading {}...".format(folder_name.split("/")[0]))
+            # print("Downloading {}...".format(folder_name.split("/")[0]))
             os.makedirs(out_path)
 
             temp_path = os.path.join(directory, "temp.zip")
@@ -511,7 +491,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     "File {} of {}".format(num_downl, total_downloads), "Cancel", 0, 100, self.parent
                 )
                 progress.setWindowModality(qt.Qt.WindowModal)
-                progress.setWindowTitle("Downloading")
+                progress.setWindowTitle("Downloading {}...".format(folder_name.split("/")[0]))
                 # progress.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
                 progress.show()
                 length = response.info().get("Content-Length")
