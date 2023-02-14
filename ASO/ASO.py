@@ -359,6 +359,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.ButtonSugestLmIOSSemi.clicked.connect(self.SelectSugestLandmark)
         self.ui.CbInputType.currentIndexChanged.connect(self.SwitchType)
         self.ui.CbModeType.currentIndexChanged.connect(self.SwitchType)
+        self.ui.ButtonTestFiles.clicked.connect(lambda: self.SearchScanLm(True))
 
     """
 
@@ -520,51 +521,44 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         return out_path
 
-    def SearchScanLm(self):
-        s = PopUpWindow(title="Select Input Folder", listename=["Select your Input Folder", "Test Files"],type="radio")
-
-        if s.exec_():
-            ret = s.checked
-
-            if ret == "Select your Input Folder":
-                own_scan = True
-                scan_folder = qt.QFileDialog.getExistingDirectory(
+    def SearchScanLm(self,test=False):
+        if not test:
+            scan_folder = qt.QFileDialog.getExistingDirectory(
                     self.parent, "Select a scan folder for Input"
                 )
-            else: # Test Files --> Lets do the coffee for everyone /!\
-                own_scan = False
-                name,url = self.ActualMeth.getTestFileList()
-                
-                scan_folder = self.DownloadUnzip(
-                    url=url,
-                    directory=os.path.join(self.SlicerDownloadPath),
-                    folder_name=os.path.join("Test_Files", name),
+        else:
+            name,url = self.ActualMeth.getTestFileList()
+            
+            scan_folder = self.DownloadUnzip(
+                url=url,
+                directory=os.path.join(self.SlicerDownloadPath),
+                folder_name=os.path.join("Test_Files", name),
+            )
+            self.SearchReference(test=True)
+            self.SearchModelSegOr()
+            if self.type == "CBCT":
+                self.SearchModelALI(test=True)
+
+        if not scan_folder == "":
+            nb_scans = self.ActualMeth.NumberScan(scan_folder)
+            error = self.ActualMeth.TestScan(scan_folder)
+
+            if isinstance(error, str):
+                qt.QMessageBox.warning(self.parent, "Warning", error)
+            else:
+                self.nb_patient = nb_scans
+                self.ui.lineEditScanLmPath.setText(scan_folder)
+                self.ui.LabelInfoPreProc.setText(
+                    "Number of scans to process : " + str(nb_scans)
                 )
-                self.SearchReference(test=True)
-                self.SearchModelSegOr()
-                if self.type == "CBCT":
-                    self.SearchModelALI(test=True)
+                self.ui.LabelProgressPatient.setText(
+                    "Patient process : 0 /" + str(nb_scans)
+                )
+                self.enableCheckbox()
 
-            if not scan_folder == "":
-                nb_scans = self.ActualMeth.NumberScan(scan_folder)
-                error = self.ActualMeth.TestScan(scan_folder)
-
-                if isinstance(error, str):
-                    qt.QMessageBox.warning(self.parent, "Warning", error)
-                else:
-                    self.nb_patient = nb_scans
-                    self.ui.lineEditScanLmPath.setText(scan_folder)
-                    self.ui.LabelInfoPreProc.setText(
-                        "Number of scans to process : " + str(nb_scans)
-                    )
-                    self.ui.LabelProgressPatient.setText(
-                        "Patient process : 0 /" + str(nb_scans)
-                    )
-                    self.enableCheckbox()
-
-                    if self.ui.lineEditOutputPath.text == "":# and own_scan:
-                        dir, spl = os.path.split(scan_folder)
-                        self.ui.lineEditOutputPath.setText(os.path.join(dir, spl + "Or"))
+                if self.ui.lineEditOutputPath.text == "":
+                    dir, spl = os.path.split(scan_folder)
+                    self.ui.lineEditOutputPath.setText(os.path.join(dir, spl + "Or"))
 
 
     def SearchReference(self,test=False):
