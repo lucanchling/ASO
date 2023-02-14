@@ -254,7 +254,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             "Semi_CBCT": Semi_CBCT(self),
             "Auto_CBCT": Auto_CBCT(self),
         }
-
+        self.reference_lm = []
         self.ActualMeth = Methode
         self.ActualMeth = self.MethodeDic["Auto_CBCT"]
         self.type = "CBCT"
@@ -489,7 +489,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             ) as out_file:
                 # Pop up a progress bar with a QProgressDialog
                 progress = qt.QProgressDialog(
-                    "File {} of {}".format(num_downl, total_downloads), "Cancel", 0, 100, self.parent
+                    "Downloading {} (File {}/{})".format(folder_name.split("/")[0],num_downl, total_downloads), "Cancel", 0, 100, self.parent
                 )
                 progress.setWindowModality(qt.Qt.WindowModal)
                 progress.setWindowTitle("Downloading {}...".format(folder_name.split("/")[0]))
@@ -629,6 +629,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             ret = self.reference_lm
 
         else:
+            
             s = PopUpWindow(title="Chose ALI Models to Download",listename=sorted(listeLandmark),type="checkbox",tocheck=self.reference_lm)
             s.exec_()
             ret = s.checked
