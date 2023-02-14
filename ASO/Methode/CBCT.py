@@ -38,8 +38,8 @@ class CBCT(Methode):
     
     def getReferenceList(self):
         return {
-            "Occlusal_Midsagittal_Plane": "https://github.com/lucanchling/ASO_CBCT/releases/download/v01_goldmodels/Occlusal_Midsagittal_Plane.zip",
-            "Frankfurt_Horizontal_Midsagittal_Plane": "https://github.com/lucanchling/ASO_CBCT/releases/download/v01_goldmodels/Frankfurt_Horizontal_Midsagittal_Plane.zip",
+            "Occlusal and Midsagittal Plane": "https://github.com/lucanchling/ASO_CBCT/releases/download/v01_goldmodels/Occlusal_Midsagittal_Plane.zip",
+            "Frankfurt Horizontal and Midsagittal Plane": "https://github.com/lucanchling/ASO_CBCT/releases/download/v01_goldmodels/Frankfurt_Horizontal_Midsagittal_Plane.zip",
 
         }
 
@@ -60,7 +60,7 @@ class CBCT(Methode):
         list_landmark = self.CheckboxisChecked(dic_checkbox)
         out = None
         if len(list_landmark) < 3:
-             out = 'Select a minimum of 3 landmarks\n'
+             out = 'Please select at least 3 landmarks\n'
         return out    
 
     def TestModel(self, model_folder: str,lineEditName) -> str:
@@ -86,16 +86,16 @@ class CBCT(Methode):
             out+=testcheckbox
 
         if kwargs['input_folder'] == '':
-            out+= 'Select an input folder\n'
+            out+= 'Please select an input folder\n'
 
         if kwargs['gold_folder'] == '':
-            out+= 'Select a reference folder\n'
+            out+= 'Please select a reference folder\n'
 
         if kwargs['folder_output'] == '':
-            out+= 'Select an output folder\n'
+            out+= 'Please select an output folder\n'
 
         if kwargs['add_in_namefile']== '':
-            out += 'Select an extension for output files\n'
+            out += 'Please select an extension for output files\n'
 
         if out == '':
             out = None
