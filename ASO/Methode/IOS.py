@@ -26,21 +26,21 @@ class Auto_IOS(Methode):
     def TestScan(self, scan_folder: str):
         out = None
         if scan_folder == '':
-            out = 'Give folder with vtk file'
+            out = 'Please select folder with vtk files'
         elif self.NumberScan(scan_folder) == 0 :
-            out = 'Give folder with vkt file'
+            out = 'Please select folder with vkt files'
         return out
 
     def TestModel(self, model_folder: str,lineEditName) -> str:
         out = None
         if model_folder == '':
-            out = 'Please five folder with one .pht file'
+            out = 'Please select folder with one .pht file'
         else :
             files = self.search(model_folder,'.pth')['.pth']
             
             if 'lineEditModelSegOr' == lineEditName:
                 if len(files) != 1 :
-                    out = 'Please give folder with only one .pth file'
+                    out = 'Please select folder with only one .pth file'
 
 
         # elif lineEditName == 'lineEditModelAli':
@@ -55,18 +55,18 @@ class Auto_IOS(Methode):
         if ref_folder!= '':
             dic = self.search(ref_folder,'.vtk','.json')
             if len(dic['.json']) == 0:
-                out.append('Please choose a folder with json file')
+                out.append('Please select a folder with 2 json files')
             elif len(dic['.json'])>2:
-                out.append( 'Too many json file ')
+                out.append( 'Please select a folder with  2 json files ')
 
             if len(dic['.vtk']) ==0:
-                out.append('Please choose a folder with vkt file')
+                out.append('Please select a folder with vkt file')
             
             elif len(dic['.vtk'])>2:
-                out.append('Too many vkt file in reference folder')
+                out.append('Please 2 vkt files in folder reference')
 
         else :
-            out = 'Give reference folder with json and vtk file'
+            out = 'Please select reference folder with  2 json and 2 vtk files'
 
         if len(out)== 0:
             out = None
@@ -76,14 +76,14 @@ class Auto_IOS(Methode):
         return out
 
     def TestCheckbox(self,dic_checkbox) -> str:
-        list_teeth, list_landmark, mix, jaw = self.__CheckboxisChecked(dic_checkbox)
+        list_teeth, jaw = self.__CheckboxisChecked(dic_checkbox)
         out = []
         if len(jaw) == 1 :
             if len(list_teeth) != 3 and len(list_teeth)!=4:
-                out.append('Give 3 teeth or 4')
+                out.append('Please select 3 or 4 teeth')
         elif len(jaw) == 2 :
             if len(list_teeth) !=6 and len(list_teeth) != 7 and len(list_teeth) != 8 :
-                out.append('Give 6 or 7 or 8 teeth')
+                out.append('Please select 6 or 7 or 8 teeth')
 
 
         if len(jaw)<1 :
@@ -198,7 +198,7 @@ class Auto_IOS(Methode):
 
 
     def Process(self, **kwargs):
-        list_teeth, list_landmark , mix, jaw = self.__CheckboxisChecked(kwargs['dic_checkbox']) 
+        list_teeth, jaw = self.__CheckboxisChecked(kwargs['dic_checkbox']) 
 
         path_tmp = slicer.util.tempDirectory()
         path_input = os.path.join(path_tmp,'intpu_seg')
@@ -274,8 +274,8 @@ class Auto_IOS(Methode):
 
         PreOrientProcess = slicer.modules.pre_aso_ios
         SegProcess = slicer.modules.crownsegmentationcli
-        aliiosProcess = slicer.modules.ali_ios
-        OrientProcess = slicer.modules.semi_aso_ios
+        # aliiosProcess = slicer.modules.ali_ios
+        # OrientProcess = slicer.modules.semi_aso_ios
 
 # {'Process':SegProcess,'Parameter':parameter_seg},{'Process':PreOrientProcess,'Parameter':parameter_pre_aso},
         list_process = [{'Process':SegProcess,'Parameter':parameter_seg},
@@ -350,9 +350,8 @@ class Auto_IOS(Methode):
         dic_child = {'A': 'UR5', 'B': 'UR4', 'C': 'UR3', 'D': 'UR2', 'E': 'UR1', 'F': 'UL1', 'G': 'UL2', 'H': 'UL3', 'I': 'UL4', 'J': 'UL5', 'K': 'LL5', 'L': 'LL4', 'M': 'LL3', 'N': 'LL2', 'O': 'LL1', 'P': 'LR1', 'Q': 'LR2', 'R': 'LR3', 'S': 'LR4', 'T': 'LR5'}
 
         teeth = []
-        landmarks= []
         jaw = []
-        mix = []
+
         if not len(diccheckbox) == 0:
 
             for checkboxs in diccheckbox['Teeth']['Adult'].values():
@@ -363,25 +362,15 @@ class Auto_IOS(Methode):
             for checkboxs in diccheckbox['Teeth']['Child'].values():
                 for checkbox in checkboxs:
                     if checkbox.isChecked():
-                        teeth = list(set(teeth).union(set((dic_child[checkbox.name]))))
+                        teeth = list(set(teeth).union(set((dic_child[checkbox.text]))))
 
-
-            for checkboxs in diccheckbox['Landmark'].values():
-                for checkbox in checkboxs:
-                    if checkbox.isChecked():
-                        landmarks.append(checkbox.text)
-
-
-            for tooth in teeth :
-                for landmark in landmarks :
-                    mix.append(f'{tooth}{landmark}')
 
 
             for key , checkbox in diccheckbox['Jaw'].items():
                 if checkbox.isChecked():
                     jaw.append(key)
 
-        return teeth , landmarks, mix, jaw
+        return teeth , jaw
 
 
 
@@ -412,7 +401,7 @@ class Semi_IOS(Auto_IOS):
                 # out = 'Give folder with the same number of vkt file and json file'`
 
         else :
-            out = 'Choose a folder with scan and landmark'
+            out = 'Please select a folder with vkt and json file'
         return out 
 
 
@@ -420,10 +409,9 @@ class Semi_IOS(Auto_IOS):
         out = []
         if ref_folder!= '':
             dic = self.search(ref_folder,'.json')
-            if len(dic['.json']) == 0:
-                out.append('Please choose a folder with json file')
-            elif len(dic['.json'])>2:
-                out.append( 'Too many json file ')
+            if len(dic['.json'])!=2:
+                out.append('Please select a folder with 2 json files')
+
         if len(out) == 0:
             out = None
 
@@ -431,6 +419,7 @@ class Semi_IOS(Auto_IOS):
             out = out.split(',')
           
         return out
+    
     def TestProcess(self,**kwargs) -> str:
         out  = ''
 
@@ -450,7 +439,7 @@ class Semi_IOS(Auto_IOS):
             out = out + f"{testcheckbox},"
 
         if kwargs['add_in_namefile']== '':
-            out = out + "Give something to add in name of file,"
+            out = out + "Please write something in suffix space,"
 
 
         if out != '':

@@ -1139,24 +1139,37 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             partial(self.initEnableCheckbox, {"Upper": upper, "Lower": lower}, "Lower")
         )
         layout.addWidget(lower_checkbox, 4, 0)
+        if isinstance(methode,Semi_IOS):
+            dic1, dic2 = self.initCheckbox(methode, layout2, None)
 
-        dic1, dic2 = self.initCheckbox(methode, layout2, None)
+            methode.setcheckbox(
+                {
+                    "Teeth": diccheckbox,
+                    "Landmark": dic1,
+                    "Jaw": {"Upper": upper_checbox, "Lower": lower_checkbox},
+                }
+            )
+            methode.setcheckbox2(
+                {
+                    "Teeth": diccheckbox,
+                    "Landmark": dic2,
+                    "Jaw": {"Upper": upper_checbox, "Lower": lower_checkbox},
+                }
+            )
+        else : 
 
-        methode.setcheckbox(
-            {
-                "Teeth": diccheckbox,
-                "Landmark": dic1,
-                "Jaw": {"Upper": upper_checbox, "Lower": lower_checkbox},
-            }
-        )
-        methode.setcheckbox2(
-            {
-                "Teeth": diccheckbox,
-                "Landmark": dic2,
-                "Jaw": {"Upper": upper_checbox, "Lower": lower_checkbox},
-            }
-        )
-
+            methode.setcheckbox(
+                {
+                    "Teeth": diccheckbox,
+                    "Jaw": {"Upper": upper_checbox, "Lower": lower_checkbox},
+                }
+            )
+            methode.setcheckbox2(
+                {
+                    "Teeth": diccheckbox,
+                    "Jaw": {"Upper": upper_checbox, "Lower": lower_checkbox},
+                }
+            )
     def initEnableCheckbox(self, all_checkbox: dict, jaw, boolean):
         for checkbox in all_checkbox[jaw]:
             checkbox.setEnabled(boolean)
