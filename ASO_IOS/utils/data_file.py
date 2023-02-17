@@ -224,6 +224,14 @@ class Files:
 
 
 class Files_vtk_link(Files):
+    """
+    From folder path,find lower upper jaw belong to the same patient
+
+    So, list_file get Mouth file. In Mouth file there are upper lower jaw and name of the pattient
+
+    Args:
+        Files (_type_): _description_
+    """
     def __init__(self, folder: str) -> None:
         super().__init__(folder)
         self.organise(folder)
@@ -308,6 +316,13 @@ class Files_vtk_link(Files):
 
 
 class Files_vtk_json(Files):
+    """
+    From path folder, find landmark(json) and jaw(vtk) matche together.
+    So, in list_files there are Jaw_file with landmark(json), jaw(vtk), lower/upper and name of patient 
+    There is only one landmark by Jaw_file
+    Args:
+        Files (_type_): _description_
+    """
     def __init__(self, folder: str) -> None:
         super().__init__(folder)
         self.list_file = self.organise(folder)
@@ -342,6 +357,15 @@ class Files_vtk_json(Files):
 
 
 class Files_vtk_json_link(Files_vtk_json):
+    """
+    From  folder, match files belong to the same patient: upper jaw(vtk) , upper landmark(json),  lower jaw(vtk) and lower landmark(json).
+    So, in list_files there are Mouth_file with 2 Jaw_file and name of patient. Each Jaw_file contain landmark file, jaw file and upper or lower.
+    Only one json file is taken by jaw 
+    
+
+    Args:
+        Files_vtk_json (_type_): _description_
+    """
     def __init__(self, folder: str) -> None:
         super().__init__(folder)
         self.organise(folder)
@@ -376,6 +400,15 @@ class Files_vtk_json_link(Files_vtk_json):
 
 
 class Files_vtk_json_semilink(Files):
+    """
+    From  folder, match files belong to the same patient: upper jaw(vtk) , upper landmark(json),  lower jaw(vtk) and lower landmark(json). the json files are not required to use this class unlike to Files_vtk_json_link
+    So, in list_files there are Mouth_file with 2 Jaw_file and name of patient. Each Jaw_file contain landmark file, jaw file and upper or lower.
+    Only one json file is taken by jaw 
+    
+
+    Args:
+        Files (_type_): _description_
+    """
     def __init__(self, folder: str) -> None:
         super().__init__(folder)
         self.list_file = self.organise(folder)
