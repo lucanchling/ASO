@@ -113,6 +113,9 @@ class ASO(ScriptedLoadableModule):
         #     lambda: self.SearchModel(self.ui.lineEditModelAli)
         # )
 class PopUpWindow(qt.QDialog):
+    """PopUpWindow class
+    This class is used to create a pop-up window with a list of buttons
+    """
     def __init__(self,title="Title",listename=["1","2","3"],type="radio", tocheck=None):
         QWidget.__init__(self)
         self.setWindowTitle(title)
@@ -475,6 +478,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.lineEditOutputPath.setText("")
     
     def DownloadUnzip(self, url, directory, folder_name=None, num_downl=1, total_downloads=1):
+        """Function to download and unzip a file from a url with a progress bar"""
         out_path = os.path.join(directory, folder_name)
 
         if not os.path.exists(out_path):
@@ -522,6 +526,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         return out_path
 
     def SearchScanLm(self,test=False):
+        """Function to search the scan folder and to check if the scans are valid"""
         if not test:
             scan_folder = qt.QFileDialog.getExistingDirectory(
                     self.parent, "Select a scan folder for Input"
@@ -562,6 +567,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
     def SearchReference(self,test=False):
+        """Function to search the reference folder and to check if the reference is valid"""
         referenceList = self.ActualMeth.getReferenceList()
         refList = list(referenceList.keys())
         refList.append("Select your own folder")
@@ -600,6 +606,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 self.reference_lm = self.ActualMeth.ListLandmarksJson(self.ActualMeth.search(ref_folder,'json')['json'][0])
 
     def SearchModelSegOr(self):
+        """Function to search the model folder of either the segmentation or the orientation model and to check if the model is valid"""
 
         name, url = self.ActualMeth.getSegOrModelList()
 
@@ -621,6 +628,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 self.enableCheckbox()
 
     def SearchModelALI(self,test=False):
+        """Function to search the model folder of the ALI model and to check if the model is valid"""
         listeLandmark = []
         for key,data in self.ActualMeth.DicLandmark()["Landmark"].items():
             listeLandmark += data
@@ -664,15 +672,6 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         if not out_folder == "":
             self.ui.lineEditOutputPath.setText(out_folder)
 
-    def DownloadRef(self):
-        self.ActualMeth.DownloadRef()
-
-    def DownloadModels(self):
-        self.ActualMeth.DownloadModels()
-
-    def DownloadTestFile(self):
-        self.ActualMeth.DownloadTestFile()
-
     def SelectSugestLandmark(self):
         best = self.ActualMeth.Sugest()
         for checkbox in self.logic.iterillimeted(self.dicchckbox):
@@ -687,6 +686,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     }
 
     def enableCheckbox(self):
+        """Function to enable the checkbox depending on the presence of landmarks"""
         status = self.ActualMeth.existsLandmark(
             self.ui.lineEditScanLmPath.text,
             self.ui.lineEditRefFolder.text,
@@ -732,6 +732,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
 
     def onPredictButton(self):
+        """Function to launch the prediction"""
         error = self.ActualMeth.TestProcess(
             input_folder=self.ui.lineEditScanLmPath.text,
             gold_folder=self.ui.lineEditRefFolder.text,
@@ -857,6 +858,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     self.OnEndProcess()
 
     def OnEndProcess(self):
+        """Function called when the process is finished."""
         self.ui.LabelProgressPatient.setText(f"Patient : 0 / {self.nb_patient}")
         self.nb_extnesion_did += 1
         self.ui.LabelProgressExtension.setText(
@@ -907,6 +909,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
 
     def initCheckbox(self, methode, layout, tohide: qt.QLabel):
+        """Function to create the checkbox at the beginning of the program"""
         if not tohide is None:
             tohide.setHidden(True)
         dic = methode.DicLandmark()
@@ -946,6 +949,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         return dicchebox, dicchebox2
 
     def CreateMiniTab(self, tabWidget: QTabWidget, name: str, index: int):
+        """Function to create a new tab in the tabWidget"""
         new_widget = QWidget()
         # new_widget.setMinimumHeight(3)
         new_widget.resize(tabWidget.size)
@@ -987,6 +991,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         tohide: QLabel,
         layout2: QVBoxLayout,
     ):
+        """Function to create the checkbox at the beginning of the program for IOS"""
         diccheckbox = {"Adult": {}, "Child": {}}
         tohide.setHidden(True)
         dic_teeth = {
