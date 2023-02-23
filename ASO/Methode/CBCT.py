@@ -181,17 +181,17 @@ class Semi_CBCT(CBCT):
             input_lm = []
             input_json = super().search(input_dir,'json')['json']
 
-            all_lm = [self.ListLandmarksJson(file) for file in input_json]
-            input_lm = all_lm[0]
-            for lm_file in all_lm:
-                for lm in input_lm:
-                    if lm not in lm_file:
-                        input_lm.remove(lm)
+            # all_lm = [self.ListLandmarksJson(file) for file in input_json]
+            # input_lm = all_lm[0]
+            # for lm_file in all_lm:
+            #     for lm in input_lm:
+            #         if lm not in lm_file:
+            #             input_lm.remove(lm)
 
             gold_json = super().search(reference_dir,'json')['json']
             gold_lm = self.ListLandmarksJson(gold_json[0])
             
-            available_lm = [lm for lm in input_lm if lm in gold_lm]
+            available_lm = [lm for lm in gold_lm]#input_lm if lm in gold_lm]
             available = {key:True for key in available_lm}
             
             dic = self.DicLandmark()['Landmark']
