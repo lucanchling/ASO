@@ -814,14 +814,14 @@ def GetPatients(scan_files,json_files):
     patients = {}
 
     for i in range(len(scan_files)):
-        patient = os.path.basename(scan_files[i]).split('_Or')[0].split('_OR')[0].split('_scan')[0].split("_Scanreg")[0].split('.')[0]
+        patient = os.path.basename(scan_files[i]).split('_Or')[0].split('_OR')[0].split('_scan')[0].split("_Scanreg")[0].split('.')[0].split('Scan')[0]
         
         if patient not in patients.keys():
             patients[patient] = {"scan":scan_files[i],"json":""}
         else:
             patients[patient]["scan"] = scan_files[i]
 
-        patientjson = os.path.basename(json_files[i]).split('_Or')[0].split('_OR')[0].split('_lm')[0].split("_Scanreg")[0].split('.')[0]
+        patientjson = os.path.basename(json_files[i]).split('_Or')[0].split('_OR')[0].split('_lm')[0].split("_Scanreg")[0].split('.')[0].split('_scan')[0].split('Scan')[0]
         if patientjson not in patients.keys():
             patients[patientjson] = {"scan":"","json":json_files[i]}
         else:
