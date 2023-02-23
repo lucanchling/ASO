@@ -61,19 +61,19 @@ def ResampleImage(image, transform):
     
 def main(args):
 
-    input_dir, out_dir = args.input[0], args.output_folder[0]
+    input_dir, out_dir, smallFOV = args.input[0], args.output_folder[0], args.SmallFOV[0] == 'True'
 
     # RESAMPLE BEFORE USING MODELS
     temp_folder = args.temp_folder[0]
 
     # Small and Large FOV difference
-    if args.SmallFOV[0] == 'True':  # Small FOV input
+    if smallFOV:  # Small FOV input
         spacingFOV = 0.69
-        ckpt_file = 'SmallFOV_best.ckpt'
+        ckpt_file = 'SmallFOV.ckpt'
         
-    if args.SmallFOV[0] == 'False': # Large FOV input
+    else: # Large FOV input
         spacingFOV = 1.45
-        ckpt_file = 'LargeFOV_best.ckpt'
+        ckpt_file = 'LargeFOV.ckpt'
 
     PreASOResample(input_dir,temp_folder,spacing=spacingFOV) # /!\ large and small FOV choice for spacing choice /!\
 
@@ -108,7 +108,7 @@ def main(args):
         
         goal = np.array((0.0,0.0,1.0)) # Direction vector for good orientation
 
-        img_temp = sitk.ReadImage(os.path.join(temp_folder,os.path.basename(input_file)))
+        img_temp = sitk.ReadImage(os.path.join(temp_folder,os.path.basename(input_file).split('.')[0]+'.nii.gz'))
         array = sitk.GetArrayFromImage(img_temp)
         scan = torch.Tensor(array).unsqueeze(0).unsqueeze(0)
 
@@ -116,8 +116,8 @@ def main(args):
             directionVector_pred = model(scan.to(device))
         directionVector_pred = directionVector_pred.cpu().numpy()
         
-        if Loss(directionVector_pred,goal) > 0.1 and np.min(array) >= -1200: # When angle is large enough to apply orientation modification
-            #                                          Contrast Intensity
+        if Loss(directionVector_pred,goal) > 0.1 and not smallFOV: # When angle is large enough to apply orientation modification
+            #                                    /!\ only to LargeFOV /!\
             angle, axis = AngleAndAxisVectors(goal,directionVector_pred[0])
             Rotmatrix = RotationMatrix(axis,angle)
 

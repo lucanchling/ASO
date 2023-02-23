@@ -167,7 +167,7 @@ def main(args):
                 # print(len(Spacing))
 
                 if args['spacing'] is not None:
-                    print("Writing:", fobj["out"])
+                    #print("Writing:", fobj["out"])
                     writer = sitk.ImageFileWriter()
                     writer.SetFileName(fobj["out"])
                     writer.UseCompressionOn()
