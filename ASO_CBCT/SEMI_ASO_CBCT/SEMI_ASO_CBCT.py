@@ -2,16 +2,14 @@
 
 import sys
 import os
-import glob
 import time
 import argparse
-import numpy as np
 import SimpleITK as sitk
 
 fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
 
-from utils import WriteJsonLandmarks,ICP,ExtractFilesFromFolder,MergeJson,WriteJson,GetPatients
+from utils import ICP,ExtractFilesFromFolder,MergeJson,WriteJson,GetPatients
 
 def main(args):
        
@@ -38,24 +36,25 @@ def main(args):
 
         output, source_transformed = ICP(input_file,input_json_file,gold_file,gold_json_file,list_landmark)
         
+        if output is None:
+            print("ICP failed for patient: ",patient)
+            continue
+
         # Write JSON
         dir_json = os.path.dirname(input_json_file.replace(input_dir,out_dir))
         if not os.path.exists(dir_json):
             os.makedirs(dir_json)
-        
-        json_path = os.path.join(dir_json,os.path.basename(input_json_file).split('.mrk.json')[0]+'_'+args.add_inname[0]+'.mrk.json')
+        json_path = os.path.join(dir_json,patient+'_lm_'+args.add_inname[0]+'.mrk.json')
 
         if not os.path.exists(json_path):
             WriteJson(source_transformed,json_path)
-
-        # WriteJsonLandmarks(source_transformed, input_json_file, output_file=json_path)
 
         # Write Scan
         dir_scan = os.path.dirname(input_file.replace(input_dir,out_dir))
         if not os.path.exists(dir_scan):
             os.makedirs(dir_scan)
         
-        file_outpath = os.path.join(dir_scan,os.path.basename(input_file).split('.')[0]+'_'+args.add_inname[0]+'.nii.gz')
+        file_outpath = os.path.join(dir_scan,patient+'_'+args.add_inname[0]+'.nii.gz')
         if not os.path.exists(file_outpath):
             sitk.WriteImage(output, file_outpath)
 
