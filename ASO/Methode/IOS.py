@@ -323,10 +323,6 @@ class Auto_IOS(Methode):
 
             for lmk in landmarks:
                 out[lmk]= True
-            
-
-
-            print(out)
 
         return out
 

@@ -14,8 +14,8 @@ except ImportError:
     pip_install('torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113')
     import torch
 
-# fpath = os.path.join(os.path.dirname(__file__), '..')
-# sys.path.append(fpath)
+fpath = os.path.join(os.path.dirname(__file__), '..')
+sys.path.append(fpath)
 
 from ASO_CBCT_utils import (ExtractFilesFromFolder, DenseNet, AngleAndAxisVectors, RotationMatrix, PreASOResample)
 # from ASO_CBCT_utils.ResamplePreASO import PreASOResample

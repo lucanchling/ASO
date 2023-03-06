@@ -674,7 +674,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         if not out_folder == "":
             self.ui.lineEditOutputPath.setText(out_folder)
 
-    def SelectSugestLandmark(self):
+    def SelectSuggestLandmark(self):
         best = self.ActualMeth.Suggest()
         for checkbox in self.logic.iterillimeted(self.dicchckbox):
             if checkbox.text in best and checkbox.isEnabled():

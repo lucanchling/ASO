@@ -213,8 +213,7 @@ class Semi_CBCT(CBCT):
                     'gold_folder':kwargs['gold_folder'],
                     'output_folder':kwargs['folder_output'],
                     'add_inname':kwargs['add_in_namefile'],
-                    'list_landmark':list_lmrk_str,
-                    'model_folder':kwargs['model_folder_ali'],
+                    'list_landmark':list_lmrk_str
                 }
         print('parameter',parameter_semi_aso)
 
