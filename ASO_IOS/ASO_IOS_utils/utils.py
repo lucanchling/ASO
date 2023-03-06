@@ -5,16 +5,68 @@ import vtk
 import numpy as np
 import json
 from vtk.util.numpy_support import vtk_to_numpy
+from ASO_IOS_utils.OFFReader import OFFReader
 
 
 
 def ReadSurf(path):
-    reader = vtk.vtkPolyDataReader()
-    reader.SetFileName(path)
-    reader.Update()
-    surf = reader.GetOutput()
+    fname, extension = os.path.splitext(os.path.basename(path))
+    extension = extension.lower()
+    if extension == ".vtk":
+        reader = vtk.vtkPolyDataReader()
+        reader.SetFileName(path)
+        reader.Update()
+        surf = reader.GetOutput()
+    elif extension == ".vtp":
+        reader = vtk.vtkXMLPolyDataReader()
+        reader.SetFileName(path)
+        reader.Update()
+        surf = reader.GetOutput()    
+    elif extension == ".stl":
+        reader = vtk.vtkSTLReader()
+        reader.SetFileName(path)
+        reader.Update()
+        surf = reader.GetOutput()
+    elif extension == ".off":
+        reader = OFFReader()
+        reader.SetFileName(path)
+        reader.Update()
+        surf = reader.GetOutput()
+    elif extension == ".obj":
+        if os.path.exists(fname + ".mtl"):
+            obj_import = vtk.vtkOBJImporter()
+            obj_import.SetFileName(path)
+            obj_import.SetFileNameMTL(fname + ".mtl")
+            textures_path = os.path.normpath(os.path.dirname(fname) + "/../images")
+            if os.path.exists(textures_path):
+                textures_path = os.path.normpath(fname.replace(os.path.basename(fname), ''))
+                obj_import.SetTexturePath(textures_path)
+            else:
+                textures_path = os.path.normpath(fname.replace(os.path.basename(fname), ''))                
+                obj_import.SetTexturePath(textures_path)
+                    
+
+            obj_import.Read()
+
+            actors = obj_import.GetRenderer().GetActors()
+            actors.InitTraversal()
+            append = vtk.vtkAppendPolyData()
+
+            for i in range(actors.GetNumberOfItems()):
+                surfActor = actors.GetNextActor()
+                append.AddInputData(surfActor.GetMapper().GetInputAsDataSet())
+            
+            append.Update()
+            surf = append.GetOutput()
+            
+        else:
+            reader = vtk.vtkOBJReader()
+            reader.SetFileName(path)
+            reader.Update()
+            surf = reader.GetOutput()
 
     return surf
+
 
 def LoadJsonLandmarks(ldmk_path,full_landmark=True,list_landmark=[]):
     """
@@ -67,19 +119,16 @@ def WriteSurf(surf, output_folder,name,inname):
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
 
-    writer = vtk.vtkPolyDataWriter()
+    if extension == '.vtk':
+        writer = vtk.vtkPolyDataWriter()
+    elif extension == '.vtp':
+        writer = vtk.vtkXMLPolyDataWriter()
+    elif extension =='.obj':
+        writer = vtk.vtkWriter()
     writer.SetFileName(os.path.join(output_folder,f"{name}{inname}{extension}"))
     writer.SetInputData(surf)
     writer.Update()
 
-
-def ReadSurf(path):
-    reader = vtk.vtkPolyDataReader()
-    reader.SetFileName(path)
-    reader.Update()
-    surf = reader.GetOutput()
-
-    return surf
 
 
 

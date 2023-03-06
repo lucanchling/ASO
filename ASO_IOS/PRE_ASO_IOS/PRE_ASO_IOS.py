@@ -6,6 +6,7 @@ import time
 import argparse
 import numpy as np
 from tqdm import tqdm
+from itertools import chain
 # from pytorch3d.loss import chamfer_distance
 # from torch import float32, tensor
 # import torch
@@ -14,9 +15,14 @@ from tqdm import tqdm
 fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
 
-from utils import ( UpperOrLower, search, ReadSurf, WriteSurf,PatientNumber,ICP, InitIcp, vtkICP,
+from ASO_IOS_utils import ( UpperOrLower, search, ReadSurf, WriteSurf,PatientNumber,ICP, InitIcp, vtkICP,
 vtkMeanTeeth,TransformSurf,Files_vtk_link, Jaw ,Upper, Lower,ToothNoExist, vtkMeshTeeth, 
 WritefileError, NoSegmentationSurf, PrePreAso)
+
+# import ASO_IOS_utils
+
+
+
 
 
 print('pre aso ios charge')
@@ -24,6 +30,8 @@ print('pre aso ios charge')
     
 def main(args) :
     print('icp meanteeth launch')
+
+    list_extension = ['.vtk','.stl','.off','.obj','.vtp']
 
     # device = torch.device('cuda')
 
@@ -43,7 +51,10 @@ def main(args) :
 
 
 
-    gold_files = glob.glob(args.gold_folder[0]+'/*vtk')
+
+
+
+    gold_files = list(chain.from_iterable(search(args.gold_folder[0],list_extension).values()))
 
     gold ={}
 
@@ -62,15 +73,15 @@ def main(args) :
 
 
 
-
-
-    if args.jaw[0] == 'Upper':
-        jaw = Jaw(Upper())
+    if args.occlusion[0].lower() == 'true':
         link = True
-    elif args.jaw[0] == 'Lower':
-        jaw = Jaw(Lower())
-        link = True
-    elif args.jaw[0] == 'Upper/Lower' or args.jaw[0] == 'Lower/Upper':
+        if args.jaw[0] == 'Upper':
+            jaw = Jaw(Upper())
+
+        elif args.jaw[0] == 'Lower':
+            jaw = Jaw(Lower())
+
+    else:
         link = False
 
     if link:
@@ -78,7 +89,7 @@ def main(args) :
 
     
     else :
-        list_files=search(args.input[0],'.vtk')['.vtk']
+        list_files=list(chain.from_iterable(search(args.input[0],list_extension).values()))
 
 
 
@@ -160,11 +171,14 @@ if __name__ == "__main__":
     parser.add_argument('output_folder',nargs=1)
     parser.add_argument('add_inname',nargs=1)
     parser.add_argument('list_teeth',nargs=1)
+    parser.add_argument('occlusion',nargs=1)
     parser.add_argument('jaw',nargs=1)
     parser.add_argument('folder_error',nargs=1)
     parser.add_argument('log_path',nargs=1)
 
+
     args = parser.parse_args()
+    print(args)
 
 
     main(args)

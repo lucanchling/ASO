@@ -114,7 +114,7 @@ class Methode(ABC):
         pass
 
     @abstractmethod
-    def Sugest(self):
+    def Suggest(self):
         pass
 
     @abstractmethod

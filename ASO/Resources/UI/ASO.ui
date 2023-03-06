@@ -170,13 +170,13 @@
    <item>
     <widget class="ctkCollapsibleButton" name="advancedCollapsibleButton" native="true">
      <property name="text" stdset="0">
-      <string>Option</string>
+      <string>Landmark Reference</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_10">
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>1</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="PageSemiCBCT">
          <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -192,13 +192,6 @@
                </widget>
               </item>
              </layout>
-            </item>
-            <item>
-             <widget class="QPushButton" name="ButtonSugestLmCBCT">
-              <property name="text">
-               <string>Suggested Landmarks</string>
-              </property>
-             </widget>
             </item>
            </layout>
           </item>
@@ -230,7 +223,7 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="PageSemiCBCT">
+        <widget class="QWidget" name="PageSemiIOS">
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_1548">
@@ -246,11 +239,18 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>98</width>
-                   <height>37</height>
+                   <width>627</width>
+                   <height>198</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_14">
+                  <item>
+                   <widget class="QCheckBox" name="checkBoxOcclusionSemiIOS">
+                    <property name="text">
+                     <string>Arches Oriented incclusion</string>
+                    </property>
+                   </widget>
+                  </item>
                   <item>
                    <layout class="QGridLayout" name="LayoutSemiIOS_tooth">
                     <item row="0" column="0">
@@ -269,9 +269,9 @@
              </layout>
             </item>
             <item>
-             <widget class="QPushButton" name="ButtonSugestLmIOSSemi">
+             <widget class="QPushButton" name="ButtonSuggestLmIOSSemi">
               <property name="text">
-               <string>Suggest Landmark</string>
+               <string>Suggest Landmark and Teeth</string>
               </property>
              </widget>
             </item>
@@ -301,11 +301,18 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>98</width>
+                   <width>627</width>
                    <height>198</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_12">
+                  <item>
+                   <widget class="QCheckBox" name="checkBoxOcclusionAutoIOS">
+                    <property name="text">
+                     <string>Arches oriented incclusion</string>
+                    </property>
+                   </widget>
+                  </item>
                   <item>
                    <layout class="QGridLayout" name="LayoutAutoIOS_tooth">
                     <item row="0" column="0">
@@ -324,9 +331,9 @@
              </layout>
             </item>
             <item>
-             <widget class="QPushButton" name="ButtonSugestLmIOS">
+             <widget class="QPushButton" name="ButtonSuggestLmIOS">
               <property name="text">
-               <string>Sugested Teeth</string>
+               <string>Suggested Teeth</string>
               </property>
              </widget>
             </item>

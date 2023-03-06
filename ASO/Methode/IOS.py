@@ -1,17 +1,20 @@
 from Methode.Methode import Methode
 from Methode.Progress import DisplayALIIOS,DisplayASOIOS,DisplayCrownSeg
+from Methode.IOS_utils.Reader import ReadSurf, WriteSurf
 import slicer
 import webbrowser
 import glob
 import os
 import vtk
 import shutil
+from itertools import chain
 
 class Auto_IOS(Methode):
+    
     def __init__(self, widget):
         super().__init__(widget)
 
-
+        self.extension = ['.vtk','.vtp','.stl','.off','.obj']
         self.list_landmark = {'DB','MB','O','CB','CL','OIP','R','RIP'}
         self.list_teeth = {'UR1', 'UR2', 'UR3', 'UR4', 'UR5', 'UR6', 'UR7', 'UR8', 'UL1', 'UL2', 'UL3', 'UL4', 'UL5', 'UL6', 'UL7', 'UL8', 
         'LL1', 'LL2', 'LL3', 'LL4', 'LL5', 'LL6', 'LL7', 'LL8', 'LR1', 'LR2', 'LR3', 'LR4', 'LR5', 'LR6', 'LR7', 'LR8'}
@@ -19,8 +22,9 @@ class Auto_IOS(Methode):
 
 
     def NumberScan(self, scan_folder: str):
+        list_files = super().search(scan_folder,self.extension).values()
             
-        return len(super().search(scan_folder,'.vtk')['.vtk'])
+        return len(list(chain.from_iterable(list_files)))
 
 
     def TestScan(self, scan_folder: str):
@@ -53,16 +57,16 @@ class Auto_IOS(Methode):
         
         out = []
         if ref_folder!= '':
-            dic = self.search(ref_folder,'.vtk','.json')
+            dic = self.search(ref_folder,self.extension,'.json')
             if len(dic['.json']) == 0:
                 out.append('Please select a folder with 2 json files')
             elif len(dic['.json'])>2:
                 out.append( 'Please select a folder with  2 json files ')
 
-            if len(dic['.vtk']) ==0:
+            if len(list(chain.from_iterable(map(dic.get,self.extension)))) ==0:
                 out.append('Please select a folder with vkt file')
             
-            elif len(dic['.vtk'])>2:
+            elif len(list(chain.from_iterable(map(dic.get,self.extension))))>2:
                 out.append('Please 2 vkt files in folder reference')
 
         else :
@@ -76,7 +80,7 @@ class Auto_IOS(Methode):
         return out
 
     def TestCheckbox(self,dic_checkbox) -> str:
-        list_teeth, jaw = self.__CheckboxisChecked(dic_checkbox)
+        list_teeth, jaw, occlsuion = self.__CheckboxisChecked(dic_checkbox)
         out = []
         if len(jaw) == 1 :
             if len(list_teeth) != 3 and len(list_teeth)!=4:
@@ -87,26 +91,9 @@ class Auto_IOS(Methode):
 
 
         if len(jaw)<1 :
-            out.append('Choose one jaw')
+            out.append('Please select one jaw')
 
-        # dif_landmark = list(set(mix)-set(self.list_landmark_exit))
-        # if len(dif_landmark) != 0:
-        #     out.append(f'This landmark {" ".join(dif_landmark)} are not available please select another one, choose in this list {" ".join(self.list_landmark_exit)}')
 
-        dic = {'Upper': {'left': ['UR8', 'UR7', 'UR6', 'UR5', 'UR4'], 'middle': ['UR3','UR2', 'UR1', 'UL1', 'UL2','UL3'], 'right': [ 'UL4', 'UL5', 'UL6', 'UL7', 'UL8']}, 
-        'Lower': {'left': ['LR8', 'LR7', 'LR6', 'LR5', 'LR4'], 'middle': ['LR3','LR2', 'LR1', 'LL1', 'LL2','LL3'], 'right': ['LL4', 'LL5', 'LL6', 'LL7', 'LL8']}}
-
-        print('list teeth',list_teeth)
-        if len(jaw) >=1 and len(list_teeth) >= 1 :
-            for j in jaw :
-                good = 0
-                for side in ['left','middle','right']:
-                    for tooth in list_teeth:
-                        if tooth in dic[j][side] :
-                            good += 1 
-                            break
-                if good != 3 :
-                    out.append(f'Please give one right tooth one left tooth and one anterior tooth')
 
 
         if len(out) == 0:
@@ -147,14 +134,14 @@ class Auto_IOS(Methode):
             out = out + f'{reference},'
 
         if kwargs['folder_output'] == '':
-            out = out + "Give output folder,"
+            out = out + "Please select output folder,"
 
         testcheckbox = self.TestCheckbox(kwargs['dic_checkbox'])
         if isinstance(testcheckbox,str):
             out = out + f"{testcheckbox},"
 
         if kwargs['add_in_namefile']== '':
-            out = out + "Give something to add in name of file,"
+            out = out + "Please select write suffix ,"
 
 
         if out != '':
@@ -167,15 +154,22 @@ class Auto_IOS(Methode):
 
 
     def __BypassCrownseg__(self,folder,folder_toseg,folder_bypass):
-        files = self.search(folder,'.vtk')['.vtk']
+        files = chain.from_iterable(self.search(folder,self.extension).values())
         toseg = 0
         for file in files :
-            name = os.path.basename(file)
+            basename = os.path.basename(file)
+            name , extension = os.path.splitext(basename)
             if self.__isSegmented__(file):
-                shutil.copy(file,os.path.join(folder_bypass,name))
+
+                shutil.copy(file,os.path.join(folder_bypass,basename))
 
             else :
-                shutil.copy(file,os.path.join(folder_toseg,name))
+                if extension != '.vtk':
+                    # convert file in vtk because croan segmentation take only vtk file
+                    surf = ReadSurf(file)
+                    WriteSurf(surf,folder_toseg,file)
+                else :
+                    shutil.copy(file,os.path.join(folder_toseg,basename))
                 toseg += 1
 
         return toseg
@@ -184,10 +178,7 @@ class Auto_IOS(Methode):
 
     def __isSegmented__(self,path):
         properties = ['PredictedID','UniversalID','Universal_ID']
-        reader = vtk.vtkPolyDataReader()
-        reader.SetFileName(path)
-        reader.Update()
-        surf = reader.GetOutput()
+        surf = ReadSurf(path)
         list_label = [surf.GetPointData().GetArrayName(i) for i in range(surf.GetPointData().GetNumberOfArrays())]
         out = False 
         if True in [label in properties for label in list_label]:
@@ -198,7 +189,7 @@ class Auto_IOS(Methode):
 
 
     def Process(self, **kwargs):
-        list_teeth, jaw = self.__CheckboxisChecked(kwargs['dic_checkbox']) 
+        list_teeth, jaw, occlusion = self.__CheckboxisChecked(kwargs['dic_checkbox']) 
 
         path_tmp = slicer.util.tempDirectory()
         path_input = os.path.join(path_tmp,'intpu_seg')
@@ -237,6 +228,7 @@ class Auto_IOS(Methode):
                         'output_folder':kwargs['folder_output'],
                         'add_inname':kwargs['add_in_namefile'],
                         'list_teeth':','.join(list_teeth),
+                        'occlusion' : occlusion,
                         'jaw':'/'.join(jaw),
                         'folder_error': path_error,
                         'log_path': kwargs['logPath']}
@@ -339,8 +331,8 @@ class Auto_IOS(Methode):
         return out
 
 
-    def Sugest(self):
-        return ['UR6','UL1','UL6','LL6','LR1','LR6','O']
+    def Suggest(self):
+        return ['Upper','UR6','UL1','UL6','LL6','LR1','LR6','O']
 
 
     def __CheckboxisChecked(self,diccheckbox : dict):
@@ -362,7 +354,7 @@ class Auto_IOS(Methode):
             for checkboxs in diccheckbox['Teeth']['Child'].values():
                 for checkbox in checkboxs:
                     if checkbox.isChecked():
-                        teeth = list(set(teeth).union(set((dic_child[checkbox.text]))))
+                        teeth = list(set(teeth).union(set([dic_child[checkbox.text]])))
 
 
 
@@ -370,7 +362,9 @@ class Auto_IOS(Methode):
                 if checkbox.isChecked():
                     jaw.append(key)
 
-        return teeth , jaw
+            occlusion = diccheckbox['Occlusion'].isChecked()
+
+        return teeth , jaw, occlusion
 
 
 
@@ -395,13 +389,12 @@ class Semi_IOS(Auto_IOS):
     def TestScan(self, scan_folder: str):
         out = None
         if scan_folder != '':
-            dic = self.search(scan_folder,'vtk','json')
-            if len(dic['vtk']) != len(dic['json']): 
-                print('dif ',len(dic['vtk']) - len(dic['json']))
-                # out = 'Give folder with the same number of vkt file and json file'`
+            dic = self.search(scan_folder,self.extension,'json')
+            if len(list(chain.from_iterable(map(dic.get,self.extension)))) != len(dic['json']): 
+                out = 'Please select folder with the same number of vkt file and json file'
 
         else :
-            out = 'Please select a folder with vkt and json file'
+            out = f'Please select a folder with {self.extension} and json files'
         return out 
 
 
@@ -479,18 +472,22 @@ class Semi_IOS(Auto_IOS):
                 if checkbox.isChecked():
                     jaw.append(key)
 
-        return teeth , landmarks, mix, jaw
+
+            occlsuion = diccheckbox['Occlusion'].isChecked()
+
+        return teeth , landmarks, mix, jaw , occlsuion
 
 
 
     def Process(self, **kwargs):
-        teeth, landmark , mix , jaw = self.__CheckboxisChecked(kwargs['dic_checkbox'])
+        teeth, landmark , mix , jaw, occlusion = self.__CheckboxisChecked(kwargs['dic_checkbox'])
         path_error = os.path.join(kwargs['folder_output'],'Error')
 
         parameter= {'input':kwargs['input_folder'],'gold_folder':kwargs['gold_folder'],
         'output_folder':kwargs['folder_output'],
         'add_inname':kwargs['add_in_namefile'],
         'list_landmark':','.join(mix),
+        'occlusion' : occlusion,
         'jaw':'/'.join(jaw),
         'folder_error':path_error,
         'log_path': kwargs['logPath']}
@@ -502,8 +499,8 @@ class Semi_IOS(Auto_IOS):
         return [{'Process':OrientProcess,'Parameter':parameter}], { 'SEMI_ASO_IOS': DisplayASOIOS(numberscan if len(jaw) ==1 else int(numberscan/2) , jaw,kwargs['logPath'] )}
 
 
-    def Sugest(self):
-        out = ['O','UL6','UL1','UR1','UR6','LL6','LL1','LR1','LR6']
+    def Suggest(self):
+        out = ['Upper','O','UL6','UL1','UR1','UR6']
         return out
 
 

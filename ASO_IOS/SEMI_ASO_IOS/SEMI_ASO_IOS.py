@@ -3,15 +3,19 @@
 
 import glob
 import os
-import time
+
 import sys
 import argparse
 from tqdm import tqdm
+import numpy as np
+
 fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
-from utils import (vtkICP, InitIcp, SelectKey, ICP, TransformSurf, UpperOrLower, PatientNumber, 
-LoadJsonLandmarks, WriteSurf, WriteJsonLandmarks, search,
+
+from ASO_IOS_utils import (vtkICP, InitIcp, SelectKey, ICP, TransformSurf, UpperOrLower, 
+LoadJsonLandmarks, WriteSurf, WriteJsonLandmarks,
  listlandmark2diclandmark, ReadSurf, Files_vtk_json,Files_vtk_json_semilink, Jaw, Lower , Upper, ApplyTransform,WritefileError)
+
 
 
 print('semi aso ios chargee')
@@ -56,15 +60,14 @@ def main(args):
     print('--------------'*10)
 
 
+    if args.occlusion[0].lower() == 'true':
+        link =True
+        if args.jaw[0] == 'Upper':
+            jaw = Jaw(Upper())
+        elif args.jaw[0] == 'Lower':
+            jaw = Jaw(Lower())
 
-
-    if args.jaw[0] == 'Upper':
-        jaw = Jaw(Upper())
-        link = True
-    elif args.jaw[0] == 'Lower':
-        jaw = Jaw(Lower())
-        link = True
-    elif args.jaw[0] == 'Upper/Lower' or args.jaw[0] =='Lower/Upper':
+    else:
         link = False
 
     if link :
@@ -100,6 +103,7 @@ def main(args):
 
         WriteJsonLandmarks(output_icp['source_Or'], file_jaw['json'],file_jaw['json'],args.add_inname[0],args.output_folder[0])
         WriteSurf(surf_output,args.output_folder[0],file_jaw['vtk'],args.add_inname[0])
+        np.save(os.path.join(args.output_folder[0] ,f'matrix_{file["name"]}.npy'), output_icp['matrix'])
 
 
         if link :
@@ -133,6 +137,7 @@ if __name__ == "__main__":
     parser.add_argument('output_folder',nargs=1)
     parser.add_argument('add_inname',nargs=1)
     parser.add_argument('list_landmark',nargs=1)
+    parser.add_argument('occlusion',nargs=1)
     parser.add_argument('jaw',nargs=1)
     parser.add_argument('folder_error',nargs=1)
     parser.add_argument('log_path',nargs=1)

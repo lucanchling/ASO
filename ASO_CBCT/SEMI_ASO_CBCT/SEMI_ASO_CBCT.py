@@ -9,7 +9,7 @@ import SimpleITK as sitk
 fpath = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(fpath)
 
-from utils import ICP,ExtractFilesFromFolder,MergeJson,WriteJson,GetPatients
+from ASO_CBCT_utils import WriteJsonLandmarks,ICP,ExtractFilesFromFolder,MergeJson,WriteJson,GetPatients
 
 def main(args):
        

@@ -8,13 +8,12 @@ set(MODULE_PYTHON_SCRIPTS
   Methode/IOS.py
   Methode/CBCT.py
   Methode/Progress.py
+  Methode/IOS_utils/Reader.py
   )
 
 set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
   Resources/UI/${MODULE_NAME}.ui
-  Resources/UI/Lower.png
-  Resources/UI/Upper.png
   Resources/Image/1_resize.png
   Resources/Image/2_resize.png
   Resources/Image/3_resize.png

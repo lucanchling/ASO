@@ -308,12 +308,14 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.LayoutAutoIOS_tooth,
             self.ui.tohideAutoIOS_tooth,
             self.ui.LayoutLandmarkAutoIOS,
+            self.ui.checkBoxOcclusionAutoIOS
         )
         self.initCheckboxIOS(
             self.MethodeDic["Semi_IOS"],
             self.ui.LayoutSemiIOS_tooth,
             self.ui.tohideSemiIOS_tooth,
             self.ui.LayoutLandmarkSemiIOS,
+            self.ui.checkBoxOcclusionSemiIOS
         )
 
         self.initCheckbox(
@@ -357,12 +359,12 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.ButtonOriented.connect("clicked(bool)", self.onPredictButton)
         self.ui.ButtonOutput.connect("clicked(bool)", self.ChosePathOutput)
         self.ui.ButtonCancel.connect("clicked(bool)", self.onCancel)
-        self.ui.ButtonSugestLmIOS.clicked.connect(self.SelectSugestLandmark)
-        self.ui.ButtonSugestLmCBCT.clicked.connect(self.SelectSugestLandmark)
-        self.ui.ButtonSugestLmIOSSemi.clicked.connect(self.SelectSugestLandmark)
+        self.ui.ButtonSuggestLmIOS.clicked.connect(self.SelectSuggestLandmark)
+        self.ui.ButtonSuggestLmIOSSemi.clicked.connect(self.SelectSuggestLandmark)
         self.ui.CbInputType.currentIndexChanged.connect(self.SwitchType)
         self.ui.CbModeType.currentIndexChanged.connect(self.SwitchType)
         self.ui.ButtonTestFiles.clicked.connect(lambda: self.SearchScanLm(True))
+        self.ui.checkBoxOcclusionAutoIOS.toggled.connect(partial(self.OcclusionCheckbox,self.MethodeDic['Auto_IOS'].getcheckbox()['Jaw']['Upper'],self.MethodeDic['Auto_IOS'].getcheckbox()['Jaw']['Lower'],self.MethodeDic['Semi_IOS'].getcheckbox()['Teeth']))
 
     """
 
@@ -673,17 +675,13 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.ui.lineEditOutputPath.setText(out_folder)
 
     def SelectSugestLandmark(self):
-        best = self.ActualMeth.Sugest()
+        best = self.ActualMeth.Suggest()
         for checkbox in self.logic.iterillimeted(self.dicchckbox):
             if checkbox.text in best and checkbox.isEnabled():
                 checkbox.setCheckState(True)
             # else :
             #     checkbox.setCheckState(False)
 
-    dictedie = {
-        "saveLandmark": "Save Landmark",
-        "ssw": 1,
-    }
 
     def enableCheckbox(self):
         """Function to enable the checkbox depending on the presence of landmarks"""
@@ -702,8 +700,8 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 self.logic.iterillimeted(self.dicchckbox),
             ):
                 try:
-                    checkbox.setVisible(status[checkbox.text])
-                    checkbox2.setVisible(status[checkbox2.text])
+                    checkbox.setCheckable(status[checkbox.text])
+                    checkbox2.setCheckable(status[checkbox2.text])
 
                 except:
                     pass
@@ -990,6 +988,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         layout: QGridLayout,
         tohide: QLabel,
         layout2: QVBoxLayout,
+        occlusion : QCheckBox
     ):
         """Function to create the checkbox at the beginning of the program for IOS"""
         diccheckbox = {"Adult": {}, "Child": {}}
@@ -1135,15 +1134,22 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         upper_checbox = QCheckBox()
         upper_checbox.setText("Upper")
         upper_checbox.toggled.connect(
-            partial(self.initEnableCheckbox, {"Upper": upper, "Lower": lower}, "Upper")
+            partial(self.UpperLowerCheckbox, {"Upper": upper, "Lower": lower}, "Upper")
         )
         layout.addWidget(upper_checbox, 3, 0)
         lower_checkbox = QCheckBox()
         lower_checkbox.setText("Lower")
         lower_checkbox.toggled.connect(
-            partial(self.initEnableCheckbox, {"Upper": upper, "Lower": lower}, "Lower")
+            partial(self.UpperLowerCheckbox, {"Upper": upper, "Lower": lower}, "Lower")
         )
         layout.addWidget(lower_checkbox, 4, 0)
+
+        upper_checbox.toggled.connect(partial(self.UpperLowerChooseOcclusion,lower_checkbox,occlusion))
+        lower_checkbox.toggled.connect(partial(self.UpperLowerChooseOcclusion,upper_checbox,occlusion))
+
+
+
+
         if isinstance(methode,Semi_IOS):
             dic1, dic2 = self.initCheckbox(methode, layout2, None)
 
@@ -1152,6 +1158,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     "Teeth": diccheckbox,
                     "Landmark": dic1,
                     "Jaw": {"Upper": upper_checbox, "Lower": lower_checkbox},
+                    "Occlusion" : occlusion
                 }
             )
             methode.setcheckbox2(
@@ -1159,6 +1166,7 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     "Teeth": diccheckbox,
                     "Landmark": dic2,
                     "Jaw": {"Upper": upper_checbox, "Lower": lower_checkbox},
+                    "Occlusion" : occlusion
                 }
             )
         else : 
@@ -1167,19 +1175,35 @@ class ASOWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 {
                     "Teeth": diccheckbox,
                     "Jaw": {"Upper": upper_checbox, "Lower": lower_checkbox},
+                    "Occlusion" : occlusion
                 }
             )
             methode.setcheckbox2(
                 {
                     "Teeth": diccheckbox,
                     "Jaw": {"Upper": upper_checbox, "Lower": lower_checkbox},
+                    "Occlusion" : occlusion
                 }
             )
-    def initEnableCheckbox(self, all_checkbox: dict, jaw, boolean):
+    def UpperLowerCheckbox(self, all_checkbox: dict, jaw, boolean):
+       
         for checkbox in all_checkbox[jaw]:
             checkbox.setEnabled(boolean)
             if (not boolean) and checkbox.isChecked():
                 checkbox.setChecked(False)
+        self.enableCheckbox()
+
+    def OcclusionCheckbox(self, Upper : QCheckBox, Lower : QCheckBox, all_checkbox : dict , boolean : bool):
+       if boolean :
+           if Upper.isChecked() and Lower.isChecked():
+               Lower.setChecked(False)
+               Lower.setEnabled(True)
+
+
+    def UpperLowerChooseOcclusion(self,opposit_jaw : QCheckBox, Occlusion_checkbox : QCheckBox ,booleean : bool):
+        if booleean and Occlusion_checkbox.isChecked() and opposit_jaw.isChecked() :
+            opposit_jaw.setChecked(False)
+
 
     """
                           .d88888b.  88888888888 888    888 8888888888 8888888b.   .d8888b.  

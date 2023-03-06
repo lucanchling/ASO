@@ -2,6 +2,7 @@ from dataclasses import dataclass,field ,astuple, asdict
 from typing import Tuple, Union, List
 import os
 import glob
+from itertools import chain
 
 
 @dataclass(init=True)
@@ -121,6 +122,7 @@ class Files:
 
         self.list_file : List[Union[Mouth_File  , Jaw_File]] = []
         self.folder : str = folder
+        self.extension = ['.vtk','.vtp','.stl','.off','.obj']
 
 
 
@@ -237,8 +239,7 @@ class Files_vtk_link(Files):
         self.organise(folder)
         
     def organise(self,folder):
-        dic =self.search(folder,'.vtk')
-        list_vtk = dic['.vtk']
+        list_vtk =list(chain.from_iterable(self.search(folder,self.extension).values()))
         
 
         dic ={}
@@ -331,11 +332,11 @@ class Files_vtk_json(Files):
 
     def organise(self,folder):
         list_file= []
-        dic =self.search(folder,'.vtk','.json')
+        dic =self.search(folder,self.extension,'.json')
 
         list_json = dic['.json']
         list_json.append('Upper_nioegfjhdfjkdffdhjmndfhnmdfhj')
-        list_vtk = dic['.vtk']
+        list_vtk = list(chain.from_iterable(map(dic.get,self.extension)))
         json_remove = None
         for vtk in list_vtk:
             vtk_jaw , vtk_name = self.__name_file__(vtk)
@@ -416,8 +417,8 @@ class Files_vtk_json_semilink(Files):
 
     def organise(self,folder):
         list_file = []
-        dic = self.search(folder,'.vtk','.json')
-        list_vtk = dic['.vtk']
+        dic = self.search(folder,self.extension,'.json')
+        list_vtk = list(chain.from_iterable(map(dic.get,self.extension)))
         list_json = dic['.json']
 
         fil = {'Upper':[],'Lower':[]}

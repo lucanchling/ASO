@@ -51,9 +51,16 @@
     </string>
 
     <string>
+      <name>occlusion</name>
+      <label>occlusion</label>
+      <index>5</index>
+      <description>keep morphology of the mounth</description>
+    </string>  
+
+    <string>
       <name>jaw</name>
       <label>jaw</label>
-      <index>5</index>
+      <index>6</index>
       <description>Jaw use to orient</description>
     </string>
 
@@ -61,7 +68,7 @@
     <string>
       <name>folder_error</name>
       <label>folder_error</label>
-      <index>6</index>
+      <index>7</index>
       <description>path for error folder </description>
     </string>
 
@@ -71,7 +78,7 @@
     <string>
       <name>log_path</name>
       <label>log_path</label>
-      <index>7</index>
+      <index>8</index>
       <description>path for the log</description>
     </string>
 

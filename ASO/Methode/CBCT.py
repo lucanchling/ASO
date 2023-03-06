@@ -123,7 +123,7 @@ class CBCT(Methode):
         
 
         
-    def Sugest(self):
+    def Suggest(self):
         return ['Ba','S','N','RPo','LPo','ROr','LOr']
 
 

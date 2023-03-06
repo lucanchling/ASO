@@ -3,8 +3,8 @@ import os
 import vtk
 import numpy as np
 from vtk.util.numpy_support import vtk_to_numpy
-from utils.utils import LoadJsonLandmarks, ReadSurf
-from utils.transformation import TranslationDict, RotationMatrix, ApplyTransform, TransformDict
+from ASO_IOS_utils.utils import LoadJsonLandmarks, ReadSurf
+from ASO_IOS_utils.transformation import TranslationDict, RotationMatrix, ApplyTransform, TransformDict
 from random import choice
 
 
@@ -43,7 +43,7 @@ class ICP:
 
     def run(self,source,target) :
         assert type(source) == type(target), f"source and target dont have the same type source {type(source)}, target {type(target)}"
-        assert self.list_icp!=None , "give icp methode"
+        assert self.list_icp!=None , "icp method forgot"
 
 
 
@@ -56,6 +56,7 @@ class ICP:
         if callable(self.option):
             source_int = self.option(source_int)
             target_int = self.option(target_int)
+
     
 
         matrix_final = np.identity(4)
@@ -137,7 +138,7 @@ class InitIcp:
     def __call__(self,source,target):
         source , target = self.setup(source, target)
         assert len(source)==len(target), "dont have the same of point"
-        assert len(source)>=3, 'source and target dont have enough point'
+        assert len(source)>=3, f'source and target dont have enough point source : {source}, length {len(source)}'
 
 
         source = {k: source[k] for k in sorted(source)}

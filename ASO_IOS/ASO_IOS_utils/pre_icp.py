@@ -1,8 +1,8 @@
 import numpy as np
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy
-from utils.icp import vtkMeanTeeth
-from utils.transformation import RotationMatrix, TransformSurf
+from ASO_IOS_utils.icp import vtkMeanTeeth
+from ASO_IOS_utils.transformation import RotationMatrix, TransformSurf
 
 
 
@@ -29,38 +29,41 @@ def organizeLandmark(landmarks : list):
     assert isinstance(landmarks,list)
 
 
-    out = {'left':[],'middle':[],'right':[]}
+    out = {'left':str,'middle':[],'right':str}
 
     toothTonumber = {'UR8': '1', 'UR7': '2', 'UR6': '3', 'UR5': '4', 'UR4': '5', 'UR3': '6', 'UR2': '7', 'UR1': '8', 'UL1': '9', 'UL2': '10', 'UL3': '11', 'UL4': '12', 'UL5': '13', 
     'UL6': '14', 'UL7': '15', 'UL8': '16', 'LL8': '17', 'LL7': '18', 'LL6': '19', 'LL5': '20', 'LL4': '21', 'LL3': '22', 'LL2': '23', 'LL1': '24', 'LR1': '25', 'LR2': '26', 'LR3': '27',
      'LR4': '28', 'LR5': '29', 'LR6': '30', 'LR7': '31', 'LR8': '32'}
 
-    dic = {'Upper':{'left':['1','2','3','4','5'],'middle':['6','7','8','9','10','11'],'right':['12','13','14','15','16']},
-            'Lower':{'left':['32','31','30','29','28'],'middle':['27','26','25','24','23','22'],'right':['21','20','19','18','17']}}
 
-    if isinstance(landmarks[0],int):
-        landmarks = [str(landmark) for landmark in landmarks]
 
-    if not landmarks[0].isdigit():
-        landmarks = [ toothTonumber[tooth] for tooth in landmarks]
+    if isinstance(landmarks[0],str):
+        landmarks = [int(landmark) for landmark in landmarks]
 
-    if int(landmarks[0]) <= 16 :
-        jaw = 'Upper'
+    jaw = 'Upper' if landmarks[0] < 17 else 'Lower'
+
+    ma = max(landmarks)
+    landmarks.remove(ma)
+    mi = min(landmarks)
+    landmarks.remove(mi)
+    out['middle'] = [str(landmark) for landmark in landmarks]
+    if jaw == 'Upper' :
+        out['left'] = str(ma)
+        out['right'] = str(mi)
     else :
-        jaw = 'Lower'
-    for side in ['left','middle','right']:
-        for landmark in landmarks:
-            if landmark in  dic[jaw][side] :
-                out[side].append(landmark)
+        out['right'] = str(ma)
+        out['left'] = str(mi)
 
 
-    return out['left'][0], out['middle'], out['right'][0]
+
+    return out['left'], out['middle'], out['right']
 
 
 
 
 def PrePreAso(source,target,landmarks):
-    assert len(landmarks)==3 or len(landmarks)==4
+    assert len(landmarks)==3 or len(landmarks)==4, f'landmark : {landmarks}, number : {len(landmarks)} '
+    landmarks = landmarks.copy()
     left , middle, right = organizeLandmark(landmarks)
 
     if landmarks == 4 :
